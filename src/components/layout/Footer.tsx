@@ -141,13 +141,13 @@ export function Footer() {
               © {new Date().getFullYear()} Sereniquee Candles. All rights reserved.
             </p>
             <div className="flex gap-6 text-xs text-primary-foreground/50">
-              <Link to="/privacy" className="hover:text-primary-foreground/70 transition-colors">
+              <Link to="/privacy-policy" className="hover:text-primary-foreground/70 transition-colors">
                 Privacy Policy
               </Link>
-              <Link to="/terms" className="hover:text-primary-foreground/70 transition-colors">
+              <Link to="/terms-of-service" className="hover:text-primary-foreground/70 transition-colors">
                 Terms of Service
               </Link>
-              <Link to="/shipping" className="hover:text-primary-foreground/70 transition-colors">
+              <Link to="/shipping-returns" className="hover:text-primary-foreground/70 transition-colors">
                 Shipping & Returns
               </Link>
             </div>

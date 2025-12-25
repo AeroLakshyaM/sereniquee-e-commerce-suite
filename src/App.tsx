@@ -17,6 +17,9 @@ import Admin from "./pages/Admin";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import ShippingReturns from "./pages/ShippingReturns";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -106,6 +109,30 @@ const App = () => (
                 element={
                   <Layout>
                     <FAQ />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/privacy-policy"
+                element={
+                  <Layout>
+                    <PrivacyPolicy />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/terms-of-service"
+                element={
+                  <Layout>
+                    <TermsOfService />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/shipping-returns"
+                element={
+                  <Layout>
+                    <ShippingReturns />
                   </Layout>
                 }
               />

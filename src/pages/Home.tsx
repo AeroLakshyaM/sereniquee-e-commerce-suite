@@ -2,41 +2,64 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useFeaturedProducts } from '@/hooks/useProducts';
 import { ProductGrid } from '@/components/product/ProductGrid';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Flame, Heart, Leaf, Sparkles, Star, Timer } from 'lucide-react';
 
 export default function Home() {
   const { data: featuredProducts, isLoading } = useFeaturedProducts();
 
   return (
-    <div>
+    <div className="overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative min-h-[80vh] flex items-center">
-        <div className="absolute inset-0 bg-secondary">
-          <div className="absolute inset-0 bg-gradient-to-r from-background/80 to-transparent" />
+      <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-50/30 via-background to-stone-100/20 dark:from-amber-950/10 dark:via-background dark:to-stone-950/20">
+          <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+          {/* Subtle animated glow effect */}
+          <div className="absolute top-1/4 right-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-amber-200/20 dark:bg-amber-500/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 left-1/3 w-56 h-56 sm:w-80 sm:h-80 bg-orange-200/20 dark:bg-orange-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
         
-        <div className="container-luxury relative z-10">
-          <div className="max-w-2xl">
-            <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-6 animate-fade-in">
-              Artisan Candles
-            </p>
-            <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl font-medium leading-[1.1] mb-8 animate-slide-up">
+        <div className="container-luxury relative z-10 py-12 sm:py-16 md:py-20">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 mb-4 sm:mb-6 animate-fade-in">
+              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-amber-600 dark:text-amber-400" />
+              <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-muted-foreground">
+                Artisan Luxury Candles
+              </p>
+            </div>
+            <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-medium leading-[1.05] mb-6 sm:mb-8 animate-slide-up bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
               Illuminate Your
-              <span className="italic"> Serenity</span>
+              <span className="italic block mt-1 sm:mt-2 text-amber-700 dark:text-amber-500"> Serenity</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-lg mb-10 animate-slide-up" style={{ animationDelay: '100ms' }}>
-              Hand-poured luxury candles crafted with the finest natural ingredients,
-              designed to transform your space into a sanctuary of calm.
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mb-8 sm:mb-10 leading-relaxed animate-slide-up" style={{ animationDelay: '100ms' }}>
+              Hand-poured luxury candles crafted with the finest natural ingredients.
+              Transform your space into a sanctuary of calm and elegance.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 animate-slide-up" style={{ animationDelay: '200ms' }}>
-              <Link to="/shop">
-                <Button className="bg-primary text-primary-foreground px-8 py-6 text-sm hover:bg-primary/90 active:scale-[0.98] transition-all">
+            
+            {/* Quick Stats */}
+            <div className="grid grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12 max-w-xl animate-slide-up" style={{ animationDelay: '150ms' }}>
+              <div className="text-center">
+                <div className="font-serif text-xl sm:text-2xl md:text-3xl font-medium mb-1">100%</div>
+                <div className="text-[10px] sm:text-xs md:text-sm text-muted-foreground">Natural Soy</div>
+              </div>
+              <div className="text-center border-x border-border/50">
+                <div className="font-serif text-xl sm:text-2xl md:text-3xl font-medium mb-1">45h+</div>
+                <div className="text-[10px] sm:text-xs md:text-sm text-muted-foreground">Burn Time</div>
+              </div>
+              <div className="text-center">
+                <div className="font-serif text-xl sm:text-2xl md:text-3xl font-medium mb-1">Hand</div>
+                <div className="text-[10px] sm:text-xs md:text-sm text-muted-foreground">Poured</div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-slide-up" style={{ animationDelay: '200ms' }}>
+              <Link to="/shop" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto bg-primary text-primary-foreground px-8 sm:px-10 py-6 sm:py-7 text-sm sm:text-base hover:bg-primary/90 hover:shadow-lg active:scale-[0.98] transition-all group">
                   Shop Collection
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Link to="/about">
-                <Button variant="outline" className="px-8 py-6 text-sm border-foreground hover:bg-foreground hover:text-background transition-all">
+              <Link to="/about" className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto px-8 sm:px-10 py-6 sm:py-7 text-sm sm:text-base border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background transition-all">
                   Our Story
                 </Button>
               </Link>
@@ -45,77 +68,385 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Why Choose Us - Features Grid */}
+      <section className="container-luxury py-12 sm:py-16 md:py-20 border-b border-border/50">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          <div className="group text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/30 mb-4 group-hover:scale-110 transition-transform">
+              <Leaf className="h-6 w-6 text-amber-700 dark:text-amber-500" />
+            </div>
+            <h3 className="font-serif text-lg sm:text-xl mb-2 sm:mb-3">100% Natural</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed px-4">
+              Made with pure soy wax and premium essential oils, free from harmful chemicals and toxins.
+            </p>
+          </div>
+          
+          <div className="group text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/30 mb-4 group-hover:scale-110 transition-transform">
+              <Heart className="h-6 w-6 text-amber-700 dark:text-amber-500" />
+            </div>
+            <h3 className="font-serif text-lg sm:text-xl mb-2 sm:mb-3">Handcrafted Care</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed px-4">
+              Each candle is lovingly hand-poured in small batches to ensure exceptional quality.
+            </p>
+          </div>
+          
+          <div className="group text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/30 mb-4 group-hover:scale-110 transition-transform">
+              <Timer className="h-6 w-6 text-amber-700 dark:text-amber-500" />
+            </div>
+            <h3 className="font-serif text-lg sm:text-xl mb-2 sm:mb-3">Long Lasting</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed px-4">
+              45+ hours of clean, even burn time to fill your space with beautiful fragrance.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Featured Products */}
-      <section className="container-luxury py-24">
-        <div className="flex items-end justify-between mb-12">
-          <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-3">
+      <section className="container-luxury py-12 sm:py-16 md:py-24">
+        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+          <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
+            <Flame className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 dark:text-amber-400" />
+            <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-muted-foreground">
               Curated Selection
             </p>
-            <h2 className="font-serif text-3xl md:text-4xl">Bestsellers</h2>
           </div>
-          <Link to="/shop" className="hidden sm:flex items-center gap-2 text-sm hover:text-muted-foreground transition-colors">
-            View All
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl mb-3 sm:mb-4">Our Bestsellers</h2>
+          <p className="text-sm sm:text-base text-muted-foreground px-4">
+            Discover our most loved scents, handpicked for their exceptional quality and captivating aromas.
+          </p>
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="space-y-4">
-                <div className="aspect-[3/4] bg-muted animate-pulse" />
-                <div className="h-4 bg-muted animate-pulse w-3/4" />
-                <div className="h-4 bg-muted animate-pulse w-1/4" />
+              <div key={i} className="space-y-3 sm:space-y-4">
+                <div className="aspect-[3/4] bg-muted animate-pulse rounded-lg" />
+                <div className="h-3 sm:h-4 bg-muted animate-pulse w-3/4 rounded" />
+                <div className="h-3 sm:h-4 bg-muted animate-pulse w-1/4 rounded" />
               </div>
             ))}
           </div>
         ) : featuredProducts && featuredProducts.length > 0 ? (
-          <ProductGrid products={featuredProducts} />
+          <>
+            <ProductGrid products={featuredProducts} />
+            <div className="mt-8 sm:mt-12 text-center">
+              <Link to="/shop">
+                <Button variant="outline" className="px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background transition-all group">
+                  View Full Collection
+                  <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </div>
+          </>
         ) : (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground">No featured products yet. Add some in the admin dashboard.</p>
+          <div className="text-center py-12 sm:py-16 bg-secondary/30 rounded-lg mx-4">
+            <Sparkles className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground/50 mx-auto mb-3 sm:mb-4" />
+            <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4 px-4">No featured products yet. Add some in the admin dashboard.</p>
             <Link to="/admin">
-              <Button className="mt-4">Go to Admin</Button>
+              <Button className="text-sm sm:text-base">Go to Admin Dashboard</Button>
             </Link>
           </div>
         )}
+      </section>
 
-        <div className="sm:hidden mt-8 text-center">
-          <Link to="/shop" className="inline-flex items-center gap-2 text-sm hover:text-muted-foreground transition-colors">
-            View All Products
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+      {/* Signature Scents Preview */}
+      <section className="bg-gradient-to-b from-secondary/50 to-transparent py-12 sm:py-16 md:py-24">
+        <div className="container-luxury">
+          <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+            <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-muted-foreground mb-3 sm:mb-4">
+              Signature Collection
+            </p>
+            <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl mb-3 sm:mb-4 px-4">Crafted Aromas</h2>
+            <p className="text-sm sm:text-base text-muted-foreground px-4">
+              Each scent tells a story, carefully composed to evoke emotion and create atmosphere.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            <div className="group relative overflow-hidden rounded-lg bg-background border border-border/50 p-6 sm:p-8 hover:border-amber-500/50 hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-amber-100 dark:bg-amber-950/20 rounded-full blur-3xl -z-10 group-hover:scale-150 transition-transform duration-500" />
+              <div className="mb-4 sm:mb-6">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mb-3 sm:mb-4">
+                  <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-amber-600 dark:text-amber-400" />
+                </div>
+                <h3 className="font-serif text-xl sm:text-2xl mb-2">Warm & Cozy</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
+                  Vanilla, Amber, Sandalwood
+                </p>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Envelop yourself in comfort with rich, creamy notes that create an intimate, welcoming atmosphere perfect for quiet evenings.
+              </p>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-lg bg-background border border-border/50 p-6 sm:p-8 hover:border-amber-500/50 hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-green-100 dark:bg-green-950/20 rounded-full blur-3xl -z-10 group-hover:scale-150 transition-transform duration-500" />
+              <div className="mb-4 sm:mb-6">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-50 dark:bg-green-950/30 flex items-center justify-center mb-3 sm:mb-4">
+                  <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 dark:text-green-400" />
+                </div>
+                <h3 className="font-serif text-xl sm:text-2xl mb-2">Fresh & Clean</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
+                  Eucalyptus, Mint, Sage
+                </p>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Revitalize your space with crisp, invigorating scents that bring the freshness of nature indoors.
+              </p>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-lg bg-background border border-border/50 p-6 sm:p-8 hover:border-amber-500/50 hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-purple-100 dark:bg-purple-950/20 rounded-full blur-3xl -z-10 group-hover:scale-150 transition-transform duration-500" />
+              <div className="mb-4 sm:mb-6">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-purple-50 dark:bg-purple-950/30 flex items-center justify-center mb-3 sm:mb-4">
+                  <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h3 className="font-serif text-xl sm:text-2xl mb-2">Floral & Light</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
+                  Lavender, Rose, Jasmine
+                </p>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Experience delicate, romantic fragrances that uplift the spirit and create an airy, elegant ambiance.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Brand Story Teaser */}
-      <section className="bg-secondary py-24">
+      <section className="py-12 sm:py-16 md:py-24">
         <div className="container-luxury">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-3">
-                Our Craft
-              </p>
-              <h2 className="font-serif text-3xl md:text-4xl mb-6">
-                Made with Intention
+          <div className="grid md:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center">
+            <div className="order-2 md:order-1">
+              <div className="flex items-center gap-2 mb-4 sm:mb-6">
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 dark:text-amber-400" />
+                <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-muted-foreground">
+                  Our Craft
+                </p>
+              </div>
+              <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl mb-4 sm:mb-6 leading-tight">
+                Made with Intention & Love
               </h2>
-              <p className="text-muted-foreground leading-relaxed mb-8">
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-4 sm:mb-6">
                 Each Sereniquee candle is hand-poured in small batches using premium
                 soy wax and carefully curated fragrance oils. We believe in slow
                 craftsmanship and sustainable practices that honor both our customers
                 and the environment.
               </p>
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-6 sm:mb-8">
+                From selecting the finest ingredients to the final packaging, every step
+                is infused with care and attention to detail. Our candles aren't just
+                products—they're an experience, a moment of peace in your busy day.
+              </p>
               <Link to="/about">
-                <Button variant="outline" className="border-foreground hover:bg-foreground hover:text-background transition-all">
-                  Learn More
+                <Button variant="outline" className="w-full sm:w-auto px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background transition-all group">
+                  Discover Our Story
+                  <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </div>
-            <div className="aspect-square bg-muted/50">
-              {/* Placeholder for brand image */}
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="font-serif text-2xl text-muted-foreground/50">Sereniquee</span>
+            <div className="order-1 md:order-2 relative">
+              <div className="aspect-square bg-gradient-to-br from-amber-100 to-stone-100 dark:from-amber-950/30 dark:to-stone-950/30 rounded-lg overflow-hidden relative group">
+                {/* Decorative elements */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative">
+                    <Flame className="h-24 w-24 sm:h-32 sm:w-32 text-amber-600/20 dark:text-amber-400/20 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="font-serif text-2xl sm:text-3xl md:text-4xl text-foreground/60">Sereniquee</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-background/40 to-transparent" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials / Social Proof */}
+      <section className="bg-secondary/50 py-12 sm:py-16 md:py-24 overflow-hidden">
+        <div className="container-luxury">
+          <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+            <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-muted-foreground mb-3 sm:mb-4">
+              Customer Love
+            </p>
+            <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl mb-3 sm:mb-4 px-4">What Our Customers Say</h2>
+          </div>
+
+          <div className="relative">
+            {/* Gradient overlays for smooth fade effect */}
+            <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-secondary/50 to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-secondary/50 to-transparent z-10 pointer-events-none" />
+            
+            {/* Scrolling container */}
+            <div className="flex gap-4 sm:gap-8 animate-scroll">
+              {/* First set of testimonials */}
+              <div className="flex gap-4 sm:gap-8 shrink-0">
+                <div className="bg-background rounded-lg p-6 sm:p-8 border border-border/50 hover:border-amber-500/30 transition-colors w-[280px] sm:w-[350px] shrink-0">
+                  <div className="flex gap-1 mb-3 sm:mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-500 text-amber-500" />
+                    ))}
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 sm:mb-6">
+                    "Absolutely divine! The lavender candle has transformed my evening routine. 
+                    The scent is so calming and natural, nothing artificial about it."
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-medium text-sm">
+                      P
+                    </div>
+                    <div>
+                      <div className="font-medium text-xs sm:text-sm">Priya S.</div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">Mumbai</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-background rounded-lg p-6 sm:p-8 border border-border/50 hover:border-amber-500/30 transition-colors w-[280px] sm:w-[350px] shrink-0">
+                  <div className="flex gap-1 mb-3 sm:mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-500 text-amber-500" />
+                    ))}
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 sm:mb-6">
+                    "Best candles I've ever purchased! They burn evenly, last long, and the 
+                    packaging is beautiful. Perfect for gifting too."
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-medium text-sm">
+                      A
+                    </div>
+                    <div>
+                      <div className="font-medium text-xs sm:text-sm">Ananya R.</div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">Bangalore</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-background rounded-lg p-6 sm:p-8 border border-border/50 hover:border-amber-500/30 transition-colors w-[280px] sm:w-[350px] shrink-0">
+                  <div className="flex gap-1 mb-3 sm:mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-500 text-amber-500" />
+                    ))}
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 sm:mb-6">
+                    "The attention to detail is remarkable. You can tell each candle is made 
+                    with care. The scents are sophisticated and not overwhelming."
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-medium text-sm">
+                      R
+                    </div>
+                    <div>
+                      <div className="font-medium text-xs sm:text-sm">Rahul M.</div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">Delhi</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Duplicate set for seamless loop */}
+              <div className="flex gap-4 sm:gap-8 shrink-0" aria-hidden="true">
+                <div className="bg-background rounded-lg p-6 sm:p-8 border border-border/50 hover:border-amber-500/30 transition-colors w-[280px] sm:w-[350px] shrink-0">
+                  <div className="flex gap-1 mb-3 sm:mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-500 text-amber-500" />
+                    ))}
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 sm:mb-6">
+                    "Absolutely divine! The lavender candle has transformed my evening routine. 
+                    The scent is so calming and natural, nothing artificial about it."
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-medium text-sm">
+                      P
+                    </div>
+                    <div>
+                      <div className="font-medium text-xs sm:text-sm">Priya S.</div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">Mumbai</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-background rounded-lg p-6 sm:p-8 border border-border/50 hover:border-amber-500/30 transition-colors w-[280px] sm:w-[350px] shrink-0">
+                  <div className="flex gap-1 mb-3 sm:mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-500 text-amber-500" />
+                    ))}
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 sm:mb-6">
+                    "Best candles I've ever purchased! They burn evenly, last long, and the 
+                    packaging is beautiful. Perfect for gifting too."
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-medium text-sm">
+                      A
+                    </div>
+                    <div>
+                      <div className="font-medium text-xs sm:text-sm">Ananya R.</div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">Bangalore</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-background rounded-lg p-6 sm:p-8 border border-border/50 hover:border-amber-500/30 transition-colors w-[280px] sm:w-[350px] shrink-0">
+                  <div className="flex gap-1 mb-3 sm:mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-500 text-amber-500" />
+                    ))}
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 sm:mb-6">
+                    "The attention to detail is remarkable. You can tell each candle is made 
+                    with care. The scents are sophisticated and not overwhelming."
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-medium text-sm">
+                      R
+                    </div>
+                    <div>
+                      <div className="font-medium text-xs sm:text-sm">Rahul M.</div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">Delhi</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-12 sm:py-16 md:py-24">
+        <div className="container-luxury px-4">
+          <div className="max-w-4xl mx-auto text-center bg-gradient-to-br from-amber-50 to-stone-50 dark:from-amber-950/20 dark:to-stone-950/20 rounded-2xl p-8 sm:p-12 md:p-16 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 sm:w-64 sm:h-64 bg-amber-200/30 dark:bg-amber-500/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 sm:w-64 sm:h-64 bg-orange-200/30 dark:bg-orange-500/10 rounded-full blur-3xl" />
+            
+            <div className="relative z-10">
+              <Sparkles className="h-10 w-10 sm:h-12 sm:w-12 text-amber-600 dark:text-amber-400 mx-auto mb-4 sm:mb-6" />
+              <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl mb-4 sm:mb-6 px-4">
+                Begin Your Journey to Serenity
+              </h2>
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
+                Explore our collection and find the perfect candle to transform your space 
+                into a haven of peace and tranquility.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
+                <Link to="/shop" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto px-8 sm:px-10 py-6 sm:py-7 text-sm sm:text-base hover:shadow-lg transition-all group">
+                    Shop Now
+                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                <Link to="/contact" className="w-full sm:w-auto">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto px-8 sm:px-10 py-6 sm:py-7 text-sm sm:text-base border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background transition-all">
+                    Get in Touch
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
