@@ -60,45 +60,41 @@ export default function About() {
               {/* Profile Image */}
               <div className="mx-auto md:mx-0">
                 <div className="aspect-square w-full max-w-[300px] bg-muted rounded-sm overflow-hidden">
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="font-serif text-4xl text-muted-foreground/30">SK</span>
-                  </div>
+                  <img 
+                    src="/owner-pic.jpeg" 
+                    alt="Sarah Katherine - Founder" 
+                    className="w-full h-full object-contain"
+                  />
                 </div>
               </div>
 
               {/* Profile Content */}
               <div>
-                <h3 className="font-serif text-2xl mb-2">Sarah Katherine</h3>
+                <h3 className="font-serif text-2xl mb-2">Sushiksha Mishra</h3>
                 <p className="text-accent text-sm mb-6 uppercase tracking-wider">
-                  Founder & Artisan
+                  Founder & Lead Artisan
                 </p>
                 
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  "I've always been captivated by the power of scent—how a single fragrance 
-                  can transport you to a cherished memory or create an entirely new atmosphere. 
-                  After years in corporate life, I decided to follow my passion and create 
-                  something meaningful."
+                  "I founded Sereniquee with a simple philosophy: a candle is more than just wax and wick—it is 
+                  an experience. My journey began with a desire to create something that not only elevates a 
+                  room's aesthetic but does so consciously, using eco-friendly materials that honor our environment."
                 </p>
                 
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  With a background in aromatherapy and a love for minimalist design, I founded 
-                  Sereniquee in 2020. Each candle is a reflection of my belief that luxury should 
-                  be accessible, sustainable, and intentional. I personally oversee every batch, 
-                  ensuring that each candle meets the standards I set for my own home.
+                  Specializing in premium soy wax blends, I personally hand-pour every batch to ensure perfection. 
+                  My creative process is driven by a passion for artistic expression and decorative beauty, 
+                  transforming everyday moments into aromatic memories. Quality and sustainability aren't just 
+                  buzzwords to me; they are the heart of every candle I create.
                 </p>
                 
                 <p className="text-muted-foreground leading-relaxed mb-6">
-                  When I'm not in the studio perfecting new scent blends, you'll find me 
-                  exploring nature trails, practicing meditation, or curating playlists for 
-                  the perfect candlelit evening. Sereniquee is more than a business—it's my 
-                  way of sharing moments of peace and beauty with you.
+                  When I am not in the studio experimenting with new fragrances, you can find me tending to my 
+                  garden or exploring traditional art forms, finding inspiration in nature's palette. Sereniquee 
+                  is my invitation to you to pause, breathe, and embrace the serenity of the present moment.
                 </p>
 
-                <div className="flex flex-wrap gap-3 pt-4 border-t border-border">
-                  <span className="px-4 py-2 bg-secondary text-sm rounded-sm">Certified Aromatherapist</span>
-                  <span className="px-4 py-2 bg-secondary text-sm rounded-sm">Sustainability Advocate</span>
-                  <span className="px-4 py-2 bg-secondary text-sm rounded-sm">Small Batch Artisan</span>
-                </div>
+                
               </div>
             </div>
           </div>

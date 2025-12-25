@@ -50,7 +50,7 @@ export function Footer() {
             {/* Social Links */}
             <div className="flex gap-4">
               <a 
-                href="https://instagram.com/sereniquee" 
+                href="https://www.instagram.com/sereniquee.candles.co?utm_source=qr&igsh=MXFnNXF1b2VnendpZQ==" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="h-10 w-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors"

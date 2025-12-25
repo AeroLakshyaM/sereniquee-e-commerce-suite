@@ -17,30 +17,23 @@ export function Navbar() {
           {/* Desktop Navigation - Left */}
           <div className="hidden md:flex items-center gap-8">
             <Link
-              to="/"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors animate-slide-down"
-              style={{ animationDelay: '0.1s' }}
-            >
-              Home
-            </Link>
-            <Link
               to="/shop"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors animate-slide-down"
-              style={{ animationDelay: '0.2s' }}
+              style={{ animationDelay: '0.1s' }}
             >
               Shop
             </Link>
             <Link
               to="/about"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors animate-slide-down"
-              style={{ animationDelay: '0.3s' }}
+              style={{ animationDelay: '0.2s' }}
             >
               About
             </Link>
             <Link
               to="/contact"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors animate-slide-down"
-              style={{ animationDelay: '0.4s' }}
+              style={{ animationDelay: '0.3s' }}
             >
               Contact
             </Link>
@@ -48,7 +41,7 @@ export function Navbar() {
               <Link
                 to="/admin"
                 className="text-sm font-medium text-accent hover:text-accent/80 transition-colors animate-slide-down"
-                style={{ animationDelay: '0.5s' }}
+                style={{ animationDelay: '0.4s' }}
               >
                 Admin
               </Link>
@@ -99,13 +92,6 @@ export function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border py-4 animate-fade-in">
             <div className="flex flex-col gap-4">
-              <Link
-                to="/"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Home
-              </Link>
               <Link
                 to="/shop"
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"

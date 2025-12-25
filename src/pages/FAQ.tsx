@@ -111,7 +111,7 @@ export default function FAQ() {
       questions: [
         {
           q: "Where are your candles made?",
-          a: "All our candles are hand-poured in small batches in our Brooklyn, NY studio. Each candle is crafted with care and attention to detail by our founder and team of artisans."
+          a: "All our candles are hand-poured in small batches in our Indore, India studio. Each candle is crafted with care and attention to detail by our founder and team of artisans."
         },
         {
           q: "Are your candles tested on animals?",

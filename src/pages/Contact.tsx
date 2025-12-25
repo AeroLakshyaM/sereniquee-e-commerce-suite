@@ -124,13 +124,19 @@ export default function Contact() {
                 <div>
                   <h3 className="font-semibold mb-1">Call Us</h3>
                   <a 
-                    href="tel:+11234567890" 
-                    className="text-muted-foreground hover:text-accent transition-colors"
+                    href="tel:+919827310636" 
+                    className="text-muted-foreground hover:text-accent transition-colors block"
                   >
-                    +1 (123) 456-7890
+                    +91 - 9827310636
+                  </a>
+                  <a 
+                    href="tel:+918770222006" 
+                    className="text-muted-foreground hover:text-accent transition-colors block"
+                  >
+                    +91 - 8770222006
                   </a>
                   <p className="text-sm text-muted-foreground/70 mt-1">
-                    Mon-Fri: 9am - 6pm EST
+                    Mon-Sun: 7am - 10pm IST
                   </p>
                 </div>
               </div>
@@ -143,9 +149,9 @@ export default function Contact() {
                 <div>
                   <h3 className="font-semibold mb-1">Visit Our Studio</h3>
                   <p className="text-muted-foreground">
-                    123 Candle Lane<br />
-                    Brooklyn, NY 11201<br />
-                    United States
+                    131, Telephone Nagar Extension<br />
+                    Indore 452018<br />
+                    India
                   </p>
                   <p className="text-sm text-muted-foreground/70 mt-2">
                     By appointment only
@@ -270,17 +276,16 @@ export default function Contact() {
               <div className="bg-background p-6 rounded-sm">
                 <h3 className="font-semibold mb-3">Customer Support</h3>
                 <div className="text-sm text-muted-foreground space-y-1">
-                  <p>Monday - Friday: 9:00 AM - 6:00 PM EST</p>
-                  <p>Saturday: 10:00 AM - 4:00 PM EST</p>
-                  <p>Sunday: Closed</p>
+                  <p>Monday to Sunday</p>
+                  <p>7:00 AM - 10:00 PM IST</p>
                 </div>
               </div>
               <div className="bg-background p-6 rounded-sm">
                 <h3 className="font-semibold mb-3">Studio Visits</h3>
                 <div className="text-sm text-muted-foreground space-y-1">
                   <p>By appointment only</p>
-                  <p>Tuesday - Saturday</p>
-                  <p>Email us to schedule</p>
+                  <p>Monday to Sunday</p>
+                  <p>Email or call us to schedule</p>
                 </div>
               </div>
             </div>
