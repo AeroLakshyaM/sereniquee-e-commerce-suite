@@ -8,10 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, BarChart3, Users, ShoppingCart, Calendar, Package } from 'lucide-react';
 import { Product } from '@/types';
+import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
+import UsersManagement from '@/components/admin/UsersManagement';
+import OrdersManagement from '@/components/admin/OrdersManagement';
+import CalendarView from '@/components/admin/CalendarView';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -20,6 +25,7 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  const [activeTab, setActiveTab] = useState('analytics');
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
@@ -154,16 +160,50 @@ export default function Admin() {
 
   return (
     <div className="container-luxury py-12">
-      <div className="flex items-center justify-between mb-12">
-        <h1 className="font-serif text-3xl md:text-4xl">Admin Dashboard</h1>
-        <Button onClick={() => setShowForm(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Product
-        </Button>
+      <div className="mb-8">
+        <h1 className="font-serif text-3xl md:text-4xl mb-2">Admin Dashboard</h1>
+        <p className="text-muted-foreground">Manage your e-commerce platform</p>
       </div>
 
-      {/* Product Form Modal */}
-      {showForm && (
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto">
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            <span className="hidden sm:inline">Analytics</span>
+          </TabsTrigger>
+          <TabsTrigger value="products" className="flex items-center gap-2">
+            <Package className="h-4 w-4" />
+            <span className="hidden sm:inline">Products</span>
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            <span className="hidden sm:inline">Orders</span>
+          </TabsTrigger>
+          <TabsTrigger value="users" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            <span className="hidden sm:inline">Users</span>
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            <span className="hidden sm:inline">Calendar</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <AnalyticsDashboard />
+        </TabsContent>
+
+        <TabsContent value="products" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-serif text-2xl">Product Management</h2>
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
+          </div>
+
+          {/* Product Form Modal */}
+          {showForm && (
         <div className="fixed inset-0 bg-foreground/20 z-50 flex items-center justify-center p-4">
           <div className="bg-background w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-elegant p-6">
             <div className="flex items-center justify-between mb-6">
@@ -264,8 +304,8 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Products Table */}
-      <div className="bg-card shadow-soft overflow-hidden">
+          {/* Products Table */}
+          <div className="bg-card shadow-soft overflow-hidden">
         {isLoading ? (
           <div className="p-8 text-center">
             <div className="animate-pulse text-muted-foreground">Loading products...</div>
@@ -343,7 +383,21 @@ export default function Admin() {
             <p className="text-muted-foreground">No products yet. Add your first product!</p>
           </div>
         )}
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="orders" className="space-y-6">
+          <OrdersManagement />
+        </TabsContent>
+
+        <TabsContent value="users" className="space-y-6">
+          <UsersManagement />
+        </TabsContent>
+
+        <TabsContent value="calendar" className="space-y-6">
+          <CalendarView />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
