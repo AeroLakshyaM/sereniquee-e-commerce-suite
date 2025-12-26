@@ -54,6 +54,23 @@ export function useProduct(id: string) {
   });
 }
 
+export function useProductBySlug(slug: string) {
+  return useQuery({
+    queryKey: ['product', 'slug', slug],
+    queryFn: async (): Promise<Product | null> => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('slug', slug)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data as Product | null;
+    },
+    enabled: !!slug,
+  });
+}
+
 export function useCategories() {
   return useQuery({
     queryKey: ['categories'],

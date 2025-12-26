@@ -57,7 +57,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/product/:id"
+                path="/product/:slug"
                 element={
                   <Layout>
                     <ProductDetail />

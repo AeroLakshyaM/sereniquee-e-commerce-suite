@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useProduct } from '@/hooks/useProducts';
+import { useProductBySlug } from '@/hooks/useProducts';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { Minus, Plus, ArrowLeft } from 'lucide-react';
 
 export default function ProductDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { data: product, isLoading } = useProduct(id!);
+  const { data: product, isLoading } = useProductBySlug(slug!);
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
 

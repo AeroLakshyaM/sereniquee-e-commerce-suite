@@ -20,7 +20,7 @@ export function ProductCard({ product, featured }: ProductCardProps) {
 
   return (
     <Link
-      to={`/product/${product.id}`}
+      to={`/product/${product.slug}`}
       className="group block"
     >
       <div className="relative overflow-hidden bg-secondary aspect-[3/4] mb-4">
