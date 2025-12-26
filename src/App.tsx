@@ -15,6 +15,7 @@ import BlogPost from "./pages/BlogPost";
 import Auth from "./pages/Auth";
 import Checkout from "./pages/Checkout";
 import Profile from "./pages/Profile";
+import Wishlist from "./pages/Wishlist";
 import Admin from "./pages/Admin";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -95,6 +96,14 @@ const App = () => (
                 element={
                   <Layout>
                     <Profile />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/wishlist"
+                element={
+                  <Layout>
+                    <Wishlist />
                   </Layout>
                 }
               />

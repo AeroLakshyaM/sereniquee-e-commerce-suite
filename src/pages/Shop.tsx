@@ -12,17 +12,55 @@ export default function Shop() {
   const { data: products, isLoading } = useProducts(selectedCategory);
   const { data: categories } = useCategories();
 
-  // Filter products based on search query
+  // Advanced search function with keyword matching
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     if (!searchQuery) return products;
 
-    const query = searchQuery.toLowerCase();
-    return products.filter(product => 
-      product.name.toLowerCase().includes(query) ||
-      product.description?.toLowerCase().includes(query) ||
-      product.category?.toLowerCase().includes(query)
-    );
+    const query = searchQuery.toLowerCase().trim();
+    const keywords = query.split(/\s+/); // Split by spaces to get individual keywords
+
+    return products.filter(product => {
+      // Create searchable text from all product fields
+      const searchableText = [
+        product.name,
+        product.description || '',
+        product.category || '',
+      ].join(' ').toLowerCase();
+
+      // Check if ALL keywords are present (AND logic)
+      const matchesAllKeywords = keywords.every(keyword => 
+        searchableText.includes(keyword)
+      );
+
+      // Also check if ANY keyword matches (OR logic for more results)
+      const matchesAnyKeyword = keywords.some(keyword => 
+        searchableText.includes(keyword)
+      );
+
+      // Return products that match all keywords first, then any keyword
+      return matchesAllKeywords || matchesAnyKeyword;
+    }).sort((a, b) => {
+      // Prioritize products that match ALL keywords
+      const aMatchesAll = keywords.every(keyword => 
+        [a.name, a.description || '', a.category || ''].join(' ').toLowerCase().includes(keyword)
+      );
+      const bMatchesAll = keywords.every(keyword => 
+        [b.name, b.description || '', b.category || ''].join(' ').toLowerCase().includes(keyword)
+      );
+
+      if (aMatchesAll && !bMatchesAll) return -1;
+      if (!aMatchesAll && bMatchesAll) return 1;
+
+      // Then prioritize name matches over description matches
+      const aNameMatch = a.name.toLowerCase().includes(query);
+      const bNameMatch = b.name.toLowerCase().includes(query);
+      
+      if (aNameMatch && !bNameMatch) return -1;
+      if (!aNameMatch && bNameMatch) return 1;
+
+      return 0;
+    });
   }, [products, searchQuery]);
 
   return (
@@ -34,9 +72,14 @@ export default function Shop() {
         </p>
         <h1 className="font-serif text-4xl md:text-5xl">Shop Candles</h1>
         {searchQuery && (
-          <p className="text-muted-foreground mt-4">
-            Showing results for "{searchQuery}" ({filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'})
-          </p>
+          <div className="mt-4 space-y-2">
+            <p className="text-muted-foreground">
+              Showing results for <span className="font-semibold text-foreground">"{searchQuery}"</span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
+            </p>
+          </div>
         )}
       </div>
 
@@ -75,13 +118,24 @@ export default function Shop() {
       ) : filteredProducts && filteredProducts.length > 0 ? (
         <ProductGrid products={filteredProducts} masonry />
       ) : (
-        <div className="text-center py-16">
-          <p className="text-muted-foreground">
+        <div className="text-center py-16 space-y-4">
+          <p className="text-lg text-muted-foreground">
             {searchQuery 
-              ? `No products found matching "${searchQuery}". Try different keywords.`
+              ? `No products found matching "${searchQuery}"`
               : 'No products found in this category.'
             }
           </p>
+          {searchQuery && (
+            <div className="text-sm text-muted-foreground space-y-2">
+              <p>Search tips:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Try using different keywords (e.g., "lavender", "vanilla", "relaxing")</li>
+                <li>Check your spelling</li>
+                <li>Use more general terms</li>
+                <li>Try searching by scent, color, or mood</li>
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </div>

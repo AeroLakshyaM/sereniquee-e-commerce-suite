@@ -1,10 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, User, Menu, X, Search } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useProducts } from '@/hooks/useProducts';
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -13,6 +14,7 @@ export function Navbar() {
   const { totalItems, setIsCartOpen } = useCart();
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { data: products } = useProducts('all');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +23,58 @@ export function Navbar() {
       setSearchQuery('');
       setSearchOpen(false);
     }
+  };
+
+  // Filter products based on search query
+  const searchResults = useMemo(() => {
+    if (!products || !searchQuery.trim()) return [];
+
+    const query = searchQuery.toLowerCase().trim();
+    const keywords = query.split(/\s+/);
+
+    return products
+      .filter(product => {
+        const searchableText = [
+          product.name,
+          product.description || '',
+          product.category || '',
+        ].join(' ').toLowerCase();
+
+        const matchesAllKeywords = keywords.every(keyword => 
+          searchableText.includes(keyword)
+        );
+        const matchesAnyKeyword = keywords.some(keyword => 
+          searchableText.includes(keyword)
+        );
+
+        return matchesAllKeywords || matchesAnyKeyword;
+      })
+      .sort((a, b) => {
+        const aMatchesAll = keywords.every(keyword => 
+          [a.name, a.description || '', a.category || ''].join(' ').toLowerCase().includes(keyword)
+        );
+        const bMatchesAll = keywords.every(keyword => 
+          [b.name, b.description || '', b.category || ''].join(' ').toLowerCase().includes(keyword)
+        );
+
+        if (aMatchesAll && !bMatchesAll) return -1;
+        if (!aMatchesAll && bMatchesAll) return 1;
+
+        const aNameMatch = a.name.toLowerCase().includes(query);
+        const bNameMatch = b.name.toLowerCase().includes(query);
+        
+        if (aNameMatch && !bNameMatch) return -1;
+        if (!aNameMatch && bNameMatch) return 1;
+
+        return 0;
+      })
+      .slice(0, 6); // Limit to 6 results
+  }, [products, searchQuery]);
+
+  const handleProductClick = (slug: string) => {
+    navigate(`/product/${slug}`);
+    setSearchQuery('');
+    setSearchOpen(false);
   };
 
   // Close mobile menu when window is resized to desktop
@@ -174,6 +228,73 @@ export function Navbar() {
                   autoFocus
                 />
               </form>
+
+              {/* Search Results Dropdown */}
+              {searchQuery.trim() && searchResults.length > 0 && (
+                <div className="mt-4 bg-background border border-border rounded-lg shadow-lg overflow-hidden">
+                  <div className="max-h-[400px] overflow-y-auto">
+                    {searchResults.map((product) => (
+                      <button
+                        key={product.id}
+                        onClick={() => handleProductClick(product.slug)}
+                        className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left border-b border-border last:border-b-0"
+                      >
+                        <div className="flex-shrink-0 w-16 h-16 bg-muted rounded-md overflow-hidden">
+                          {product.image_url ? (
+                            <img
+                              src={product.image_url}
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-sm truncate">{product.name}</h3>
+                          <p className="text-xs text-muted-foreground line-clamp-1">
+                            {product.description}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-sm font-semibold">${product.price}</span>
+                            {product.stock_quantity !== undefined && (
+                              <span className={`text-xs ${
+                                product.stock_quantity === 0 
+                                  ? 'text-destructive' 
+                                  : product.stock_quantity <= 5 
+                                    ? 'text-orange-500' 
+                                    : 'text-green-600'
+                              }`}>
+                                {product.stock_quantity === 0 
+                                  ? 'Out of stock' 
+                                  : product.stock_quantity <= 5 
+                                    ? `Only ${product.stock_quantity} left` 
+                                    : 'In stock'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={handleSearch}
+                    className="w-full p-3 text-sm text-primary hover:bg-muted/50 transition-colors font-medium border-t border-border"
+                  >
+                    View all results for "{searchQuery}"
+                  </button>
+                </div>
+              )}
+
+              {/* No results message */}
+              {searchQuery.trim() && searchResults.length === 0 && (
+                <div className="mt-4 p-4 bg-muted/30 border border-border rounded-lg text-center">
+                  <p className="text-sm text-muted-foreground">
+                    No products found for "{searchQuery}"
+                  </p>
+                </div>
+              )}
+
               <p className="text-xs text-muted-foreground mt-2">
                 Press Enter to search or ESC to close
               </p>
