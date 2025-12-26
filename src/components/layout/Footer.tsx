@@ -112,7 +112,7 @@ export function Footer() {
               </li>
               <li>
                 <Link to="/blogs" className="text-primary-foreground/70 hover:text-primary-foreground hover:translate-x-1 transition-all inline-block text-sm">
-                  Journal
+                  Blogs
                 </Link>
               </li>
               <li>

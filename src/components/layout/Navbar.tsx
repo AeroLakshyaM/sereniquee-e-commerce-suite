@@ -168,10 +168,10 @@ export function Navbar() {
               )}
             </div>
 
-            {/* Logo - Center on Desktop, Left-Center on Mobile */}
+            {/* Logo - Slightly Left of Center on Desktop */}
             <Link 
               to="/" 
-              className="flex items-center md:absolute md:left-1/2 md:transform md:-translate-x-1/2 animate-slide-down" 
+              className="flex items-center md:absolute md:left-[42%] md:transform md:-translate-x-1/2 animate-slide-down" 
               style={{ animationDelay: '0.2s' }}
             >
               <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-serif font-semibold tracking-wide whitespace-nowrap">

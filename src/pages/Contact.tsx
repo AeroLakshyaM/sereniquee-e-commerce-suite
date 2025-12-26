@@ -267,6 +267,41 @@ export default function Contact() {
         </div>
       </section>
 
+      {/* Google Maps Location */}
+      <section className="py-16">
+        <div className="container-luxury">
+          <div className="text-center mb-8">
+            <h2 className="font-serif text-3xl mb-3">Find Us Here</h2>
+            <p className="text-muted-foreground">
+              Visit our studio in Indore, Madhya Pradesh
+            </p>
+          </div>
+          <div className="rounded-lg overflow-hidden shadow-xl border border-border">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3517.1764805281423!2d75.90058437510707!3d22.72461857938375!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3962e2ca5524e715%3A0xccb490ec69aacddb!2s131%2C%20Telephone%20Nagar%2C%20Indore%2C%20Madhya%20Pradesh%20452018!5e1!3m2!1sen!2sin!4v1766750971044!5m2!1sen!2sin"
+              width="100%"
+              height="450"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Sereniquee Candles Location - 131, Telephone Nagar, Indore"
+            />
+          </div>
+          <div className="mt-6 text-center">
+            <a
+              href="https://www.google.com/maps/dir//Telephone+Nagar,+Indore,+Madhya+Pradesh+452018"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <MapPin className="h-4 w-4" />
+              Get directions on Google Maps
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Business Hours */}
       <section className="bg-secondary py-16">
         <div className="container-luxury">

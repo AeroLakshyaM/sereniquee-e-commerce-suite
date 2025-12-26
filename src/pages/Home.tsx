@@ -253,17 +253,18 @@ export default function Home() {
               </Link>
             </div>
             <div className="order-1 md:order-2 relative">
-              <div className="aspect-square bg-gradient-to-br from-amber-100 to-stone-100 dark:from-amber-950/30 dark:to-stone-950/30 rounded-lg overflow-hidden relative group">
-                {/* Decorative elements */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative">
-                    <Flame className="h-24 w-24 sm:h-32 sm:w-32 text-amber-600/20 dark:text-amber-400/20 group-hover:scale-110 transition-transform duration-500" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="font-serif text-2xl sm:text-3xl md:text-4xl text-foreground/60">Sereniquee</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-background/40 to-transparent" />
+              <div className="aspect-square rounded-lg overflow-hidden relative group shadow-xl">
+                {/* Main Image */}
+                <img 
+                  src="/landing-candles.jpg" 
+                  alt="Hand-poured luxury candles by Sereniquee"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                {/* Subtle gradient overlay for depth */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-60" />
+                {/* Decorative corner accent */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-500/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-amber-500/20 to-transparent" />
               </div>
             </div>
           </div>
