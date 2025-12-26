@@ -46,7 +46,7 @@ export default function Home() {
                 <div className="text-[10px] sm:text-xs md:text-sm text-muted-foreground">Natural Soy</div>
               </div>
               <div className="text-center border-x border-border/50">
-                <div className="font-serif text-xl sm:text-2xl md:text-3xl font-medium mb-1">45h+</div>
+                <div className="font-serif text-xl sm:text-2xl md:text-3xl font-medium mb-1">10h+</div>
                 <div className="text-[10px] sm:text-xs md:text-sm text-muted-foreground">Burn Time</div>
               </div>
               <div className="text-center">
