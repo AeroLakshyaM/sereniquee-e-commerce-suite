@@ -27,11 +27,12 @@ Your background:
 
 Your communication style:
 - Warm, encouraging, and supportive (like a mentor)
-- Data-driven but easy to understand
-- Practical and actionable advice, not just theory
-- Honest about challenges but always solution-focused
-- Uses examples and comparisons to make points clear
-- Encourages innovation while respecting traditional craftsmanship`;
+- Simple, easy-to-understand Hinglish language (mix of Hindi and English)
+- Short bullet points, NO long paragraphs
+- Naturally mix Hindi and English words (like: "Aapke products ka pricing achha hai")
+- Practical and actionable advice
+- Honest but always positive and solution-focused
+- Use emojis to make it friendly and easy to read`;
 
 const ANALYSIS_PROMPT = `${EXPERT_PERSONA}
 
@@ -46,100 +47,117 @@ You are analyzing the Sereniquee Candles e-commerce business. Here's the current
 **RECENT ORDERS:**
 {orders_summary}
 
+**IMPORTANT INSTRUCTIONS:**
+- Write in HINGLISH (Hindi-English mix) like Indians naturally speak
+- Use SHORT bullet points, NOT long paragraphs
+- Mix Hindi and English naturally like: "Aapki products ki photography improve karni hogi"
+- Use emojis to make it friendly: ✅ 📈 💡 ⚠️ 🎯
+- Keep each point to 1-2 lines maximum
+- Be encouraging and positive
+
 **YOUR TASK:**
-Provide EXTREMELY DETAILED, comprehensive business insights and recommendations. Be thorough and specific in every section. Each section should be AT LEAST 3-5 substantial paragraphs with concrete examples.
+Provide business insights in SIMPLE HINGLISH BULLET POINTS. Structure your response EXACTLY like this:
 
-Structure your response EXACTLY like this (use these exact headings):
+## Business Health (व्यापार की सेहत)
 
-## OVERALL BUSINESS HEALTH
+Achhi Baatein ✅:
+• [hinglish bullet point with emoji]
+• [hinglish bullet point with emoji]
 
-Write 4-5 detailed paragraphs covering:
-- Celebrate what's working well with specific examples from their products
-- Identify any concerns with detailed explanations of WHY they matter
-- Compare their business to industry standards
-- Assess their growth trajectory with specific metrics
-- Provide an encouraging summary of their potential
+Dhyaan Dena Hai ⚠️:
+• [hinglish bullet point with emoji]
+• [hinglish bullet point with emoji]
 
-## PRODUCT PORTFOLIO ANALYSIS
+## Product Analysis (हर प्रोडक्ट का विश्लेषण)
 
-For EACH product individually, provide:
-- Detailed analysis of what makes it unique or concerning
-- Pricing position (too high/low/perfect and WHY)
-- Stock management assessment
-- Marketing potential and customer appeal
-- Specific improvement suggestions
-Then add:
-- Gap analysis: what products are missing from the portfolio
-- Category balance assessment
-- Product line coherence evaluation
+For each product:
+**Product Name:**
+✅ Kya Achha Hai:
+• [short hinglish point]
+• [short hinglish point]
 
-## MARKETING & POSITIONING RECOMMENDATIONS
+⚠️ Kya Sudharna Hai:
+• [short hinglish point]
+• [short hinglish point]
 
-Provide 6-8 DETAILED paragraphs covering:
-- Product photography improvement ideas (specific shots, styling, lighting)
-- Product description enhancement (tone, keywords, storytelling approach)
-- Social media content calendar suggestions (specific post ideas for each product)
-- Instagram/Facebook strategy tailored to their products
-- Seasonal campaign ideas (festivals, holidays, gifting occasions)
-- Influencer collaboration strategies
-- Customer testimonial usage tactics
-- Email marketing sequence recommendations
-- Competitor differentiation positioning
+💰 Price Kaise Hai: [Is it theek/zyada/kam and why in hinglish]
 
-## IMMEDIATE ACTION ITEMS
+## Marketing Tips (मार्केटिंग के टिप्स)
 
-List 7-10 prioritized actions for THIS WEEK. For each:
-- WHY it matters (business impact)
-- HOW to do it (step-by-step)
-- WHAT success looks like (measurable outcome)
-- TIME required (realistic estimate)
-Be extremely specific and practical.
+Photos Ki Quality 📸:
+• [simple hinglish tip with emoji]
+• [simple hinglish tip with emoji]
 
-## GROWTH OPPORTUNITIES
+Social Media Par Kya Karein:
+• [simple hinglish tip with emoji]
+• [simple hinglish tip with emoji]
 
-Provide 5-7 DETAILED growth strategies:
-- New product development ideas (specific scents, sizes, formats based on current portfolio)
-- New customer segments with targeting strategies
-- Corporate gifting program development
-- Subscription box potential
-- Workshop/experience offerings
-- Wholesale/retail partnership approaches
-- International market expansion considerations
-Each with implementation roadmap and expected ROI.
+Festival Ideas (त्यौहारों के लिए):
+• [simple hinglish tip with emoji]
 
-## CUSTOMER EXPERIENCE IMPROVEMENTS
+## Is Hafte Karna Hai (THIS WEEK)
 
-Write 5-6 detailed paragraphs about:
-- Unboxing experience enhancement ideas
-- Personalization opportunities
-- Gift customization options
-- Post-purchase follow-up strategies
-- Loyalty program design
-- Customer education content (candle care, scent selection)
-- Community building tactics
-- Customer feedback loop implementation
+Priority 1️⃣:
+• [action in hinglish]
+• Kyun: [simple reason in hinglish]
+• Time: [how long]
 
-## FINANCIAL OPTIMIZATION
+Priority 2️⃣:
+• [action in hinglish]
+• Kyun: [simple reason in hinglish]
+• Time: [how long]
 
-Provide detailed analysis of:
-- Current pricing strategy assessment with specific recommendations
-- Material cost optimization without quality compromise
-- Bundle pricing strategies (suggest 4-5 specific bundle ideas)
-- Seasonal pricing calendar
-- Discount strategy guidance
-- Shipping cost optimization
-- Profit margin improvement tactics
-- Revenue forecasting based on current trajectory
+[Continue for 5-7 priorities]
 
-Be EXTREMELY detailed, encouraging, warm, and mentor-like. Use real examples from their actual products. Make every paragraph substantial with actionable insights. Think like a consultant who is paid ₹50,000 for this analysis - provide that level of value and detail!`;
+## Naye Maukey (GROWTH IDEAS)
+
+💡 Naye Product Ideas:
+• [simple hinglish suggestion based on existing products]
+• [simple hinglish suggestion]
+
+🎁 Gift Packages Banayein:
+• [bundle idea in hinglish]: ₹[price]
+• [bundle idea in hinglish]: ₹[price]
+
+## Customer Ko Khush Karein 😊
+
+Packaging Kaise Ho:
+• [simple hinglish tip]
+
+Sale Ke Baad Kya Karein:
+• [simple hinglish tip]
+
+Loyalty Program:
+• [simple hinglish tip]
+
+## Paise Bachayein Aur Kamayein 💰
+
+Pricing Tips:
+• [simple hinglish suggestion]
+
+📦 Bundle Offers:
+• [specific bundle in hinglish]: Bechein ₹[X] mein, Profit ₹[Y]
+• [specific bundle in hinglish]: Bechein ₹[X] mein, Profit ₹[Y]
+
+Cost Kam Karne Ke Tarike:
+• [simple hinglish tip]
+
+REMEMBER: Write in NATURAL HINGLISH like Indians speak. Mix Hindi-English freely. Keep it SHORT, SIMPLE, FRIENDLY. Use bullet points and emojis. Make it easy to read quickly!`;
 
 export default function BusinessInsights() {
   const { data: products } = useProducts();
   const { data: orders } = useAdminOrders();
   const { toast } = useToast();
-  const [insights, setInsights] = useState<string>('');
+  
+  // Load from sessionStorage on mount
+  const [insights, setInsights] = useState<string>(() => {
+    return sessionStorage.getItem('businessInsights') || '';
+  });
   const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(() => {
+    const saved = sessionStorage.getItem('businessInsightsTimestamp');
+    return saved ? new Date(saved) : null;
+  });
   const [activeSection, setActiveSection] = useState('overview');
 
   const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
@@ -206,7 +224,7 @@ Average Order Value: ₹${(orders.reduce((sum, o) => sum + o.total_amount, 0) / 
         .replace('{orders_summary}', ordersData);
 
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.5-flash',
         generationConfig: {
           temperature: 0.9,
           topP: 0.95,
@@ -220,6 +238,10 @@ Average Order Value: ₹${(orders.reduce((sum, o) => sum + o.total_amount, 0) / 
 
       setInsights(text);
       setLastUpdated(new Date());
+      
+      // Save to sessionStorage
+      sessionStorage.setItem('businessInsights', text);
+      sessionStorage.setItem('businessInsightsTimestamp', new Date().toISOString());
       
       toast({
         title: 'Insights Generated!',
@@ -286,7 +308,7 @@ Average Order Value: ₹${(orders.reduce((sum, o) => sum + o.total_amount, 0) / 
               <div>
                 <CardTitle className="text-2xl font-serif mb-2">AI Business Consultant</CardTitle>
                 <p className="text-muted-foreground text-sm">
-                  Expert insights powered by 15 years of candle business experience
+                  Aasan Hinglish mein business ke tips - Simple insights in Hindi-English mix
                 </p>
                 {lastUpdated && (
                   <p className="text-xs text-muted-foreground mt-1">
@@ -357,13 +379,27 @@ Average Order Value: ₹${(orders.reduce((sum, o) => sum + o.total_amount, 0) / 
                   <TabsContent key={index} value={key} className="space-y-4">
                     <div className="border-l-4 border-purple-600 pl-4 mb-6 bg-gradient-to-r from-purple-50/50 to-transparent dark:from-purple-950/30 py-4">
                       <h3 className="font-serif text-2xl font-bold mb-1">{key}</h3>
-                      <p className="text-xs text-muted-foreground">Detailed analysis and recommendations</p>
+                      <p className="text-xs text-muted-foreground">Aapke business ke liye detailed suggestions</p>
                     </div>
-                    <div className="prose prose-base max-w-none dark:prose-invert prose-headings:font-serif prose-headings:text-purple-900 dark:prose-headings:text-purple-100 prose-p:leading-relaxed prose-li:leading-relaxed">
-                      <div className="whitespace-pre-wrap text-foreground text-[15px] leading-[1.8] space-y-4">
-                        {sections[key].split('\n\n').map((paragraph, pIndex) => (
-                          <p key={pIndex} className="mb-4">{paragraph}</p>
-                        ))}
+                    <div className="prose prose-base max-w-none dark:prose-invert prose-headings:font-serif prose-headings:text-purple-900 dark:prose-headings:text-purple-100 prose-ul:list-none prose-li:pl-0">
+                      <div className="whitespace-pre-wrap text-foreground text-[15px] leading-[1.9] space-y-3">
+                        {sections[key].split('\n').map((line, pIndex) => {
+                          const trimmed = line.trim();
+                          if (!trimmed) return <div key={pIndex} className="h-2" />;
+                          
+                          // Bold product names or section headers
+                          if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+                            return <p key={pIndex} className="font-bold text-purple-700 dark:text-purple-300 mt-4 mb-2">{trimmed.replace(/\*\*/g, '')}</p>;
+                          }
+                          
+                          // Bullet points with emojis
+                          if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+                            return <p key={pIndex} className="ml-1 mb-2 flex items-start gap-2"><span className="flex-shrink-0">{trimmed.charAt(0)}</span><span className="flex-1">{trimmed.substring(1).trim()}</span></p>;
+                          }
+                          
+                          // Regular text
+                          return <p key={pIndex} className="mb-2">{trimmed}</p>;
+                        })}
                       </div>
                     </div>
                   </TabsContent>
@@ -406,12 +442,11 @@ Average Order Value: ₹${(orders.reduce((sum, o) => sum + o.total_amount, 0) / 
             <Lightbulb className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div className="text-sm">
               <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                About Your AI Business Consultant
+                Aapka AI Business Consultant
               </p>
               <p className="text-blue-800 dark:text-blue-200">
-                This AI consultant has been trained with 15 years of candle business expertise, covering manufacturing, 
-                marketing, e-commerce, and customer psychology. It analyzes your real-time data and provides personalized, 
-                actionable advice to help grow your business.
+                Yeh AI consultant 15 saal ke candle business experience ke saath banaya gaya hai. 
+                Yeh aapke products aur orders ko dekhkar simple Hinglish mein suggestions deta hai jo aapke business ko grow karne mein help karenge.
               </p>
             </div>
           </div>
