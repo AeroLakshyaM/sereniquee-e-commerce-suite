@@ -87,7 +87,7 @@ export function Navbar() {
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors animate-slide-down"
                 style={{ animationDelay: '0.15s' }}
               >
-                Journal
+                Blogs
               </Link>
               <Link
                 to="/about"
@@ -221,7 +221,7 @@ export function Navbar() {
                   className="text-base font-medium text-foreground hover:text-primary transition-colors py-3 px-4 hover:bg-secondary rounded-md"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Journal
+                  Blogs
                 </Link>
                 <Link
                   to="/about"

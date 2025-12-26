@@ -1,11 +1,14 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useFeaturedProducts } from '@/hooks/useProducts';
+import { useBlogs } from '@/hooks/useBlogs';
 import { ProductGrid } from '@/components/product/ProductGrid';
-import { ArrowRight, Flame, Heart, Leaf, Sparkles, Star, Timer } from 'lucide-react';
+import { BlogCard } from '@/components/blog/BlogCard';
+import { ArrowRight, BookOpen, Flame, Heart, Leaf, Sparkles, Star, Timer } from 'lucide-react';
 
 export default function Home() {
   const { data: featuredProducts, isLoading } = useFeaturedProducts();
+  const { data: latestBlogs, isLoading: blogsLoading } = useBlogs({ limit: 3 });
 
   return (
     <div className="overflow-x-hidden">
@@ -416,6 +419,60 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Blog Highlights */}
+      <section className="py-12 sm:py-16 md:py-24 bg-gradient-to-b from-background via-amber-50/40 to-background dark:from-background dark:via-amber-950/10 dark:to-background">
+        <div className="container-luxury space-y-10">
+          <div className="text-center max-w-2xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border/40 bg-background/80 backdrop-blur">
+              <BookOpen className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">From the Blog</span>
+            </div>
+            <div className="space-y-3 px-4">
+              <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl">Notes From Our Studio</h2>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                Candle care rituals, scent stories, and memory-filled essays crafted by Mom. Catch up on the latest posts from the Sereniquee blog.
+              </p>
+            </div>
+          </div>
+
+          {blogsLoading ? (
+            <div className="grid gap-6 md:grid-cols-3">
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="rounded-3xl border border-border/40 bg-card/50 p-4 sm:p-6">
+                  <div className="h-48 rounded-2xl bg-muted animate-pulse mb-4" />
+                  <div className="h-4 w-1/3 bg-muted animate-pulse mb-3" />
+                  <div className="h-6 w-3/4 bg-muted animate-pulse mb-2" />
+                  <div className="h-6 w-1/2 bg-muted animate-pulse" />
+                </div>
+              ))}
+            </div>
+          ) : latestBlogs && latestBlogs.length > 0 ? (
+            <>
+              <div className="grid gap-6 md:grid-cols-3">
+                {latestBlogs.map((blog, index) => (
+                  <BlogCard
+                    key={blog.id}
+                    blog={blog}
+                    variant={index === 0 ? 'featured' : 'default'}
+                  />
+                ))}
+              </div>
+              <div className="text-center">
+                <Link to="/blogs">
+                  <Button variant="outline" className="px-8 py-6 text-sm sm:text-base border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background transition-all">
+                    View All Blogs
+                  </Button>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="rounded-3xl border border-dashed border-border/50 p-10 text-center text-muted-foreground">
+              No blog stories yet. Publish your first post from the admin dashboard to see it appear here.
+            </div>
+          )}
         </div>
       </section>
 
