@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useProductBySlug } from '@/hooks/useProducts';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
+import { ShareButton } from '@/components/ui/share-button';
+import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { Minus, Plus, ArrowLeft, Flame, Clock, AlertTriangle, Sparkles, Heart, Home } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { 
@@ -88,6 +90,17 @@ export default function ProductDetail() {
           <h1 className="font-serif text-3xl md:text-4xl mb-4">{product.name}</h1>
           <p className="text-2xl font-serif mb-6">₹{product.price.toFixed(2)}</p>
           
+          {/* Share Button */}
+          <div className="mb-6">
+            <ShareButton 
+              url={`/product/${product.slug}`}
+              title={product.name}
+              description={product.description || `Check out ${product.name} from Sereniquee Candles`}
+              variant="outline"
+              size="sm"
+            />
+          </div>
+          
           {product.description && (
             <p className="text-muted-foreground leading-relaxed mb-8">
               {product.description}
@@ -96,11 +109,26 @@ export default function ProductDetail() {
 
           {/* Stock Status */}
           {product.stock_quantity > 0 ? (
-            <p className="text-sm text-muted-foreground mb-6">
-              {product.stock_quantity} in stock
-            </p>
+            <div className="mb-6">
+              {product.stock_quantity <= 5 ? (
+                <div className="flex items-center gap-2 p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                  <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                  <p className="text-sm font-medium text-orange-900 dark:text-orange-100">
+                    Only {product.stock_quantity} left in stock - order soon!
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  ✓ In stock ({product.stock_quantity} available)
+                </p>
+              )}
+            </div>
           ) : (
-            <p className="text-sm text-destructive mb-6">Out of stock</p>
+            <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <p className="text-sm font-medium text-destructive">
+                Out of stock - We'll restock soon
+              </p>
+            </div>
           )}
 
           {/* Quantity Selector */}
@@ -364,6 +392,9 @@ export default function ProductDetail() {
           we're here to help you find the perfect candle for your needs.
         </p>
       </div>
+
+      {/* Related Products Section */}
+      <RelatedProducts currentProduct={product} limit={4} />
     </div>
   );
 }

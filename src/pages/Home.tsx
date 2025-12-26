@@ -4,6 +4,7 @@ import { useFeaturedProducts } from '@/hooks/useProducts';
 import { useBlogs } from '@/hooks/useBlogs';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { BlogCard } from '@/components/blog/BlogCard';
+import { InstagramFeed } from '@/components/social/InstagramFeed';
 import { ArrowRight, BookOpen, Flame, Heart, Leaf, Sparkles, Star, Timer } from 'lucide-react';
 
 export default function Home() {
@@ -475,6 +476,9 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* Instagram Feed */}
+      <InstagramFeed />
 
       {/* Final CTA */}
       <section className="py-12 sm:py-16 md:py-24">

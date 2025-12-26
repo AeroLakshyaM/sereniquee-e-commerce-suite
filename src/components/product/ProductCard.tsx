@@ -37,20 +37,38 @@ export function ProductCard({ product, featured }: ProductCardProps) {
         )}
         
         {/* Quick Add Button */}
-        <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <Button
-            onClick={handleAddToCart}
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add to Cart
-          </Button>
-        </div>
+        {product.stock_quantity > 0 && (
+          <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <Button
+              onClick={handleAddToCart}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add to Cart
+            </Button>
+          </div>
+        )}
 
         {/* Featured Badge */}
         {featured && (
           <span className="absolute top-4 left-4 bg-accent text-accent-foreground text-xs px-3 py-1 font-medium">
             Bestseller
+          </span>
+        )}
+        
+        {/* Out of Stock Badge */}
+        {product.stock_quantity === 0 && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+            <span className="bg-destructive text-destructive-foreground px-4 py-2 font-semibold text-sm rounded-full">
+              Out of Stock
+            </span>
+          </div>
+        )}
+        
+        {/* Low Stock Badge */}
+        {product.stock_quantity > 0 && product.stock_quantity <= 5 && (
+          <span className="absolute top-4 right-4 bg-orange-500 text-white text-xs px-3 py-1 font-medium rounded-full">
+            Only {product.stock_quantity} left
           </span>
         )}
       </div>
