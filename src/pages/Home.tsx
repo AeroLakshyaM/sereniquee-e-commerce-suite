@@ -72,41 +72,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why Choose Us - Features Grid */}
-      <section className="container-luxury py-12 sm:py-16 md:py-20 border-b border-border/50">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-          <div className="group text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/30 mb-4 group-hover:scale-110 transition-transform">
-              <Leaf className="h-6 w-6 text-amber-700 dark:text-amber-500" />
-            </div>
-            <h3 className="font-serif text-lg sm:text-xl mb-2 sm:mb-3">100% Natural</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed px-4">
-              Made with pure soy wax and premium essential oils, free from harmful chemicals and toxins.
-            </p>
-          </div>
-          
-          <div className="group text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/30 mb-4 group-hover:scale-110 transition-transform">
-              <Heart className="h-6 w-6 text-amber-700 dark:text-amber-500" />
-            </div>
-            <h3 className="font-serif text-lg sm:text-xl mb-2 sm:mb-3">Handcrafted Care</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed px-4">
-              Each candle is lovingly hand-poured in small batches to ensure exceptional quality.
-            </p>
-          </div>
-          
-          <div className="group text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/30 mb-4 group-hover:scale-110 transition-transform">
-              <Timer className="h-6 w-6 text-amber-700 dark:text-amber-500" />
-            </div>
-            <h3 className="font-serif text-lg sm:text-xl mb-2 sm:mb-3">Long Lasting</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed px-4">
-              45+ hours of clean, even burn time to fill your space with beautiful fragrance.
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* Featured Products */}
       <section className="container-luxury py-12 sm:py-16 md:py-24">
         <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
@@ -153,6 +118,180 @@ export default function Home() {
             </Link>
           </div>
         )}
+      </section>
+
+      {/* Shop by Category */}
+      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-amber-50/30 to-transparent dark:from-amber-950/10 dark:to-transparent">
+        <div className="container-luxury">
+          <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
+            <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 dark:text-amber-400" />
+              <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-muted-foreground">
+                Explore by Style
+              </p>
+            </div>
+            <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl mb-3 sm:mb-4">Shop by Category</h2>
+            <p className="text-sm sm:text-base text-muted-foreground px-4">
+              Find your perfect candle by browsing our carefully curated collections.
+            </p>
+          </div>
+
+          <div className="relative">
+            {/* Gradient fade effects */}
+            <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-r from-background dark:from-background via-background/80 dark:via-background/80 to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-l from-background dark:from-background via-background/80 dark:via-background/80 to-transparent z-10 pointer-events-none" />
+            
+            {/* Scrollable container */}
+            <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+              <div className="flex gap-4 sm:gap-6 pb-4 min-w-min">
+                
+                {/* Jar Candles */}
+                <Link to="/shop?category=jar" className="group shrink-0">
+                  <div className="w-48 sm:w-64 h-64 sm:h-80 rounded-2xl overflow-hidden bg-gradient-to-br from-amber-100 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/20 border border-border/50 hover:border-amber-500/50 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-amber-200/40 dark:bg-amber-800/40 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Flame className="h-10 w-10 sm:h-12 sm:w-12 text-amber-700 dark:text-amber-400" />
+                      </div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20">
+                      <h3 className="font-serif text-xl sm:text-2xl text-white mb-1 sm:mb-2">Jar Candles</h3>
+                      <p className="text-xs sm:text-sm text-white/80">Classic elegance in glass</p>
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Bar Candles */}
+                <Link to="/shop?category=bar" className="group shrink-0">
+                  <div className="w-48 sm:w-64 h-64 sm:h-80 rounded-2xl overflow-hidden bg-gradient-to-br from-stone-100 to-neutral-50 dark:from-stone-950/30 dark:to-neutral-950/20 border border-border/50 hover:border-amber-500/50 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-stone-200/40 dark:bg-stone-800/40 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-12 sm:h-16 bg-amber-700 dark:bg-amber-400 rounded-full" />
+                          <div className="w-2 h-12 sm:h-16 bg-amber-600 dark:bg-amber-500 rounded-full" />
+                          <div className="w-2 h-12 sm:h-16 bg-amber-700 dark:bg-amber-400 rounded-full" />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20">
+                      <h3 className="font-serif text-xl sm:text-2xl text-white mb-1 sm:mb-2">Bar Candles</h3>
+                      <p className="text-xs sm:text-sm text-white/80">Minimalist & modern</p>
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Scented Candles */}
+                <Link to="/shop?category=scented" className="group shrink-0">
+                  <div className="w-48 sm:w-64 h-64 sm:h-80 rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/20 border border-border/50 hover:border-amber-500/50 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-purple-200/40 dark:bg-purple-800/40 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Sparkles className="h-10 w-10 sm:h-12 sm:w-12 text-purple-700 dark:text-purple-400" />
+                      </div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20">
+                      <h3 className="font-serif text-xl sm:text-2xl text-white mb-1 sm:mb-2">Scented Candles</h3>
+                      <p className="text-xs sm:text-sm text-white/80">Aromatic experiences</p>
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Non-Scented Candles */}
+                <Link to="/shop?category=non-scented" className="group shrink-0">
+                  <div className="w-48 sm:w-64 h-64 sm:h-80 rounded-2xl overflow-hidden bg-gradient-to-br from-slate-100 to-gray-50 dark:from-slate-950/30 dark:to-gray-950/20 border border-border/50 hover:border-amber-500/50 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-200/40 dark:bg-slate-800/40 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Leaf className="h-10 w-10 sm:h-12 sm:w-12 text-slate-700 dark:text-slate-400" />
+                      </div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20">
+                      <h3 className="font-serif text-xl sm:text-2xl text-white mb-1 sm:mb-2">Non-Scented</h3>
+                      <p className="text-xs sm:text-sm text-white/80">Pure ambient glow</p>
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Food Candles */}
+                <Link to="/shop?category=food" className="group shrink-0">
+                  <div className="w-48 sm:w-64 h-64 sm:h-80 rounded-2xl overflow-hidden bg-gradient-to-br from-yellow-100 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/20 border border-border/50 hover:border-amber-500/50 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-yellow-200/40 dark:bg-yellow-800/40 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Heart className="h-10 w-10 sm:h-12 sm:w-12 text-yellow-700 dark:text-yellow-400" />
+                      </div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20">
+                      <h3 className="font-serif text-xl sm:text-2xl text-white mb-1 sm:mb-2">Food Candles</h3>
+                      <p className="text-xs sm:text-sm text-white/80">Delicious aromas</p>
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Luxury Collection */}
+                <Link to="/shop?category=luxury" className="group shrink-0">
+                  <div className="w-48 sm:w-64 h-64 sm:h-80 rounded-2xl overflow-hidden bg-gradient-to-br from-rose-100 to-red-50 dark:from-rose-950/30 dark:to-red-950/20 border border-border/50 hover:border-amber-500/50 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-rose-200/40 dark:bg-rose-800/40 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Star className="h-10 w-10 sm:h-12 sm:w-12 text-rose-700 dark:text-rose-400" />
+                      </div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20">
+                      <h3 className="font-serif text-xl sm:text-2xl text-white mb-1 sm:mb-2">Luxury Collection</h3>
+                      <p className="text-xs sm:text-sm text-white/80">Premium indulgence</p>
+                    </div>
+                  </div>
+                </Link>
+
+              </div>
+            </div>
+
+            {/* Scroll hint */}
+            <div className="text-center mt-6 sm:hidden">
+              <p className="text-xs text-muted-foreground flex items-center justify-center gap-2">
+                <ArrowRight className="h-3 w-3" />
+                Swipe to explore more
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us - Features Grid */}
+      <section className="container-luxury py-12 sm:py-16 md:py-20 border-b border-border/50">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          <div className="group text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/30 mb-4 group-hover:scale-110 transition-transform">
+              <Leaf className="h-6 w-6 text-amber-700 dark:text-amber-500" />
+            </div>
+            <h3 className="font-serif text-lg sm:text-xl mb-2 sm:mb-3">100% Natural</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed px-4">
+              Made with pure soy wax and premium essential oils, free from harmful chemicals and toxins.
+            </p>
+          </div>
+          
+          <div className="group text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/30 mb-4 group-hover:scale-110 transition-transform">
+              <Heart className="h-6 w-6 text-amber-700 dark:text-amber-500" />
+            </div>
+            <h3 className="font-serif text-lg sm:text-xl mb-2 sm:mb-3">Handcrafted Care</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed px-4">
+              Each candle is lovingly hand-poured in small batches to ensure exceptional quality.
+            </p>
+          </div>
+          
+          <div className="group text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/30 mb-4 group-hover:scale-110 transition-transform">
+              <Timer className="h-6 w-6 text-amber-700 dark:text-amber-500" />
+            </div>
+            <h3 className="font-serif text-lg sm:text-xl mb-2 sm:mb-3">Long Lasting</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed px-4">
+              45+ hours of clean, even burn time to fill your space with beautiful fragrance.
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* Signature Scents Preview */}
@@ -475,6 +614,46 @@ export default function Home() {
               No blog stories yet. Publish your first post from the admin dashboard to see it appear here.
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Gallery Preview */}
+      <section className="py-12 sm:py-16 md:py-24 bg-secondary/30">
+        <div className="container-luxury">
+          <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+            <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 dark:text-amber-400" />
+              <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-muted-foreground">
+                Visual Stories
+              </p>
+            </div>
+            <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl mb-3 sm:mb-4 px-4">Behind the Scenes</h2>
+            <p className="text-sm sm:text-base text-muted-foreground px-4">
+              Peek into our studio, see our craftsmanship, and discover the artistry behind each candle.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
+            {[1, 2, 3, 4].map((index) => (
+              <div key={index} className="group relative aspect-square rounded-xl overflow-hidden bg-secondary border border-border/50 hover:border-amber-500/50 transition-all duration-300">
+                <img
+                  src="/landing-candles.jpg"
+                  alt={`Gallery preview ${index}`}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <Link to="/gallery">
+              <Button variant="outline" className="px-8 py-6 text-sm sm:text-base border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background transition-all group">
+                View Full Gallery
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -12,6 +12,7 @@ import Shop from "./pages/Shop";
 import ProductDetail from "./pages/ProductDetail";
 import Blogs from "./pages/Blogs";
 import BlogPost from "./pages/BlogPost";
+import Gallery from "./pages/Gallery";
 import Auth from "./pages/Auth";
 import Checkout from "./pages/Checkout";
 import Profile from "./pages/Profile";
@@ -80,6 +81,14 @@ const App = () => (
                 element={
                   <Layout>
                     <BlogPost />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/gallery"
+                element={
+                  <Layout>
+                    <Gallery />
                   </Layout>
                 }
               />

@@ -116,6 +116,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/gallery" className="text-primary-foreground/70 hover:text-primary-foreground hover:translate-x-1 transition-all inline-block text-sm">
+                  Gallery
+                </Link>
+              </li>
+              <li>
                 <Link to="/about#sustainability" className="text-primary-foreground/70 hover:text-primary-foreground hover:translate-x-1 transition-all inline-block text-sm">
                   Sustainability
                 </Link>
