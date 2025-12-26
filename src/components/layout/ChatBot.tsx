@@ -266,9 +266,7 @@ export function ChatBot() {
                 )}
               </Button>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-2 text-center">
-              Powered by Gemini AI
-            </p>
+            
           </div>
         </div>
       )}
