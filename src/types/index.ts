@@ -54,3 +54,20 @@ export interface UserRole {
   user_id: string;
   role: 'admin' | 'user';
 }
+
+export interface Blog {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
+  cover_image_url: string | null;
+  gallery_image_urls: string[] | null;
+  author_name: string | null;
+  is_published: boolean | null;
+  tags: string[] | null;
+  reading_time: number | null;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+}

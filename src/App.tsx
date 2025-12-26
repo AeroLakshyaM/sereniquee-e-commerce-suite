@@ -10,6 +10,8 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import ProductDetail from "./pages/ProductDetail";
+import Blogs from "./pages/Blogs";
+import BlogPost from "./pages/BlogPost";
 import Auth from "./pages/Auth";
 import Checkout from "./pages/Checkout";
 import Profile from "./pages/Profile";
@@ -61,6 +63,22 @@ const App = () => (
                 element={
                   <Layout>
                     <ProductDetail />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/blogs"
+                element={
+                  <Layout>
+                    <Blogs />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/blogs/:slug"
+                element={
+                  <Layout>
+                    <BlogPost />
                   </Layout>
                 }
               />

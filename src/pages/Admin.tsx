@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, X, BarChart3, Users, ShoppingCart, Calendar, Package, Home } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, BarChart3, Users, ShoppingCart, Calendar, Package, Home, Newspaper } from 'lucide-react';
 import { Product } from '@/types';
 import SimpleDashboard from '@/components/admin/SimpleDashboard';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
@@ -20,6 +20,7 @@ import OrdersManagement from '@/components/admin/OrdersManagement';
 import CalendarView from '@/components/admin/CalendarView';
 import QuickProductForm from '@/components/admin/QuickProductForm';
 import OrderNotifications from '@/components/admin/OrderNotifications';
+import { BlogManager } from '@/components/admin/BlogManager';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -93,7 +94,7 @@ export default function Admin() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6 lg:w-auto">
+        <TabsList className="grid w-full grid-cols-7 lg:w-auto">
           <TabsTrigger value="home" className="flex items-center gap-2">
             <Home className="h-4 w-4" />
             <span className="hidden sm:inline">Home</span>
@@ -117,6 +118,10 @@ export default function Admin() {
           <TabsTrigger value="calendar" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             <span className="hidden sm:inline">Calendar</span>
+          </TabsTrigger>
+          <TabsTrigger value="blogs" className="flex items-center gap-2">
+            <Newspaper className="h-4 w-4" />
+            <span className="hidden sm:inline">Blogs</span>
           </TabsTrigger>
         </TabsList>
 
@@ -243,6 +248,10 @@ export default function Admin() {
 
         <TabsContent value="calendar" className="space-y-6">
           <CalendarView />
+        </TabsContent>
+
+        <TabsContent value="blogs" className="space-y-6">
+          <BlogManager />
         </TabsContent>
       </Tabs>
     </div>

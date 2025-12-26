@@ -1,14 +1,27 @@
-import { Link } from 'react-router-dom';
-import { ShoppingBag, User, Menu, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShoppingBag, User, Menu, X, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { totalItems, setIsCartOpen } = useCart();
   const { user, isAdmin } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+      setSearchOpen(false);
+    }
+  };
 
   // Close mobile menu when window is resized to desktop
   useEffect(() => {
@@ -32,6 +45,17 @@ export function Navbar() {
       document.body.style.overflow = 'unset';
     };
   }, [mobileMenuOpen]);
+
+  // Close search on ESC key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && searchOpen) {
+        setSearchOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [searchOpen]);
 
   return (
     <>
@@ -57,6 +81,13 @@ export function Navbar() {
                 style={{ animationDelay: '0.1s' }}
               >
                 Shop
+              </Link>
+              <Link
+                to="/blogs"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors animate-slide-down"
+                style={{ animationDelay: '0.15s' }}
+              >
+                Journal
               </Link>
               <Link
                 to="/about"
@@ -96,6 +127,15 @@ export function Navbar() {
 
             {/* Right side icons */}
             <div className="flex items-center gap-2 sm:gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="animate-slide-down h-9 w-9 sm:h-10 sm:w-10"
+                onClick={() => setSearchOpen(!searchOpen)}
+                style={{ animationDelay: '0.25s' }}
+              >
+                <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
               <Link to={user ? '/profile' : '/auth'} className="animate-slide-down" style={{ animationDelay: '0.3s' }}>
                 <Button variant="ghost" size="icon" className="relative h-9 w-9 sm:h-10 sm:w-10">
                   <User className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -118,16 +158,38 @@ export function Navbar() {
             </div>
           </div>
         </nav>
+        
+        {/* Search Bar Dropdown */}
+        {searchOpen && (
+          <div className="absolute top-full left-0 right-0 bg-background border-b border-border shadow-lg animate-slide-down">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4">
+              <form onSubmit={handleSearch} className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search for candles, scents, collections..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-6 text-base w-full"
+                  autoFocus
+                />
+              </form>
+              <p className="text-xs text-muted-foreground mt-2">
+                Press Enter to search or ESC to close
+              </p>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Mobile Sidebar Menu - Outside header for proper overlay */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-[9999] md:hidden">
-          {/* Overlay */}
-          <div 
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setMobileMenuOpen(false)}
-          />
+        {/* Overlay */}
+        <div 
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          onClick={() => setMobileMenuOpen(false)}
+        />
           
           {/* Sidebar */}
           <div className="absolute top-0 left-0 h-full w-[280px] bg-background border-r border-border overflow-y-auto shadow-2xl animate-slide-in-right">
@@ -153,6 +215,13 @@ export function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Shop
+                </Link>
+                <Link
+                  to="/blogs"
+                  className="text-base font-medium text-foreground hover:text-primary transition-colors py-3 px-4 hover:bg-secondary rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Journal
                 </Link>
                 <Link
                   to="/about"
