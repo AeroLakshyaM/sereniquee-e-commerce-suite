@@ -26,6 +26,7 @@ export interface Order {
   total_amount: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   shipping_address: string | null;
+  special_requirements: string | null;
   created_at: string;
   updated_at: string;
 }

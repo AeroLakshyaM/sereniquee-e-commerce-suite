@@ -27,6 +27,7 @@ export default function Checkout() {
     city: '',
     postalCode: '',
     country: '',
+    specialRequirements: '',
   });
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function Checkout() {
         city: profile.city || '',
         postalCode: profile.postal_code || '',
         country: profile.country || '',
+        specialRequirements: '',
       });
     }
   }, [profile]);
@@ -82,6 +84,7 @@ export default function Checkout() {
       await createOrder.mutateAsync({
         items,
         shippingAddress,
+        specialRequirements: formData.specialRequirements || null,
       });
 
       clearCart();
@@ -205,6 +208,22 @@ export default function Checkout() {
                   required
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="specialRequirements">Special Requirements (Optional)</Label>
+              <Textarea
+                id="specialRequirements"
+                name="specialRequirements"
+                value={formData.specialRequirements}
+                onChange={handleChange}
+                placeholder="Any special instructions for your order? E.g., gift wrapping, custom message, delivery instructions, etc."
+                rows={4}
+                className="resize-none"
+              />
+              <p className="text-xs text-muted-foreground">
+                Let us know if you have any special requests for this order
+              </p>
             </div>
 
             <Button

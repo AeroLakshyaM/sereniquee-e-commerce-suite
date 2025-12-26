@@ -211,6 +211,7 @@ export type Database = {
           created_at: string | null
           id: string
           shipping_address: string | null
+          special_requirements: string | null
           status: string | null
           total_amount: number
           updated_at: string | null
@@ -220,6 +221,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           shipping_address?: string | null
+          special_requirements?: string | null
           status?: string | null
           total_amount: number
           updated_at?: string | null
@@ -229,6 +231,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           shipping_address?: string | null
+          special_requirements?: string | null
           status?: string | null
           total_amount?: number
           updated_at?: string | null

@@ -43,6 +43,7 @@ export function useOrderItems(orderId: string) {
 interface CreateOrderParams {
   items: CartItem[];
   shippingAddress: string;
+  specialRequirements?: string | null;
 }
 
 export function useCreateOrder() {
@@ -50,7 +51,7 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ items, shippingAddress }: CreateOrderParams) => {
+    mutationFn: async ({ items, shippingAddress, specialRequirements }: CreateOrderParams) => {
       if (!user) throw new Error('Must be logged in to create order');
       
       const totalAmount = items.reduce(
@@ -65,6 +66,7 @@ export function useCreateOrder() {
           user_id: user.id,
           total_amount: totalAmount,
           shipping_address: shippingAddress,
+          special_requirements: specialRequirements,
           status: 'pending',
         })
         .select()

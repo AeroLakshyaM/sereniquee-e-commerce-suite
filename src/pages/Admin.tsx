@@ -21,6 +21,7 @@ import CalendarView from '@/components/admin/CalendarView';
 import QuickProductForm from '@/components/admin/QuickProductForm';
 import OrderNotifications from '@/components/admin/OrderNotifications';
 import { BlogManager } from '@/components/admin/BlogManager';
+import BusinessInsights from '@/components/admin/BusinessInsights';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -94,10 +95,14 @@ export default function Admin() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7 lg:w-auto">
+        <TabsList className="grid w-full grid-cols-8 lg:w-auto">
           <TabsTrigger value="home" className="flex items-center gap-2">
             <Home className="h-4 w-4" />
             <span className="hidden sm:inline">Home</span>
+          </TabsTrigger>
+          <TabsTrigger value="insights" className="flex items-center gap-2 bg-gradient-to-r from-purple-600/10 to-pink-600/10">
+            <BarChart3 className="h-4 w-4 text-purple-600" />
+            <span className="hidden sm:inline font-semibold">AI Insights</span>
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
@@ -127,6 +132,10 @@ export default function Admin() {
 
         <TabsContent value="home" className="space-y-6">
           <SimpleDashboard />
+        </TabsContent>
+
+        <TabsContent value="insights" className="space-y-6">
+          <BusinessInsights />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
