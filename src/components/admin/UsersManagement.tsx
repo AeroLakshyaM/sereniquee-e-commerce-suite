@@ -113,7 +113,7 @@ export default function UsersManagement() {
                       <DollarSign className="h-3 w-3" />
                     </div>
                     <p className="text-xs text-muted-foreground">Spent</p>
-                    <p className="text-sm font-semibold">${user.total_spent.toFixed(2)}</p>
+                    <p className="text-sm font-semibold">₹{user.total_spent.toFixed(2)}</p>
                   </div>
                 </div>
 

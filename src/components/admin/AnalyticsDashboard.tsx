@@ -21,7 +21,7 @@ export default function AnalyticsDashboard() {
   const statCards = [
     {
       title: 'Total Revenue',
-      value: `$${analytics.totalRevenue.toFixed(2)}`,
+      value: `₹${analytics.totalRevenue.toFixed(2)}`,
       icon: TrendingUp,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
@@ -84,7 +84,7 @@ export default function AnalyticsDashboard() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+              <Tooltip formatter={(value: number) => `₹${value.toFixed(2)}`} />
               <Legend />
               <Line
                 type="monotone"
@@ -139,7 +139,7 @@ export default function AnalyticsDashboard() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" />
                 <YAxis dataKey="name" type="category" width={120} />
-                <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                <Tooltip formatter={(value: number) => `₹${value.toFixed(2)}`} />
                 <Legend />
                 <Bar dataKey="revenue" fill="#8b5cf6" name="Revenue" />
               </BarChart>
@@ -194,7 +194,7 @@ export default function AnalyticsDashboard() {
                   <tr key={index} className="border-t border-border">
                     <td className="p-4 font-medium">{product.name}</td>
                     <td className="p-4 text-muted-foreground">{product.sales}</td>
-                    <td className="p-4 font-medium">${product.revenue.toFixed(2)}</td>
+                    <td className="p-4 font-medium">₹{product.revenue.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>

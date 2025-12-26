@@ -67,7 +67,7 @@ export function CartDrawer() {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-serif text-sm truncate">{item.product.name}</h3>
                       <p className="text-muted-foreground text-sm">
-                        ${item.product.price.toFixed(2)}
+                        ₹{item.product.price.toFixed(2)}
                       </p>
 
                       {/* Quantity Controls */}
@@ -112,7 +112,7 @@ export function CartDrawer() {
             <div className="border-t border-border p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="font-medium">Subtotal</span>
-                <span className="font-serif text-lg">${totalPrice.toFixed(2)}</span>
+                <span className="font-serif text-lg">₹{totalPrice.toFixed(2)}</span>
               </div>
               <p className="text-muted-foreground text-sm">
                 Shipping calculated at checkout

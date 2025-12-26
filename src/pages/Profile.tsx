@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
-import { LogOut, Package } from 'lucide-react';
+import { LogOut, Package, Eye } from 'lucide-react';
+import OrderDetailModal from '@/components/order/OrderDetailModal';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function Profile() {
   const updateProfile = useUpdateProfile();
   const { toast } = useToast();
 
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -213,28 +215,36 @@ export default function Profile() {
                 {orders.map((order) => (
                   <div
                     key={order.id}
-                    className="border border-border p-4 flex items-center justify-between"
+                    className="border border-border p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => setSelectedOrderId(order.id)}
                   >
-                    <div className="flex items-center gap-4">
-                      <Package className="h-8 w-8 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium text-sm">
-                          Order #{order.id.slice(0, 8)}
-                        </p>
-                        <p className="text-muted-foreground text-sm">
-                          {new Date(order.created_at).toLocaleDateString()}
-                        </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <Package className="h-8 w-8 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium text-sm">
+                            Order #{order.id.slice(0, 8)}
+                          </p>
+                          <p className="text-muted-foreground text-sm">
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-serif">${order.total_amount.toFixed(2)}</p>
-                      <span
-                        className={`inline-block px-2 py-1 text-xs capitalize ${getStatusColor(
-                          order.status
-                        )}`}
-                      >
-                        {order.status}
-                      </span>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="font-serif">₹{order.total_amount.toFixed(2)}</p>
+                          <span
+                            className={`inline-block px-2 py-1 text-xs capitalize ${getStatusColor(
+                              order.status
+                            )}`}
+                          >
+                            {order.status}
+                          </span>
+                        </div>
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -255,6 +265,14 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Order Detail Modal */}
+      {selectedOrderId && (
+        <OrderDetailModal
+          orderId={selectedOrderId}
+          onClose={() => setSelectedOrderId(null)}
+        />
+      )}
     </div>
   );
 }

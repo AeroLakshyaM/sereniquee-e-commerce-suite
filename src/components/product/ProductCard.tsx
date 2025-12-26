@@ -60,7 +60,7 @@ export function ProductCard({ product, featured }: ProductCardProps) {
           {product.name}
         </h3>
         <p className="text-muted-foreground text-sm">
-          ${product.price.toFixed(2)}
+          ₹{product.price.toFixed(2)}
         </p>
       </div>
     </Link>

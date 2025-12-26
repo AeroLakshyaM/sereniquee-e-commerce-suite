@@ -212,7 +212,7 @@ export default function Checkout() {
               disabled={createOrder.isPending}
               className="w-full bg-primary text-primary-foreground py-6 hover:bg-primary/90 active:scale-[0.98] transition-all"
             >
-              {createOrder.isPending ? 'Processing...' : `Place Order • $${totalPrice.toFixed(2)}`}
+              {createOrder.isPending ? 'Processing...' : `Place Order • ₹${totalPrice.toFixed(2)}`}
             </Button>
           </form>
         </div>
@@ -241,7 +241,7 @@ export default function Checkout() {
                     <h3 className="font-serif text-sm">{item.product.name}</h3>
                     <p className="text-muted-foreground text-sm">Qty: {item.quantity}</p>
                   </div>
-                  <p className="text-sm">${(item.product.price * item.quantity).toFixed(2)}</p>
+                  <p className="text-sm">₹{(item.product.price * item.quantity).toFixed(2)}</p>
                 </div>
               ))}
             </div>
@@ -249,7 +249,7 @@ export default function Checkout() {
             <div className="border-t border-border pt-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>₹{totalPrice.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Shipping</span>
@@ -257,7 +257,7 @@ export default function Checkout() {
               </div>
               <div className="flex justify-between font-medium pt-2 border-t border-border">
                 <span>Total</span>
-                <span className="font-serif text-lg">${totalPrice.toFixed(2)}</span>
+                <span className="font-serif text-lg">₹{totalPrice.toFixed(2)}</span>
               </div>
             </div>
           </div>

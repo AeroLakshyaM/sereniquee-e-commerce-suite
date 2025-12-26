@@ -170,7 +170,7 @@ export default function CalendarView() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Total</p>
-                  <p className="font-medium">${selectedEvent.total.toFixed(2)}</p>
+                  <p className="font-medium">₹{selectedEvent.total.toFixed(2)}</p>
                 </div>
               </div>
             </div>
