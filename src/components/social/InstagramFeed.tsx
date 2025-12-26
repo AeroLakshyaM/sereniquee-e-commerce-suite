@@ -173,7 +173,6 @@ export function InstagramFeed() {
         {!loading && posts.length === 0 && !error && (
           <div className="text-center py-4">
             <p className="text-xs text-muted-foreground">
-              📸 Showing placeholder images. Configure Instagram API to display real posts.
             </p>
           </div>
         )}
