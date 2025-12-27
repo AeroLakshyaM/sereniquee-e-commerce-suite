@@ -9,6 +9,14 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Product } from '@/types';
+import { useCategories } from '@/hooks/useCategories';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface QuickProductFormProps {
   onClose: () => void;
@@ -18,6 +26,7 @@ interface QuickProductFormProps {
 export default function QuickProductForm({ onClose, editingProduct }: QuickProductFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeCategories } = useCategories();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
@@ -365,12 +374,24 @@ export default function QuickProductForm({ onClose, editingProduct }: QuickProdu
             <Label htmlFor="category" className="text-lg">
               🏪 Category
             </Label>
-            <Input
-              id="category"
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              placeholder="e.g., signature, seasonal, gift set"
-            />
+            <Select
+              value={formData.category || ''}
+              onValueChange={(value) => setFormData({ ...formData, category: value })}
+            >
+              <SelectTrigger className="text-lg">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeCategories?.map((category) => (
+                  <SelectItem key={category.id} value={category.slug}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              💡 Manage categories in the Categories tab
+            </p>
           </div>
 
           {/* Featured Toggle */}

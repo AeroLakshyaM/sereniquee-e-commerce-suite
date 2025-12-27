@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, X, BarChart3, Users, ShoppingCart, Calendar, Package, Home, Newspaper } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, BarChart3, Users, ShoppingCart, Calendar, Package, Home, Newspaper, FolderTree } from 'lucide-react';
 import { Product } from '@/types';
 import SimpleDashboard from '@/components/admin/SimpleDashboard';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
@@ -22,6 +22,7 @@ import QuickProductForm from '@/components/admin/QuickProductForm';
 import OrderNotifications from '@/components/admin/OrderNotifications';
 import { BlogManager } from '@/components/admin/BlogManager';
 import BusinessInsights from '@/components/admin/BusinessInsights';
+import CategoryManager from '@/components/admin/CategoryManager';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -95,7 +96,7 @@ export default function Admin() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8 lg:w-auto">
+        <TabsList className="grid w-full grid-cols-9 lg:w-auto">
           <TabsTrigger value="home" className="flex items-center gap-2">
             <Home className="h-4 w-4" />
             <span className="hidden sm:inline">Home</span>
@@ -107,6 +108,10 @@ export default function Admin() {
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             <span className="hidden sm:inline">Analytics</span>
+          </TabsTrigger>
+          <TabsTrigger value="categories" className="flex items-center gap-2">
+            <FolderTree className="h-4 w-4" />
+            <span className="hidden sm:inline">Categories</span>
           </TabsTrigger>
           <TabsTrigger value="products" className="flex items-center gap-2">
             <Package className="h-4 w-4" />
@@ -140,6 +145,10 @@ export default function Admin() {
 
         <TabsContent value="analytics" className="space-y-6">
           <AnalyticsDashboard />
+        </TabsContent>
+
+        <TabsContent value="categories" className="space-y-6">
+          <CategoryManager />
         </TabsContent>
 
         <TabsContent value="products" className="space-y-6">

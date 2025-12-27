@@ -1,19 +1,39 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useProducts, useCategories } from '@/hooks/useProducts';
+import { useProducts } from '@/hooks/useProducts';
+import { useCategories } from '@/hooks/useCategories';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'react-router-dom';
 
 export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
+  const categoryFromUrl = searchParams.get('category');
   
-  const { data: products, isLoading } = useProducts(selectedCategory);
-  const { data: categories } = useCategories();
+  const { data: allProducts, isLoading } = useProducts();
+  const { activeCategories } = useCategories();
+
+  // Set category from URL on mount
+  useEffect(() => {
+    if (categoryFromUrl && categoryFromUrl !== selectedCategory) {
+      setSelectedCategory(categoryFromUrl);
+    }
+  }, [categoryFromUrl]);
+
+  // Filter by category
+  const categoryFilteredProducts = useMemo(() => {
+    if (!allProducts) return [];
+    if (selectedCategory === 'all') return allProducts;
+    
+    return allProducts.filter(product => 
+      product.category === selectedCategory
+    );
+  }, [allProducts, selectedCategory]);
 
   // Advanced search function with keyword matching
   const filteredProducts = useMemo(() => {
+    const products = categoryFilteredProducts;
     if (!products) return [];
     if (!searchQuery) return products;
 
@@ -61,7 +81,17 @@ export default function Shop() {
 
       return 0;
     });
-  }, [products, searchQuery]);
+  }, [categoryFilteredProducts, searchQuery]);
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    if (category === 'all') {
+      searchParams.delete('category');
+    } else {
+      searchParams.set('category', category);
+    }
+    setSearchParams(searchParams);
+  };
 
   return (
     <div className="container-luxury py-12">
@@ -87,19 +117,19 @@ export default function Shop() {
       <div className="flex flex-wrap justify-center gap-3 mb-12">
         <Button
           variant={selectedCategory === 'all' ? 'default' : 'outline'}
-          onClick={() => setSelectedCategory('all')}
+          onClick={() => handleCategoryChange('all')}
           className={selectedCategory === 'all' ? 'bg-primary text-primary-foreground' : ''}
         >
-          All
+          All Products
         </Button>
-        {categories?.map((category) => (
+        {activeCategories?.map((category) => (
           <Button
-            key={category}
-            variant={selectedCategory === category ? 'default' : 'outline'}
-            onClick={() => setSelectedCategory(category)}
-            className={selectedCategory === category ? 'bg-primary text-primary-foreground' : ''}
+            key={category.id}
+            variant={selectedCategory === category.slug ? 'default' : 'outline'}
+            onClick={() => handleCategoryChange(category.slug)}
+            className={selectedCategory === category.slug ? 'bg-primary text-primary-foreground' : ''}
           >
-            {category.charAt(0).toUpperCase() + category.slice(1)}
+            {category.name}
           </Button>
         ))}
       </div>
