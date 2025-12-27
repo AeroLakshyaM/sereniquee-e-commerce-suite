@@ -331,6 +331,13 @@ export function Navbar() {
               {/* Navigation Links */}
               <div className="flex flex-col gap-2 p-6">
                 <Link
+                  to="/"
+                  className="text-base font-medium text-foreground hover:text-primary transition-colors py-3 px-4 hover:bg-secondary rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Home
+                </Link>
+                <Link
                   to="/shop"
                   className="text-base font-medium text-foreground hover:text-primary transition-colors py-3 px-4 hover:bg-secondary rounded-md"
                   onClick={() => setMobileMenuOpen(false)}
