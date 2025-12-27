@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Mail, Phone, MapPin, Sparkles } from 'lucide-react';
+import { Footer } from '@/components/layout/Footer';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -80,13 +81,14 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-6 px-4 bg-secondary">
-      <div className="w-full max-w-5xl">
+    <>
+      <div className="min-h-screen flex items-center justify-center py-6 px-4 bg-secondary">
+        <div className="w-full max-w-5xl">
         {/* Main Auth Container */}
         <div className="grid md:grid-cols-2 bg-background shadow-2xl rounded-sm overflow-hidden border border-border">
           
           {/* Left Side - Brand Section */}
-          <div className="relative bg-primary text-primary-foreground p-8 lg:p-10 flex flex-col justify-between min-h-[400px] md:min-h-[600px]">
+          <div className="relative bg-primary text-primary-foreground p-8 lg:p-10 flex flex-col justify-between min-h-[400px] md:min-h-[600px] order-2 md:order-1">
             {/* Decorative Elements */}
             <div className="absolute top-0 right-0 w-48 h-48 bg-primary-foreground/5 rounded-full -translate-y-24 translate-x-24"></div>
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary-foreground/5 rounded-full translate-y-16 -translate-x-16"></div>
@@ -158,7 +160,7 @@ export default function Auth() {
           </div>
 
           {/* Right Side - Form Section */}
-          <div className="p-6 lg:p-10 flex flex-col justify-center">
+          <div className="p-6 lg:p-10 flex flex-col justify-center order-1 md:order-2">
             <div className="max-w-md mx-auto w-full">
               {/* Header */}
               <div className="mb-6 lg:mb-8">
@@ -302,5 +304,7 @@ export default function Auth() {
         </div>
       </div>
     </div>
+    <Footer />
+    </>
   );
 }
