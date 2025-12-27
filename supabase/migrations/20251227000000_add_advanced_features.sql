@@ -181,7 +181,9 @@ CREATE INDEX idx_wishlists_product_id ON wishlists(product_id);
 -- ============================================
 
 -- Sales analytics view
-CREATE OR REPLACE VIEW sales_analytics AS
+CREATE OR REPLACE VIEW sales_analytics 
+WITH (security_invoker = on)
+AS
 SELECT 
   DATE_TRUNC('day', created_at) as date,
   COUNT(*) as order_count,
@@ -194,7 +196,9 @@ GROUP BY DATE_TRUNC('day', created_at)
 ORDER BY date DESC;
 
 -- Product performance view
-CREATE OR REPLACE VIEW product_performance AS
+CREATE OR REPLACE VIEW product_performance 
+WITH (security_invoker = on)
+AS
 SELECT 
   p.id,
   p.name,
@@ -212,7 +216,9 @@ LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'cancelled'
 GROUP BY p.id, p.name, p.category, p.price, p.stock_quantity, p.average_rating, p.review_count;
 
 -- Customer analytics view
-CREATE OR REPLACE VIEW customer_analytics AS
+CREATE OR REPLACE VIEW customer_analytics 
+WITH (security_invoker = on)
+AS
 SELECT 
   o.user_id,
   COUNT(DISTINCT o.id) as total_orders,
@@ -226,7 +232,9 @@ WHERE o.status != 'cancelled'
 GROUP BY o.user_id;
 
 -- Category performance view
-CREATE OR REPLACE VIEW category_performance AS
+CREATE OR REPLACE VIEW category_performance 
+WITH (security_invoker = on)
+AS
 SELECT 
   p.category,
   COUNT(DISTINCT p.id) as product_count,

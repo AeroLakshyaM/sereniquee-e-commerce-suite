@@ -37,10 +37,12 @@ export default function About() {
               crafted to elevate your everyday moments into something extraordinary.
             </p>
           </div>
-          <div className="aspect-square bg-muted">
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="font-serif text-2xl text-muted-foreground/50">Sereniquee</span>
-            </div>
+          <div className="aspect-square bg-muted overflow-hidden rounded-sm">
+            <img 
+              src="/aboutus-img.jpg" 
+              alt="Sereniquee Candles" 
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
       </section>
