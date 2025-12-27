@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { Product } from '@/types';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 
 interface ProductCardProps {
   product: Product;
@@ -11,11 +12,37 @@ interface ProductCardProps {
 
 export function ProductCard({ product, featured }: ProductCardProps) {
   const { addItem } = useCart();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  // Get all available images (prefer image_urls array, fallback to image_url)
+  const images = product.image_urls && product.image_urls.length > 0 
+    ? product.image_urls 
+    : product.image_url 
+      ? [product.image_url] 
+      : [];
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addItem(product, 1);
+  };
+
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleDotClick = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex(index);
   };
 
   return (
@@ -24,12 +51,50 @@ export function ProductCard({ product, featured }: ProductCardProps) {
       className="group block"
     >
       <div className="relative overflow-hidden bg-secondary aspect-[3/4] mb-4">
-        {product.image_url ? (
-          <img
-            src={product.image_url}
-            alt={product.name}
-            className="w-full h-full object-cover product-image-zoom"
-          />
+        {images.length > 0 ? (
+          <>
+            <img
+              src={images[currentImageIndex]}
+              alt={`${product.name} - Image ${currentImageIndex + 1}`}
+              className="w-full h-full object-cover product-image-zoom"
+            />
+            
+            {/* Image Navigation Arrows - Only show if multiple images */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-black rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg z-10"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-black rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg z-10"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+
+                {/* Image Dots Indicator */}
+                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                  {images.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={(e) => handleDotClick(e, index)}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        index === currentImageIndex
+                          ? 'bg-white w-6'
+                          : 'bg-white/50 hover:bg-white/75'
+                      }`}
+                      aria-label={`View image ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
             <span className="font-serif text-lg">Sereniquee</span>

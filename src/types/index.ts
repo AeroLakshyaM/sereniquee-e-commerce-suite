@@ -7,6 +7,7 @@ export interface Product {
   category: string | null;
   stock_quantity: number;
   image_url: string | null;
+  image_urls?: string[]; // Array of image URLs for multiple product photos
   featured: boolean;
   average_rating?: number;
   review_count?: number;

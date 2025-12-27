@@ -5,7 +5,7 @@ import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { ShareButton } from '@/components/ui/share-button';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
-import { Minus, Plus, ArrowLeft, Flame, Clock, AlertTriangle, Sparkles, Heart, Home } from 'lucide-react';
+import { Minus, Plus, ArrowLeft, Flame, Clock, AlertTriangle, Sparkles, Heart, Home, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { 
   Accordion,
@@ -20,6 +20,7 @@ export default function ProductDetail() {
   const { data: product, isLoading } = useProductBySlug(slug!);
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const handleAddToCart = () => {
     if (product) {
@@ -53,6 +54,21 @@ export default function ProductDetail() {
     );
   }
 
+  // Get all available images
+  const images = product.image_urls && product.image_urls.length > 0 
+    ? product.image_urls 
+    : product.image_url 
+      ? [product.image_url] 
+      : [];
+
+  const handlePrevImage = () => {
+    setSelectedImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = () => {
+    setSelectedImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
   return (
     <div className="container-luxury py-12">
       {/* Back Button */}
@@ -65,17 +81,70 @@ export default function ProductDetail() {
       </button>
 
       <div className="grid md:grid-cols-2 gap-12">
-        {/* Product Image */}
-        <div className="aspect-square bg-secondary overflow-hidden">
-          {product.image_url ? (
-            <img
-              src={product.image_url}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-              <span className="font-serif text-2xl">Sereniquee</span>
+        {/* Product Image Gallery */}
+        <div className="space-y-4">
+          {/* Main Image */}
+          <div className="relative aspect-square bg-secondary overflow-hidden group">
+            {images.length > 0 ? (
+              <>
+                <img
+                  src={images[selectedImageIndex]}
+                  alt={`${product.name} - Image ${selectedImageIndex + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                
+                {/* Navigation Arrows - Only show if multiple images */}
+                {images.length > 1 && (
+                  <>
+                    <button
+                      onClick={handlePrevImage}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-black rounded-full p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft className="h-6 w-6" />
+                    </button>
+                    <button
+                      onClick={handleNextImage}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-black rounded-full p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg"
+                      aria-label="Next image"
+                    >
+                      <ChevronRight className="h-6 w-6" />
+                    </button>
+
+                    {/* Image Counter */}
+                    <div className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1 rounded-full text-sm">
+                      {selectedImageIndex + 1} / {images.length}
+                    </div>
+                  </>
+                )}
+              </>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                <span className="font-serif text-2xl">Sereniquee</span>
+              </div>
+            )}
+          </div>
+
+          {/* Thumbnail Gallery - Only show if multiple images */}
+          {images.length > 1 && (
+            <div className="grid grid-cols-5 gap-2">
+              {images.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImageIndex(index)}
+                  className={`aspect-square overflow-hidden border-2 transition-all ${
+                    index === selectedImageIndex
+                      ? 'border-primary'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <img
+                    src={image}
+                    alt={`Thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
             </div>
           )}
         </div>

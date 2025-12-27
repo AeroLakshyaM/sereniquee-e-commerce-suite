@@ -28,77 +28,121 @@ export default function QuickProductForm({ onClose, editingProduct }: QuickProdu
     category: editingProduct?.category || '',
     stock_quantity: editingProduct?.stock_quantity.toString() || '10',
     image_url: editingProduct?.image_url || '',
+    image_urls: editingProduct?.image_urls || [],
     featured: editingProduct?.featured || false,
   });
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Check total number of images
+    if (formData.image_urls.length + files.length > 10) {
       toast({
-        title: 'File too large',
-        description: 'Please choose an image smaller than 5MB',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: 'Invalid file type',
-        description: 'Please upload an image file',
+        title: 'Too many images',
+        description: 'You can upload a maximum of 10 images per product',
         variant: 'destructive',
       });
       return;
     }
 
     setIsUploading(true);
+    const uploadedUrls: string[] = [];
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-      const filePath = `products/${fileName}`;
-
-      const { error: uploadError, data } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        // If bucket doesn't exist, try to create it
-        if (uploadError.message.includes('not found')) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // Check file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
           toast({
-            title: 'Storage not configured',
-            description: 'Using image URL instead. Contact admin to set up image storage.',
+            title: 'File too large',
+            description: `${file.name} is larger than 5MB`,
             variant: 'destructive',
           });
-          setIsUploading(false);
-          return;
+          continue;
         }
-        throw uploadError;
+
+        // Check file type
+        if (!file.type.startsWith('image/')) {
+          toast({
+            title: 'Invalid file type',
+            description: `${file.name} is not an image file`,
+            variant: 'destructive',
+          });
+          continue;
+        }
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+        const filePath = `products/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          if (uploadError.message.includes('not found')) {
+            toast({
+              title: 'Storage not configured',
+              description: 'Using image URL instead. Contact admin to set up image storage.',
+              variant: 'destructive',
+            });
+            break;
+          }
+          throw uploadError;
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        uploadedUrls.push(publicUrl);
       }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(filePath);
-
-      setFormData({ ...formData, image_url: publicUrl });
-      toast({
-        title: 'Image uploaded!',
-        description: 'Your product image has been uploaded successfully',
-      });
+      if (uploadedUrls.length > 0) {
+        const newImageUrls = [...formData.image_urls, ...uploadedUrls];
+        setFormData({ 
+          ...formData, 
+          image_urls: newImageUrls,
+          image_url: newImageUrls[0] // Set first image as primary
+        });
+        toast({
+          title: `${uploadedUrls.length} image(s) uploaded!`,
+          description: 'Your product images have been uploaded successfully',
+        });
+      }
     } catch (error: any) {
       console.error('Upload error:', error);
       toast({
         title: 'Upload failed',
-        description: 'You can paste an image URL instead',
+        description: 'Some images could not be uploaded',
         variant: 'destructive',
       });
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const newImageUrls = formData.image_urls.filter((_, i) => i !== index);
+    setFormData({ 
+      ...formData, 
+      image_urls: newImageUrls,
+      image_url: newImageUrls[0] || '' // Update primary image
+    });
+  };
+
+  const handleAddImageUrl = () => {
+    const url = prompt('Enter image URL:');
+    if (url && url.trim()) {
+      const newImageUrls = [...formData.image_urls, url.trim()];
+      setFormData({ 
+        ...formData, 
+        image_urls: newImageUrls,
+        image_url: newImageUrls[0]
+      });
     }
   };
 
@@ -112,7 +156,8 @@ export default function QuickProductForm({ onClose, editingProduct }: QuickProdu
       price: parseFloat(formData.price),
       category: formData.category || null,
       stock_quantity: parseInt(formData.stock_quantity) || 0,
-      image_url: formData.image_url || null,
+      image_url: formData.image_urls[0] || null, // First image as primary
+      image_urls: formData.image_urls,
       featured: formData.featured,
     };
 
@@ -173,66 +218,79 @@ export default function QuickProductForm({ onClose, editingProduct }: QuickProdu
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Image Upload Section */}
           <div className="space-y-3">
-            <Label className="text-lg">📸 Product Photo</Label>
-            <div className="border-2 border-dashed border-border rounded-lg p-6 text-center bg-muted/30">
-              {formData.image_url ? (
-                <div className="relative">
-                  <img
-                    src={formData.image_url}
-                    alt="Preview"
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2"
-                    onClick={() => setFormData({ ...formData, image_url: '' })}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground" />
-                  <div>
-                    <Label
-                      htmlFor="image-upload"
-                      className="cursor-pointer text-primary hover:underline font-medium"
-                    >
-                      {isUploading ? (
-                        <span className="flex items-center gap-2 justify-center">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Uploading...
-                        </span>
-                      ) : (
-                        <>
-                          <Upload className="h-4 w-4 inline mr-2" />
-                          Click to upload or drag and drop
-                        </>
-                      )}
-                    </Label>
-                    <Input
-                      id="image-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageUpload}
-                      disabled={isUploading}
+            <Label className="text-lg">📸 Product Photos (up to 10)</Label>
+            
+            {/* Display uploaded images */}
+            {formData.image_urls.length > 0 && (
+              <div className="grid grid-cols-3 gap-3 mb-3">
+                {formData.image_urls.map((url, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={url}
+                      alt={`Product ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-lg border-2 border-border"
                     />
-                    <p className="text-xs text-muted-foreground mt-2">
-                      PNG, JPG up to 5MB
-                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                    {index === 0 && (
+                      <span className="absolute bottom-1 left-1 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded">
+                        Primary
+                      </span>
+                    )}
                   </div>
-                  <div className="text-sm text-muted-foreground">or</div>
+                ))}
+              </div>
+            )}
+
+            <div className="border-2 border-dashed border-border rounded-lg p-6 text-center bg-muted/30">
+              <div className="space-y-3">
+                <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground" />
+                <div>
+                  <Label
+                    htmlFor="image-upload"
+                    className="cursor-pointer text-primary hover:underline font-medium"
+                  >
+                    {isUploading ? (
+                      <span className="flex items-center gap-2 justify-center">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Uploading...
+                      </span>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 inline mr-2" />
+                        Click to upload multiple images
+                      </>
+                    )}
+                  </Label>
                   <Input
-                    type="url"
-                    placeholder="Paste image URL here"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleImageUpload}
+                    disabled={isUploading || formData.image_urls.length >= 10}
                   />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    PNG, JPG up to 5MB each • Max 10 images
+                  </p>
                 </div>
-              )}
+                <div className="text-sm text-muted-foreground">or</div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddImageUrl}
+                  disabled={formData.image_urls.length >= 10}
+                >
+                  Add Image URL
+                </Button>
+              </div>
             </div>
           </div>
 
