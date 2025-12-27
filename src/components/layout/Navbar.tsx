@@ -174,8 +174,8 @@ export function Navbar() {
               className="flex items-center md:absolute md:left-[42%] md:transform md:-translate-x-1/2 animate-slide-down" 
               style={{ animationDelay: '0.2s' }}
             >
-              <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-serif font-semibold tracking-wide whitespace-nowrap">
-                sereniquee candles
+              <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-serif font-extrabold tracking-wide whitespace-nowrap">
+                sereniquee_candles
               </span>
             </Link>
 
