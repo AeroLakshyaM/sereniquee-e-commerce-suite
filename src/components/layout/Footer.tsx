@@ -169,7 +169,7 @@ export function Footer() {
               <p className="text-primary-foreground/40 text-xs">
                 Developed by{' '}
                 <a 
-                  href="www.linkedin.com/in/lakshya-mishra-65275924b" 
+                  href="https://www.linkedin.com/in/lakshya-mishra-65275924b" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-primary-foreground/60 hover:text-primary-foreground/80 transition-colors underline decoration-primary-foreground/30 hover:decoration-primary-foreground/60"
