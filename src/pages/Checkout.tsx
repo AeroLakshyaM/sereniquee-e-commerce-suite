@@ -211,18 +211,24 @@ export default function Checkout() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="specialRequirements">Special Requirements (Optional)</Label>
+              <Label htmlFor="specialRequirements" className="flex items-center gap-2">
+                <span>Special Requirements (Optional)</span>
+                <span className="text-xs text-muted-foreground font-normal">- Gift wrapping, custom message, etc.</span>
+              </Label>
               <Textarea
                 id="specialRequirements"
                 name="specialRequirements"
                 value={formData.specialRequirements}
                 onChange={handleChange}
-                placeholder="Any special instructions for your order? E.g., gift wrapping, custom message, delivery instructions, etc."
+                placeholder="Any special instructions for your order? E.g., gift wrapping, custom message, delivery instructions, personalization requests, etc."
                 rows={4}
-                className="resize-none"
+                className="resize-none border-2 focus:border-primary transition-colors"
               />
-              <p className="text-xs text-muted-foreground">
-                Let us know if you have any special requests for this order
+              <p className="text-xs text-muted-foreground flex items-start gap-1">
+                <span className="text-primary mt-0.5">💡</span>
+                <span>
+                  Let us know if you have any special requests for this order. We'll do our best to accommodate your needs!
+                </span>
               </p>
             </div>
 

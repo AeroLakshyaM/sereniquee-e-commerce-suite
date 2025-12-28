@@ -129,13 +129,6 @@ export function ProductCard({ product, featured }: ProductCardProps) {
             </span>
           </div>
         )}
-        
-        {/* Low Stock Badge */}
-        {product.stock_quantity > 0 && product.stock_quantity <= 5 && (
-          <span className="absolute top-4 right-4 bg-orange-500 text-white text-xs px-3 py-1 font-medium rounded-full">
-            Only {product.stock_quantity} left
-          </span>
-        )}
       </div>
 
       <div className="space-y-1">

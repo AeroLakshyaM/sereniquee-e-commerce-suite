@@ -80,6 +80,26 @@ export default function ProductDetail() {
         Back
       </button>
 
+      {/* Product Name and Price - Mobile Only (Above Images) */}
+      <div className="md:hidden mb-8">
+        {product.category && (
+          <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-2">
+            {product.category}
+          </p>
+        )}
+        <h1 className="font-serif text-3xl mb-3">{product.name}</h1>
+        <p className="text-2xl font-serif mb-4">₹{product.price.toFixed(2)}</p>
+        <div className="mb-4">
+          <ShareButton 
+            url={`/product/${product.slug}`}
+            title={product.name}
+            description={product.description || `Check out ${product.name} from Sereniquee Candles`}
+            variant="outline"
+            size="sm"
+          />
+        </div>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-12">
         {/* Product Image Gallery */}
         <div className="space-y-4">
@@ -151,23 +171,26 @@ export default function ProductDetail() {
 
         {/* Product Details */}
         <div className="flex flex-col">
-          {product.category && (
-            <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-2">
-              {product.category}
-            </p>
-          )}
-          <h1 className="font-serif text-3xl md:text-4xl mb-4">{product.name}</h1>
-          <p className="text-2xl font-serif mb-6">₹{product.price.toFixed(2)}</p>
-          
-          {/* Share Button */}
-          <div className="mb-6">
-            <ShareButton 
-              url={`/product/${product.slug}`}
-              title={product.name}
-              description={product.description || `Check out ${product.name} from Sereniquee Candles`}
-              variant="outline"
-              size="sm"
-            />
+          {/* Desktop Only - Product Name Section */}
+          <div className="hidden md:block">
+            {product.category && (
+              <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                {product.category}
+              </p>
+            )}
+            <h1 className="font-serif text-3xl md:text-4xl mb-4">{product.name}</h1>
+            <p className="text-2xl font-serif mb-6">₹{product.price.toFixed(2)}</p>
+            
+            {/* Share Button */}
+            <div className="mb-6">
+              <ShareButton 
+                url={`/product/${product.slug}`}
+                title={product.name}
+                description={product.description || `Check out ${product.name} from Sereniquee Candles`}
+                variant="outline"
+                size="sm"
+              />
+            </div>
           </div>
           
           {product.description && (
@@ -179,18 +202,12 @@ export default function ProductDetail() {
           {/* Stock Status */}
           {product.stock_quantity > 0 ? (
             <div className="mb-6">
-              {product.stock_quantity <= 5 ? (
-                <div className="flex items-center gap-2 p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg">
-                  <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                  <p className="text-sm font-medium text-orange-900 dark:text-orange-100">
-                    Only {product.stock_quantity} left in stock - order soon!
-                  </p>
-                </div>
-              ) : (
-                <p className="text-sm text-green-600 dark:text-green-400">
-                  ✓ In stock ({product.stock_quantity} available)
+              <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <div className="h-2 w-2 bg-green-600 dark:bg-green-400 rounded-full animate-pulse"></div>
+                <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                  ✓ In Stock - Ready to Ship
                 </p>
-              )}
+              </div>
             </div>
           ) : (
             <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
@@ -217,7 +234,8 @@ export default function ProductDetail() {
                 variant="ghost"
                 size="icon"
                 className="h-10 w-10 rounded-none"
-                onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+                onClick={() => setQuantity(quantity + 1)}
+                disabled={product.stock_quantity === 0}
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -421,33 +439,35 @@ export default function ProductDetail() {
       </div>
 
       {/* Why Choose Sereniquee Section */}
-      <div className="mt-16 bg-secondary p-8 rounded-lg">
-        <h2 className="font-serif text-2xl mb-6 text-center">Why Choose Sereniquee Candles?</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Sparkles className="h-6 w-6 text-primary" />
+      <div className="mt-16 bg-gradient-to-br from-primary/5 via-secondary to-accent/5 p-8 md:p-12 rounded-lg border border-primary/10">
+        <h2 className="font-serif text-2xl md:text-3xl mb-8 text-center bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+          Why Choose Sereniquee Candles?
+        </h2>
+        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+          <div className="text-center group hover:scale-105 transition-transform duration-300">
+            <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:shadow-xl transition-shadow">
+              <Sparkles className="h-8 w-8 text-white" />
             </div>
-            <h3 className="font-semibold mb-2">Handcrafted Excellence</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="font-semibold text-lg mb-3 text-foreground">Handcrafted Excellence</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Each candle is hand-poured with care and attention to detail, ensuring premium quality in every product.
             </p>
           </div>
-          <div className="text-center">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Heart className="h-6 w-6 text-primary" />
+          <div className="text-center group hover:scale-105 transition-transform duration-300">
+            <div className="w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:shadow-xl transition-shadow">
+              <Heart className="h-8 w-8 text-white" />
             </div>
-            <h3 className="font-semibold mb-2">Natural Ingredients</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="font-semibold text-lg mb-3 text-foreground">Natural Ingredients</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               We use only 100% natural soy wax and phthalate-free fragrances for a clean, safe burn.
             </p>
           </div>
-          <div className="text-center">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Home className="h-6 w-6 text-primary" />
+          <div className="text-center group hover:scale-105 transition-transform duration-300">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:shadow-xl transition-shadow">
+              <Home className="h-8 w-8 text-white" />
             </div>
-            <h3 className="font-semibold mb-2">Long-Lasting Fragrance</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="font-semibold text-lg mb-3 text-foreground">Long-Lasting Fragrance</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Enjoy 40-50 hours of beautiful aroma that fills your space with luxury and tranquility.
             </p>
           </div>

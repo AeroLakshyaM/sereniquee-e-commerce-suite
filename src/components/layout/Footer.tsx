@@ -37,7 +37,7 @@ export function Footer() {
                 alt="Sereniquee Logo" 
                 className="h-32 w-32 object-contain mb-6 opacity-90"
               />
-              <h3 className="text-2xl font-serif font-semibold mb-2">sereniquee candles</h3>
+              <h3 className="text-2xl font-serif font-semibold mb-2">sereniquee_candles</h3>
               <p className="text-primary-foreground/50 text-sm italic font-serif mb-4">
                 Kindness Crafted, Light Shared.
               </p>

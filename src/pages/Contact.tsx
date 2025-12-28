@@ -108,10 +108,10 @@ export default function Contact() {
                 <div>
                   <h3 className="font-semibold mb-1">Email Us</h3>
                   <a 
-                    href="mailto:hello@sereniquee.com" 
+                    href="mailto:sereniqueecandles@gmail.com" 
                     className="text-muted-foreground hover:text-accent transition-colors"
                   >
-                    hello@sereniquee.com
+                    sereniqueecandles@gmail.com
                   </a>
                 </div>
               </div>
