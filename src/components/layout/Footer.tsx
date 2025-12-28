@@ -162,9 +162,22 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-primary-foreground/10 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-primary-foreground/50 text-sm">
-              © {new Date().getFullYear()} Sereniquee Candles. All rights reserved.
-            </p>
+            <div className="flex flex-col items-center md:items-start gap-2">
+              <p className="text-primary-foreground/50 text-sm">
+                © {new Date().getFullYear()} Sereniquee Candles. All rights reserved.
+              </p>
+              <p className="text-primary-foreground/40 text-xs">
+                Developed by{' '}
+                <a 
+                  href="www.linkedin.com/in/lakshya-mishra-65275924b" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary-foreground/60 hover:text-primary-foreground/80 transition-colors underline decoration-primary-foreground/30 hover:decoration-primary-foreground/60"
+                >
+                  Lakshya Mishra
+                </a>
+              </p>
+            </div>
             <div className="flex gap-6 text-xs text-primary-foreground/50">
               <Link to="/privacy-policy" className="hover:text-primary-foreground/70 transition-colors">
                 Privacy Policy
