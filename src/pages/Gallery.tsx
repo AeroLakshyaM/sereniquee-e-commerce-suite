@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Camera, X } from 'lucide-react';
 import CircularGallery from '@/components/CircularGallery';
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
 
 interface GalleryImage {
   id: number;
@@ -103,6 +104,12 @@ export default function Gallery() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-amber-50/20 to-background dark:from-background dark:via-amber-950/10 dark:to-background">
+      <SeoHelmet
+        title="Gallery - Handmade Candle Photography - Sereniquee"
+        description="Explore our visual collection showcasing the art of handmade candles. See behind-the-scenes studio shots, lifestyle imagery, and the beauty of our soy candle creations."
+        keywords="candle gallery, handmade candle photos, candle photography, studio behind the scenes, luxury candle images, candle lifestyle"
+        url="/gallery"
+      />
       {/* Hero Section */}
       <section className="relative py-16 sm:py-20 md:py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-50/30 via-background to-stone-100/20 dark:from-amber-950/10 dark:via-background dark:to-stone-950/20">

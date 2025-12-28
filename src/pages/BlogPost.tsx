@@ -4,6 +4,7 @@ import { Calendar, Clock, ArrowLeft, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { BlogCard } from '@/components/blog/BlogCard';
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
 import { useBlogBySlug, useBlogs } from '@/hooks/useBlogs';
 
 const formatDate = (value: string | null) => {
@@ -90,6 +91,15 @@ export default function BlogPost() {
 
   return (
     <article className="container-luxury py-12 lg:py-20 space-y-12">
+      <SeoHelmet
+        title={blog.seo_title || blog.title}
+        description={blog.seo_description || blog.excerpt || undefined}
+        keywords={blog.seo_keywords || blog.tags?.join(', ') || undefined}
+        image={blog.cover_image_url || undefined}
+        url={`/blogs/${blog.slug}`}
+        type="article"
+      />
+      
       <div className="flex flex-wrap items-center justify-between gap-4">
         <Button asChild variant="ghost" size="sm" className="gap-2">
           <Link to="/blogs">

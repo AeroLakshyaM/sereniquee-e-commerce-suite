@@ -1,6 +1,14 @@
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
+
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-background pt-24 pb-16">
+      <SeoHelmet
+        title="Privacy Policy - Sereniquee Candles"
+        description="Read our privacy policy to understand how Sereniquee collects, uses, and protects your personal information when you visit our website or purchase our products."
+        keywords="privacy policy, data protection, personal information, sereniquee privacy, customer data security"
+        url="/privacy-policy"
+      />
       <div className="container-luxury max-w-4xl">
         <h1 className="font-serif text-4xl md:text-5xl mb-4">Privacy Policy</h1>
         <p className="text-muted-foreground mb-8">Last Updated: December 25, 2025</p>

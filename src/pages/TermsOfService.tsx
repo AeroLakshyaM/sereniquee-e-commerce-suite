@@ -1,6 +1,14 @@
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
+
 export default function TermsOfService() {
   return (
     <div className="min-h-screen bg-background pt-24 pb-16">
+      <SeoHelmet
+        title="Terms of Service - Sereniquee Candles"
+        description="Review Sereniquee's terms of service governing the use of our website, product purchases, and services. Understand your rights and responsibilities as a customer."
+        keywords="terms of service, terms and conditions, website terms, purchase agreement, sereniquee terms"
+        url="/terms-of-service"
+      />
       <div className="container-luxury max-w-4xl">
         <h1 className="font-serif text-4xl md:text-5xl mb-4">Terms of Service</h1>
         <p className="text-muted-foreground mb-8">Last Updated: December 25, 2025</p>

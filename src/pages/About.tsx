@@ -1,6 +1,14 @@
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
+
 export default function About() {
   return (
     <div>
+      <SeoHelmet
+        title="About Us - Handcrafted Luxury Candles"
+        description="Discover the story behind Sereniquee's handmade soy candles. Learn about our commitment to natural ingredients, sustainable practices, and creating moments of serenity in your home."
+        keywords="about sereniquee, handmade candle story, luxury candle company, soy candle makers, artisan candles, sustainable candles, eco-friendly candles"
+        url="/about"
+      />
       {/* Hero */}
       <section className="bg-secondary py-24">
         <div className="container-luxury text-center">

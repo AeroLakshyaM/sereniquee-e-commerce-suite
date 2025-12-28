@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
 import { useFeaturedProducts } from '@/hooks/useProducts';
 import { useBlogs } from '@/hooks/useBlogs';
 import { ProductGrid } from '@/components/product/ProductGrid';
@@ -14,6 +15,13 @@ export default function Home() {
 
   return (
     <div className="overflow-x-hidden">
+      <SeoHelmet
+        title="Luxury Handmade Soy Candles"
+        description="Discover Sereniquee's collection of handcrafted, aromatic soy candles. Transform your home into a sanctuary of warmth and relaxation with our eco-friendly candles."
+        keywords="handmade candles, luxury candles, soy wax candles, scented candles, aromatic candles, eco-friendly candles, home decor, aromatherapy"
+        url="/"
+      />
+      
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-50/30 via-background to-stone-100/20 dark:from-amber-950/10 dark:via-background dark:to-stone-950/20">

@@ -7,6 +7,7 @@ import { Blog } from '@/types';
 import { slugify } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { generateBlogContent } from '@/lib/geminiAI';
+import { SeoFields } from '@/components/admin/SeoFields';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,6 +34,9 @@ interface BlogFormState {
   authorName: string;
   tagsInput: string;
   isPublished: boolean;
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
 }
 
 const initialFormState: BlogFormState = {
@@ -45,6 +49,9 @@ const initialFormState: BlogFormState = {
   authorName: '',
   tagsInput: '',
   isPublished: true,
+  seoTitle: '',
+  seoDescription: '',
+  seoKeywords: '',
 };
 
 const wordCount = (value: string) => value.trim().split(/\s+/).filter(Boolean).length;
@@ -148,6 +155,9 @@ export function BlogManager() {
       authorName: blog.author_name ?? '',
       tagsInput: blog.tags ? blog.tags.join(', ') : '',
       isPublished: Boolean(blog.is_published),
+      seoTitle: blog.seo_title ?? '',
+      seoDescription: blog.seo_description ?? '',
+      seoKeywords: blog.seo_keywords ?? '',
     });
   };
 
@@ -179,6 +189,9 @@ export function BlogManager() {
       is_published: formState.isPublished,
       tags: trimmedTags.length ? trimmedTags : null,
       reading_time: calculateReadingTime(formState.content),
+      seo_title: formState.seoTitle.trim() || null,
+      seo_description: formState.seoDescription.trim() || null,
+      seo_keywords: formState.seoKeywords.trim() || null,
       published_at: formState.isPublished
         ? editingBlog?.published_at ?? new Date().toISOString()
         : null,
@@ -310,6 +323,9 @@ export function BlogManager() {
         content: generated.content,
         excerpt: generated.excerpt,
         tagsInput: generated.tags.join(', '),
+        seoTitle: generated.seoTitle,
+        seoDescription: generated.seoDescription,
+        seoKeywords: generated.seoKeywords,
       }));
 
       setIsSlugDirty(false);
@@ -567,6 +583,24 @@ export function BlogManager() {
                 </div>
               </div>
             </div>
+
+            <SeoFields
+              value={{
+                seoTitle: formState.seoTitle,
+                seoDescription: formState.seoDescription,
+                seoKeywords: formState.seoKeywords,
+              }}
+              onChange={(seo) =>
+                setFormState((prev) => ({
+                  ...prev,
+                  seoTitle: seo.seoTitle,
+                  seoDescription: seo.seoDescription,
+                  seoKeywords: seo.seoKeywords,
+                }))
+              }
+              defaultTitle={formState.title}
+              defaultDescription={formState.excerpt}
+            />
 
             <div className="flex items-center justify-between border rounded-md p-4">
               <div>

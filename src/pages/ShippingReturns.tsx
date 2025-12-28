@@ -1,6 +1,14 @@
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
+
 export default function ShippingReturns() {
   return (
     <div className="min-h-screen bg-background pt-24 pb-16">
+      <SeoHelmet
+        title="Shipping & Returns - Sereniquee Candles"
+        description="Learn about Sereniquee's shipping options, delivery times, and hassle-free return policy for our handmade candles. Free shipping available on orders over a certain amount."
+        keywords="shipping policy, returns policy, delivery information, free shipping, candle delivery, return process"
+        url="/shipping-returns"
+      />
       <div className="container-luxury max-w-4xl">
         <h1 className="font-serif text-4xl md:text-5xl mb-4">Shipping & Returns Policy</h1>
         <p className="text-muted-foreground mb-8">Last Updated: December 25, 2025</p>

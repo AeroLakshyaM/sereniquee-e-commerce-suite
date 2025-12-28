@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { MessageCircle } from "lucide-react";
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
 
 export default function FAQ() {
   const faqs = [
@@ -135,6 +136,12 @@ export default function FAQ() {
 
   return (
     <div>
+      <SeoHelmet
+        title="FAQ - Frequently Asked Questions - Sereniquee Candles"
+        description="Find answers to common questions about Sereniquee's handmade soy candles, including ingredients, burn times, shipping, returns, and candle care tips."
+        keywords="candle faq, soy candle questions, candle care tips, burn time, shipping information, return policy, candle ingredients"
+        url="/faq"
+      />
       {/* Hero */}
       <section className="bg-secondary py-24">
         <div className="container-luxury text-center">

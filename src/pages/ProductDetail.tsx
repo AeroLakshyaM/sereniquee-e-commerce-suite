@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProductBySlug } from '@/hooks/useProducts';
 import { useCart } from '@/contexts/CartContext';
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
 import { Button } from '@/components/ui/button';
 import { ShareButton } from '@/components/ui/share-button';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
@@ -71,6 +72,15 @@ export default function ProductDetail() {
 
   return (
     <div className="container-luxury py-12">
+      <SeoHelmet
+        title={product.seo_title || `${product.name} - ${product.category || 'Handmade Candles'}`}
+        description={product.seo_description || product.description || `Shop ${product.name} from Sereniquee. Luxury handmade candles crafted with love.`}
+        keywords={product.seo_keywords || `${product.name}, ${product.category}, handmade candles, luxury candles, scented candles`}
+        image={product.image_url || undefined}
+        url={`/products/${product.slug}`}
+        type="product"
+      />
+      
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}

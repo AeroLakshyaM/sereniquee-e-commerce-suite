@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
 
 export default function Contact() {
   const { toast } = useToast();
@@ -75,6 +76,12 @@ export default function Contact() {
 
   return (
     <div>
+      <SeoHelmet
+        title="Contact Us - Get in Touch - Sereniquee Candles"
+        description="Have questions about our handmade candles? Contact Sereniquee for custom orders, wholesale inquiries, or customer support. We're here to help create your perfect ambiance."
+        keywords="contact sereniquee, custom candle orders, wholesale candles, customer support, candle inquiries, contact us"
+        url="/contact"
+      />
       {/* Hero */}
       <section className="bg-secondary py-24">
         <div className="container-luxury text-center">

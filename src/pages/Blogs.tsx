@@ -4,6 +4,7 @@ import { Sparkles, Loader2 } from 'lucide-react';
 import { useBlogs } from '@/hooks/useBlogs';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { Button } from '@/components/ui/button';
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
 
 export default function Blogs() {
   const { data: blogs, isLoading } = useBlogs();
@@ -29,6 +30,12 @@ export default function Blogs() {
 
   return (
     <div className="container-luxury py-12 lg:py-20">
+      <SeoHelmet
+        title="The Wick Journal - Candle Stories & Slow Living - Sereniquee"
+        description="Read our handwritten journal featuring candle making insights, scent rituals, aromatherapy tips, and stories from the Sereniquee atelier. Discover the art of slow living and intentional moments."
+        keywords="candle blog, scent rituals, slow living, aromatherapy tips, candle making insights, home fragrance blog, wellness blog"
+        url="/blogs"
+      />
       <section className="relative overflow-hidden rounded-[32px] border border-border bg-gradient-to-br from-amber-50 via-white to-rose-50 px-6 py-12 md:px-12 md:py-16">
         <div className="relative z-10 max-w-3xl space-y-6">
           <p className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.4em] text-muted-foreground">

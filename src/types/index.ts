@@ -11,6 +11,9 @@ export interface Product {
   featured: boolean;
   average_rating?: number;
   review_count?: number;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_keywords?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -72,6 +75,9 @@ export interface Blog {
   is_published: boolean | null;
   tags: string[] | null;
   reading_time: number | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_keywords?: string | null;
   published_at: string | null;
   created_at: string;
   updated_at: string;
@@ -85,6 +91,9 @@ export interface Category {
   image_url: string | null;
   video_url: string | null;
   display_order: number;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_keywords?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -301,4 +310,18 @@ export interface AnalyticsDashboardData {
     monthlyRevenue: number;
     growthRate: number;
   };
+}
+
+export interface SeoSettings {
+  id: string;
+  site_name: string;
+  site_description: string | null;
+  default_og_image: string | null;
+  canonical_base_url: string;
+  instagram_handle: string | null;
+  facebook_url: string | null;
+  twitter_handle: string | null;
+  google_analytics_id: string | null;
+  created_at: string;
+  updated_at: string;
 }

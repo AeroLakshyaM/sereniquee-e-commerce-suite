@@ -18,6 +18,9 @@ export interface GeneratedBlogContent {
   content: string;
   excerpt: string;
   tags: string[];
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
 }
 
 export async function generateBlogContent(
@@ -62,7 +65,10 @@ Format your response as JSON with this exact structure:
   "title": "Your Generated Title Here",
   "content": "Full blog post content here with paragraphs separated by double line breaks (\\n\\n). Use SECTION: for headings and BOLD: for emphasis.",
   "excerpt": "Your two-sentence summary here",
-  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
+  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
+  "seoTitle": "SEO-optimized title (50-60 chars)",
+  "seoDescription": "Meta description for Google (120-160 chars)",
+  "seoKeywords": "keyword1, keyword2, keyword3, keyword4, keyword5"
 }
 
 Important guidelines:
@@ -103,6 +109,9 @@ Generate the JSON response now:`;
       content: parsed.content || '',
       excerpt: parsed.excerpt || '',
       tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+      seoTitle: parsed.seoTitle || parsed.title || '',
+      seoDescription: parsed.seoDescription || parsed.excerpt || '',
+      seoKeywords: parsed.seoKeywords || '',
     };
   } catch (error) {
     console.error('Error generating blog content:', error);

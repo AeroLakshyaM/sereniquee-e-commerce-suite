@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -122,6 +123,12 @@ export default function Checkout() {
 
   return (
     <div className="container-luxury py-12">
+      <SeoHelmet
+        title="Checkout - Complete Your Order - Sereniquee"
+        description="Complete your purchase of luxury handmade candles. Secure checkout with multiple payment options and fast shipping. Review your order details."
+        keywords="checkout, buy candles, secure payment, complete order, candle purchase"
+        url="/checkout"
+      />
       <h1 className="font-serif text-3xl md:text-4xl text-center mb-12">Checkout</h1>
 
       <div className="grid lg:grid-cols-2 gap-12">

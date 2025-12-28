@@ -4,6 +4,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'react-router-dom';
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
 
 export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -95,6 +96,12 @@ export default function Shop() {
 
   return (
     <div className="container-luxury py-12">
+      <SeoHelmet
+        title="Shop Luxury Handmade Candles - Sereniquee"
+        description="Browse our curated collection of luxury handmade soy candles. Discover unique scents crafted with natural ingredients, essential oils, and sustainable materials. Free shipping available."
+        keywords="buy handmade candles, luxury candles shop, soy wax candles, scented candles online, natural candles, eco-friendly candles, aromatherapy candles"
+        url="/shop"
+      />
       {/* Header */}
       <div className="text-center mb-12">
         <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-3">

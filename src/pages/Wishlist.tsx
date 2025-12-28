@@ -17,6 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { SeoHelmet } from '@/components/layout/SeoHelmet';
 
 export default function WishlistPage() {
   const { data: wishlist, isLoading } = useWishlist();
@@ -104,6 +105,12 @@ export default function WishlistPage() {
 
   return (
     <div className="container-luxury py-12">
+      <SeoHelmet
+        title="My Wishlist - Saved Candles - Sereniquee"
+        description="View your saved candles and favorite products from Sereniquee. Keep track of your desired handmade soy candles and move them to cart when ready."
+        keywords="wishlist, saved candles, favorite products, candle wishlist"
+        url="/wishlist"
+      />
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between flex-wrap gap-4">
