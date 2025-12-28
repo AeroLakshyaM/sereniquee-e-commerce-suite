@@ -23,8 +23,29 @@ export default function BlogPost() {
   }, [moreBlogs, blog]);
 
   const paragraphs = useMemo(() => {
-    if (!blog?.content) return [] as string[];
-    return blog.content.split(/\n{2,}/).map((block) => block.trim()).filter(Boolean);
+    if (!blog?.content) return [] as Array<{ type: 'paragraph' | 'heading'; text: string }>;
+    
+    const blocks = blog.content.split(/\n{2,}/).map((block) => block.trim()).filter(Boolean);
+    
+    return blocks.map((block) => {
+      // Check if it's a section heading
+      if (block.startsWith('SECTION:')) {
+        return {
+          type: 'heading' as const,
+          text: block.replace('SECTION:', '').trim(),
+        };
+      }
+      
+      // Process bold text within paragraph
+      let processedText = block;
+      const boldRegex = /BOLD:\s*([^.\n]+)/g;
+      processedText = processedText.replace(boldRegex, '<strong>$1</strong>');
+      
+      return {
+        type: 'paragraph' as const,
+        text: processedText,
+      };
+    });
   }, [blog]);
 
   const handleShare = async () => {
@@ -108,10 +129,23 @@ export default function BlogPost() {
         </div>
       )}
 
-      <section className="prose prose-lg prose-neutral max-w-none dark:prose-invert">
-        {paragraphs.map((paragraph, index) => (
-          <p key={index}>{paragraph}</p>
-        ))}
+      <section className="prose prose-lg prose-neutral max-w-none dark:prose-invert space-y-6">
+        {paragraphs.map((block, index) => {
+          if (block.type === 'heading') {
+            return (
+              <h2 key={index} className="font-serif text-2xl md:text-3xl mt-12 mb-4 text-foreground">
+                {block.text}
+              </h2>
+            );
+          }
+          return (
+            <p 
+              key={index} 
+              className="leading-relaxed text-muted-foreground"
+              dangerouslySetInnerHTML={{ __html: block.text }}
+            />
+          );
+        })}
       </section>
 
       {blog.gallery_image_urls && blog.gallery_image_urls.length > 0 && (

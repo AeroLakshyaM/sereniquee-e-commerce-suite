@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, Plus, Trash2, Sparkles, Wand2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBlogs } from '@/hooks/useBlogs';
 import { Blog } from '@/types';
 import { slugify } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { generateBlogContent } from '@/lib/geminiAI';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -83,6 +84,11 @@ export function BlogManager() {
   const [isSlugDirty, setIsSlugDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingField, setUploadingField] = useState<string | null>(null);
+  
+  // AI Generation states
+  const [aiTopic, setAiTopic] = useState('');
+  const [aiNotes, setAiNotes] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleTitleChange = (value: string) => {
     setFormState((prev) => ({
@@ -279,8 +285,129 @@ export function BlogManager() {
     }
   };
 
+  const handleAIGenerate = async () => {
+    if (!aiTopic.trim()) {
+      toast({
+        title: 'Topic required',
+        description: 'Please enter a topic or idea for your blog post.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      const generated = await generateBlogContent({
+        topic: aiTopic,
+        additionalNotes: aiNotes,
+      });
+
+      setFormState((prev) => ({
+        ...prev,
+        title: generated.title,
+        slug: slugify(generated.title),
+        content: generated.content,
+        excerpt: generated.excerpt,
+        tagsInput: generated.tags.join(', '),
+      }));
+
+      setIsSlugDirty(false);
+
+      toast({
+        title: '✨ Content generated!',
+        description: 'Your blog post is ready. Review and edit as needed, then add images and publish.',
+      });
+
+      // Clear AI fields after successful generation
+      setAiTopic('');
+      setAiNotes('');
+    } catch (error: any) {
+      toast({
+        title: 'Generation failed',
+        description: error.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
+      {/* AI Content Generator */}
+      <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <CardTitle>AI Blog Generator ✨</CardTitle>
+          </div>
+          <CardDescription>
+            Simply tell us what you want to write about, and AI will create a complete, SEO-optimized blog post for you. You can then add your images and publish!
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="ai-topic">What do you want to write about? *</Label>
+              <Input
+                id="ai-topic"
+                placeholder="E.g. How to care for scented candles, Benefits of lavender candles, My candle making journey"
+                value={aiTopic}
+                onChange={(e) => setAiTopic(e.target.value)}
+                disabled={isGenerating}
+              />
+              <p className="text-xs text-muted-foreground">
+                💡 Tip: Be specific! Instead of "candles", try "5 ways to make your home smell amazing with candles"
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-notes">Additional notes (optional)</Label>
+              <Textarea
+                id="ai-notes"
+                placeholder="Any specific points you want to include? Personal stories? Special tips?"
+                value={aiNotes}
+                onChange={(e) => setAiNotes(e.target.value)}
+                rows={3}
+                disabled={isGenerating}
+              />
+            </div>
+
+            <Button
+              onClick={handleAIGenerate}
+              disabled={isGenerating || !aiTopic.trim()}
+              className="w-full md:w-auto"
+              size="lg"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Generating magical content...
+                </>
+              ) : (
+                <>
+                  <Wand2 className="h-4 w-4 mr-2" />
+                  Generate Blog Post with AI
+                </>
+              )}
+            </Button>
+
+            <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-sm">
+              <p className="font-semibold text-amber-900 dark:text-amber-100 mb-2">How it works:</p>
+              <ol className="list-decimal list-inside space-y-1 text-amber-800 dark:text-amber-200">
+                <li>Enter your topic or idea above</li>
+                <li>Click "Generate" and wait 10-15 seconds</li>
+                <li>AI will fill the form below with title, content, excerpt, and SEO tags</li>
+                <li>Review and edit the content as you like</li>
+                <li>Upload your cover image and gallery images</li>
+                <li>Click "Publish Blog" to make it live!</li>
+              </ol>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>{editingBlog ? 'Edit Blog Post' : 'Write a New Blog Post'}</CardTitle>

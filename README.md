@@ -59,6 +59,45 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (Database & Authentication)
+- Google Gemini AI (Blog Content Generation)
+- React Query (Data Management)
+- Lucide React (Icons)
+
+## New Features
+
+### 🤖 AI Blog Generator (December 2025)
+
+The admin dashboard now includes an AI-powered blog content generator that helps non-technical users create professional, SEO-optimized blog posts automatically.
+
+**What it does:**
+- Generates complete blog posts (800-1200 words)
+- Creates SEO-friendly titles and meta descriptions
+- Suggests relevant tags for better discoverability
+- Writes in a warm, personal tone matching the brand voice
+- Saves time for content creators who aren't confident writers
+
+**How to use it:**
+1. Go to Admin → Blog
+2. Enter a topic in the AI Generator section (e.g., "How to care for scented candles")
+3. Optionally add specific notes
+4. Click "Generate Blog Post with AI"
+5. Review and edit the generated content
+6. Upload images
+7. Publish!
+
+**Documentation:**
+- **For non-technical users**: See [MOM_QUICK_START.md](MOM_QUICK_START.md)
+- **Detailed guide**: See [AI_BLOG_GENERATOR_GUIDE.md](AI_BLOG_GENERATOR_GUIDE.md)
+- **Technical details**: See [AI_BLOG_TECHNICAL_DOCS.md](AI_BLOG_TECHNICAL_DOCS.md)
+- **Visual walkthrough**: See [VISUAL_GUIDE.md](VISUAL_GUIDE.md)
+
+**Environment Variable Required:**
+```env
+VITE_GEMINI_API_KEY=your_api_key_here
+```
+
+Get your API key from: https://makersuite.google.com/app/apikey
 
 ## How can I deploy this project?
 

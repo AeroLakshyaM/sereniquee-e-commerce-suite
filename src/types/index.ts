@@ -90,6 +90,18 @@ export interface Category {
   updated_at: string;
 }
 
+export interface SocialPost {
+  id: string;
+  platform: string;
+  image_url: string;
+  post_url: string | null;
+  caption: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // ============================================
 // PRODUCT VARIANTS
 // ============================================

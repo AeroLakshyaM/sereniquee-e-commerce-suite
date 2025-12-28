@@ -84,18 +84,33 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/shop?category=signature" className="text-primary-foreground/70 hover:text-primary-foreground hover:translate-x-1 transition-all inline-block text-sm">
-                  Signature Collection
+                <Link to="/shop?category=jar-candles" className="text-primary-foreground/70 hover:text-primary-foreground hover:translate-x-1 transition-all inline-block text-sm">
+                  Jar Candles
+                </Link>
+              </li>
+              <li>
+                <Link to="/shop?category=bar-candles" className="text-primary-foreground/70 hover:text-primary-foreground hover:translate-x-1 transition-all inline-block text-sm">
+                  Bar Candles
+                </Link>
+              </li>
+              <li>
+                <Link to="/shop?category=luxury-candles" className="text-primary-foreground/70 hover:text-primary-foreground hover:translate-x-1 transition-all inline-block text-sm">
+                  Luxury Candles
+                </Link>
+              </li>
+              <li>
+                <Link to="/shop?category=scented-candles" className="text-primary-foreground/70 hover:text-primary-foreground hover:translate-x-1 transition-all inline-block text-sm">
+                  Scented Candles
+                </Link>
+              </li>
+              <li>
+                <Link to="/shop?category=gift-sets" className="text-primary-foreground/70 hover:text-primary-foreground hover:translate-x-1 transition-all inline-block text-sm">
+                  Gift Sets
                 </Link>
               </li>
               <li>
                 <Link to="/shop?category=seasonal" className="text-primary-foreground/70 hover:text-primary-foreground hover:translate-x-1 transition-all inline-block text-sm">
-                  Seasonal Scents
-                </Link>
-              </li>
-              <li>
-                <Link to="/shop?category=gift" className="text-primary-foreground/70 hover:text-primary-foreground hover:translate-x-1 transition-all inline-block text-sm">
-                  Gift Sets
+                  Seasonal
                 </Link>
               </li>
             </ul>
