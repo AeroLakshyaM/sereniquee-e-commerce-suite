@@ -317,9 +317,9 @@ export function generateInvoiceHTML(order: OrderData): string {
               <div class="company-name">Sereniquee Candles</div>
               <div class="company-tagline">Premium Handcrafted Candles</div>
               <div class="company-contact">
-                Email: contact@sereniquee.com<br>
-                Phone: +91 (XXX) XXX-XXXX<br>
-                Website: www.sereniquee.com
+                Email: sereniqueecandles@gmail.com<br>
+                Phone: +91 - 9827310636  +91 - 8770222006<br>
+                Website: www.sereniqueecandles.com
               </div>
             </div>
             <div class="invoice-title">

@@ -47,7 +47,7 @@ export function SeoHelmet({
 
       {/* Twitter Card Tags */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content="@sereniquee" />
+      <meta name="twitter:site" content="@sereniqueecandles" />
       <meta name="twitter:title" content={finalTitle} />
       <meta name="twitter:description" content={finalDescription} />
       <meta name="twitter:image" content={finalImage} />

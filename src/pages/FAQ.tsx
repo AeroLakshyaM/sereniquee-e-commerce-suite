@@ -24,7 +24,7 @@ export default function FAQ() {
         },
         {
           q: "How long do your candles burn?",
-          a: "Our 8oz candles provide approximately 50-60 hours of burn time, while our 12oz candles burn for 80-90 hours. Proper care (trimming the wick, avoiding drafts) helps maximize burn time."
+          a: "Our 100 grams candles provide approximately 10 - 12 hours of burn time, while our 250 grams candles burn for 20 - 30 hours and our 500 grams candles burn for 40 - 50 hours (Time can be variable according to the use and care of the candle). Proper care (trimming the wick, avoiding drafts) helps maximize burn time."
         },
         {
           q: "Are your candles safe for pets?",
@@ -41,7 +41,7 @@ export default function FAQ() {
       questions: [
         {
           q: "How long does shipping take?",
-          a: "Standard shipping takes 5-7 business days within the US. Express shipping (2-3 days) is available at checkout. International shipping times vary by location (10-20 business days)."
+          a: "Standard shipping takes 5-7 business days within India. International shipping times vary by location (10-20 business days)."
         },
         {
           q: "Do you ship internationally?",
@@ -49,7 +49,7 @@ export default function FAQ() {
         },
         {
           q: "What is your return policy?",
-          a: "We offer a 30-day satisfaction guarantee. If you're not completely satisfied, return your unused candle for a full refund or exchange. Please contact us for return authorization before shipping items back."
+          a: "We offer a 15-day satisfaction guarantee. If you're not completely satisfied, return your unused candle for a full refund or exchange. Please contact us for return authorization before shipping items back."
         },
         {
           q: "Can I track my order?",
@@ -95,7 +95,7 @@ export default function FAQ() {
         },
         {
           q: "How do I cancel or modify my order?",
-          a: "Contact us immediately at hello@sereniquee.com or through our contact form. We process orders quickly, so we can only modify orders that haven't shipped yet."
+          a: "Contact us immediately at sereniqueecandles@gmail.com or through our contact form. We process orders quickly, so we can only modify orders that haven't shipped yet."
         },
         {
           q: "Can I change my shipping address after placing an order?",
@@ -103,8 +103,12 @@ export default function FAQ() {
         },
         {
           q: "What payment methods do you accept?",
-          a: "We accept all major credit cards (Visa, Mastercard, American Express, Discover), PayPal, Apple Pay, and Google Pay through our secure payment processor."
-        }
+          a: "We accept all major credit cards (Visa, Mastercard, American Express), and all UPI Methods like Google Pay, PhonePe etc. through our secure payment processor."
+        },
+        {
+          q: "What if the payment method didn't work via the payment processor?",
+          a: "We understand that payments methods are network and time dependent but our payment processor ensures that all of the payments process securely, if in an event it happens that payment doesn't process we urge you to contact us immediately at sereniqueecandles@gmail.com or Call us at +91 - 9827310636 or + 91 - 8770222006 ."
+        } 
       ]
     },
     {
@@ -112,7 +116,7 @@ export default function FAQ() {
       questions: [
         {
           q: "Where are your candles made?",
-          a: "All our candles are hand-poured in small batches in our Indore, India studio. Each candle is crafted with care and attention to detail by our founder and team of artisans."
+          a: "All our candles are hand-poured in small batches in our Indore, India studio. Each candle is crafted with care and attention to detail by our very own founder."
         },
         {
           q: "Are your candles tested on animals?",
@@ -120,15 +124,15 @@ export default function FAQ() {
         },
         {
           q: "Do you offer wholesale or bulk orders?",
-          a: "Yes! We offer wholesale pricing for retailers, wedding planners, and corporate gifts. Contact us at wholesale@sereniquee.com for more information."
+          a: "Yes! We offer wholesale pricing for retailers, wedding planners, and corporate gifts. Contact us at sereniqueecandles@gmail.com for more information. Customisation on orders can be done on special requirements."
         },
         {
           q: "Can I visit your studio?",
-          a: "We welcome studio visits by appointment only! Email us to schedule a visit where you can see our candle-making process and explore our full collection."
+          a: "We welcome studio visits by appointment only! Email us or Call to schedule a visit where you can see our candle-making process and explore our full collection."
         },
         {
           q: "Do you offer custom candle scents?",
-          a: "We offer custom candle services for special events, weddings, and corporate gifts. Minimum order quantities apply. Contact us to discuss your custom candle needs."
+          a: "We offer custom candle services for special events, weddings, and corporate gifts. Minimum order quantities apply. Contact us to discuss your custom candle needs at sereniqueecandles@gmail.com or Call us at +91 - 9827310636 or + 91 - 8770222006 ."
         }
       ]
     }
