@@ -3,6 +3,7 @@ export interface Product {
   name: string;
   slug?: string;
   description: string | null;
+  full_description?: string | null; // Detailed product description with specifications, care instructions, etc.
   price: number;
   category: string | null;
   stock_quantity: number;

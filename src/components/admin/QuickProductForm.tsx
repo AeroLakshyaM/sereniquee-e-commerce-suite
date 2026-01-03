@@ -7,9 +7,10 @@ import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2, Eye, EyeOff } from 'lucide-react';
 import { Product } from '@/types';
 import { useCategories } from '@/hooks/useCategories';
+import { ProductDescription } from '@/components/product/ProductDescription';
 import {
   Select,
   SelectContent,
@@ -29,10 +30,12 @@ export default function QuickProductForm({ onClose, editingProduct }: QuickProdu
   const { activeCategories } = useCategories();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   
   const [formData, setFormData] = useState({
     name: editingProduct?.name || '',
     description: editingProduct?.description || '',
+    full_description: editingProduct?.full_description || '',
     price: editingProduct?.price.toString() || '',
     category: editingProduct?.category || '',
     stock_quantity: editingProduct?.stock_quantity.toString() || '10',
@@ -162,6 +165,7 @@ export default function QuickProductForm({ onClose, editingProduct }: QuickProdu
     const productData = {
       name: formData.name,
       description: formData.description || null,
+      full_description: formData.full_description || null,
       price: parseFloat(formData.price),
       category: formData.category || null,
       stock_quantity: parseInt(formData.stock_quantity) || 0,
@@ -321,19 +325,101 @@ export default function QuickProductForm({ onClose, editingProduct }: QuickProdu
           {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-lg">
-              📝 Description
+              📝 Short Description
             </Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Describe your candle... What makes it special?"
-              rows={4}
+              placeholder="Brief description for product cards..."
+              rows={3}
               className="resize-none"
             />
             <p className="text-xs text-muted-foreground">
-              Tip: Mention the scent, burn time, and what makes it unique!
+              Short summary that appears on product cards (keep it concise)
             </p>
+          </div>
+
+          {/* Full Description */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="full_description" className="text-lg">
+                📄 Full Product Description
+              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPreview(!showPreview)}
+                className="gap-2"
+              >
+                {showPreview ? (
+                  <>
+                    <EyeOff className="h-4 w-4" />
+                    Edit
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4" />
+                    Preview
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            {showPreview ? (
+              <div className="border border-border rounded-lg p-6 bg-muted/30 min-h-[400px]">
+                <div className="text-sm text-muted-foreground mb-4 pb-4 border-b border-border">
+                  👁️ Preview - How customers will see it:
+                </div>
+                {formData.full_description ? (
+                  <ProductDescription description={formData.full_description} />
+                ) : (
+                  <p className="text-muted-foreground italic">
+                    No description yet. Add content to see preview.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <>
+                <Textarea
+                  id="full_description"
+                  value={formData.full_description}
+                  onChange={(e) => setFormData({ ...formData, full_description: e.target.value })}
+                  placeholder="**Elevate your sanctuary with the subtle art of fragrance.**
+
+Meticulously hand-poured in small batches, this candle represents the intersection of sustainable luxury and artisanal craftsmanship. We use only 100% natural soy wax blended with premium fragrance oils to ensure a non-toxic, soot-free burn that is safe for your home and family.
+
+**Technical Specifications**
+
+* Net Weight: 200g / 7 oz
+* Dimensions: 8.5 cm (Height) x 7 cm (Diameter)
+* Burn Time: Approximately 40-45 hours
+* Wax Type: 100% Natural Eco-Friendly Soy Wax
+* Wick Type: Lead-free, braided cotton for a clean burn
+* Vessel Material: High-grade heat-resistant glass
+* Fragrance Load: High-concentration for optimal scent throw
+
+**Scent Profile**
+
+* Top Notes: Bergamot, Fresh Lemon
+* Heart Notes: Lavender, Jasmine
+* Base Notes: Sandalwood, Vanilla Bean
+
+**Candle Care**
+
+* Trim the wick to 1/4 inch before every light to prevent smoking.
+* Allow the wax pool to reach the edges of the jar during the first burn to prevent tunneling.
+* Never leave a burning candle unattended."
+                  rows={15}
+                  className="resize-y font-mono text-sm"
+                />
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>💡 Detailed description with technical specs, scent profile, care instructions, etc.</p>
+                  <p>Formatting tips: Use ** for bold text, * for bullet points, blank lines for paragraphs</p>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Price and Stock */}

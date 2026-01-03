@@ -6,6 +6,7 @@ import { SeoHelmet } from '@/components/layout/SeoHelmet';
 import { Button } from '@/components/ui/button';
 import { ShareButton } from '@/components/ui/share-button';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
+import { ProductDescription } from '@/components/product/ProductDescription';
 import { Minus, Plus, ArrowLeft, Flame, Clock, AlertTriangle, Sparkles, Heart, Home, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { 
@@ -289,20 +290,26 @@ export default function ProductDetail() {
                 Full Description
               </div>
             </AccordionTrigger>
-            <AccordionContent className="text-muted-foreground leading-relaxed space-y-4">
-              <p>
-                {product.description || 
-                  `Immerse yourself in the enchanting aroma of ${product.name}. Each candle is meticulously 
-                  hand-poured using premium 100% natural soy wax and infused with carefully selected fragrance 
-                  oils to create a luxurious sensory experience. Our artisanal approach ensures consistent quality 
-                  and an exceptional burn time of 40-50 hours.`
-                }
-              </p>
-              <p>
-                Crafted with attention to every detail, this candle features a natural cotton wick that provides 
-                a clean, even burn. The elegant design makes it a perfect addition to any room, whether you're 
-                seeking relaxation, focus, or simply want to create a welcoming ambiance in your home.
-              </p>
+            <AccordionContent className="text-muted-foreground leading-relaxed">
+              {product.full_description ? (
+                <ProductDescription description={product.full_description} className="space-y-4" />
+              ) : (
+                <div className="space-y-4">
+                  <p>
+                    {product.description || 
+                      `Immerse yourself in the enchanting aroma of ${product.name}. Each candle is meticulously 
+                      hand-poured using premium 100% natural soy wax and infused with carefully selected fragrance 
+                      oils to create a luxurious sensory experience. Our artisanal approach ensures consistent quality 
+                      and an exceptional burn time of 40-50 hours.`
+                    }
+                  </p>
+                  <p>
+                    Crafted with attention to every detail, this candle features a natural cotton wick that provides 
+                    a clean, even burn. The elegant design makes it a perfect addition to any room, whether you're 
+                    seeking relaxation, focus, or simply want to create a welcoming ambiance in your home.
+                  </p>
+                </div>
+              )}
             </AccordionContent>
           </AccordionItem>
 
