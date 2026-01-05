@@ -27,7 +27,10 @@ export interface CartItem {
 
 export interface Order {
   id: string;
-  user_id: string;
+  user_id: string | null; // Nullable for guest orders
+  guest_email?: string | null; // For guest checkout
+  guest_name?: string | null; // For guest checkout
+  guest_phone?: string | null; // For guest checkout
   total_amount: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   shipping_address: string | null;

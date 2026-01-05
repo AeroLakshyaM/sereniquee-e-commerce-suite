@@ -4,9 +4,11 @@ import { ProductCard } from './ProductCard';
 interface ProductGridProps {
   products: Product[];
   masonry?: boolean;
+  isLoading?: boolean;
+  onQuickView?: (product: Product) => void;
 }
 
-export function ProductGrid({ products, masonry }: ProductGridProps) {
+export function ProductGrid({ products, masonry, isLoading, onQuickView }: ProductGridProps) {
   if (masonry) {
     return (
       <div className="masonry-grid">
@@ -16,7 +18,11 @@ export function ProductGrid({ products, masonry }: ProductGridProps) {
             className="masonry-item animate-slide-up"
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <ProductCard product={product} featured={product.featured} />
+            <ProductCard 
+              product={product} 
+              featured={product.featured} 
+              onQuickView={onQuickView}
+            />
           </div>
         ))}
       </div>
@@ -31,7 +37,11 @@ export function ProductGrid({ products, masonry }: ProductGridProps) {
           className="animate-slide-up"
           style={{ animationDelay: `${index * 100}ms` }}
         >
-          <ProductCard product={product} featured={product.featured} />
+          <ProductCard 
+            product={product} 
+            featured={product.featured} 
+            onQuickView={onQuickView}
+          />
         </div>
       ))}
     </div>

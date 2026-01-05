@@ -2,13 +2,17 @@ import { useState, useEffect, useMemo } from 'react';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
 import { ProductGrid } from '@/components/product/ProductGrid';
+import { ProductGridSkeleton } from '@/components/product/ProductCardSkeleton';
+import { ProductQuickView } from '@/components/product/ProductQuickView';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'react-router-dom';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
+import { Product } from '@/types';
 
 export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchParams, setSearchParams] = useSearchParams();
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const searchQuery = searchParams.get('search') || '';
   const categoryFromUrl = searchParams.get('category');
   
@@ -143,17 +147,13 @@ export default function Shop() {
 
       {/* Products Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="space-y-4">
-              <div className="aspect-[3/4] bg-muted animate-pulse" />
-              <div className="h-4 bg-muted animate-pulse w-3/4" />
-              <div className="h-4 bg-muted animate-pulse w-1/4" />
-            </div>
-          ))}
-        </div>
+        <ProductGridSkeleton count={8} />
       ) : filteredProducts && filteredProducts.length > 0 ? (
-        <ProductGrid products={filteredProducts} masonry />
+        <ProductGrid 
+          products={filteredProducts} 
+          masonry 
+          onQuickView={setQuickViewProduct}
+        />
       ) : (
         <div className="text-center py-16 space-y-4">
           <p className="text-lg text-muted-foreground">
@@ -175,6 +175,13 @@ export default function Shop() {
           )}
         </div>
       )}
+
+      {/* Quick View Modal */}
+      <ProductQuickView
+        product={quickViewProduct}
+        isOpen={!!quickViewProduct}
+        onClose={() => setQuickViewProduct(null)}
+      />
     </div>
   );
 }

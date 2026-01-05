@@ -1,17 +1,22 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
 import { useFeaturedProducts } from '@/hooks/useProducts';
 import { useBlogs } from '@/hooks/useBlogs';
 import { ProductGrid } from '@/components/product/ProductGrid';
+import { ProductGridSkeleton } from '@/components/product/ProductCardSkeleton';
+import { ProductQuickView } from '@/components/product/ProductQuickView';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { InstagramFeed } from '@/components/social/InstagramFeed';
 import { CategorySection } from '@/components/CategorySection';
+import { Product } from '@/types';
 import { ArrowRight, BookOpen, Flame, Heart, Leaf, Sparkles, Star, Timer } from 'lucide-react';
 
 export default function Home() {
   const { data: featuredProducts, isLoading } = useFeaturedProducts();
   const { data: latestBlogs, isLoading: blogsLoading } = useBlogs({ limit: 3 });
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   return (
     <div className="overflow-x-hidden">
@@ -97,18 +102,13 @@ export default function Home() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="space-y-3 sm:space-y-4">
-                <div className="aspect-[3/4] bg-muted animate-pulse rounded-lg" />
-                <div className="h-3 sm:h-4 bg-muted animate-pulse w-3/4 rounded" />
-                <div className="h-3 sm:h-4 bg-muted animate-pulse w-1/4 rounded" />
-              </div>
-            ))}
-          </div>
+          <ProductGridSkeleton count={6} />
         ) : featuredProducts && featuredProducts.length > 0 ? (
           <>
-            <ProductGrid products={featuredProducts} />
+            <ProductGrid 
+              products={featuredProducts} 
+              onQuickView={setQuickViewProduct}
+            />
             <div className="mt-8 sm:mt-12 text-center">
               <Link to="/shop">
                 <Button variant="outline" className="px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background transition-all group">
@@ -566,6 +566,13 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Quick View Modal */}
+      <ProductQuickView
+        product={quickViewProduct}
+        isOpen={!!quickViewProduct}
+        onClose={() => setQuickViewProduct(null)}
+      />
     </div>
   );
 }

@@ -44,6 +44,11 @@ interface CreateOrderParams {
   items: CartItem[];
   shippingAddress: string;
   specialRequirements?: string | null;
+  guestInfo?: {
+    email: string;
+    name: string;
+    phone: string;
+  };
 }
 
 export function useCreateOrder() {
@@ -51,24 +56,39 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ items, shippingAddress, specialRequirements }: CreateOrderParams) => {
-      if (!user) throw new Error('Must be logged in to create order');
+    mutationFn: async ({ items, shippingAddress, specialRequirements, guestInfo }: CreateOrderParams) => {
+      // Guest checkout or authenticated user
+      const isGuest = !user && guestInfo;
       
       const totalAmount = items.reduce(
         (sum, item) => sum + item.product.price * item.quantity,
         0
       );
       
+      // Prepare order data
+      const orderData: any = {
+        total_amount: totalAmount,
+        shipping_address: shippingAddress,
+        special_requirements: specialRequirements,
+        status: 'pending',
+      };
+
+      // Add user_id for authenticated users or guest info for guest checkout
+      if (user) {
+        orderData.user_id = user.id;
+      } else if (isGuest && guestInfo) {
+        orderData.user_id = null;
+        orderData.guest_email = guestInfo.email;
+        orderData.guest_name = guestInfo.name;
+        orderData.guest_phone = guestInfo.phone;
+      } else {
+        throw new Error('Must be logged in or provide guest information');
+      }
+      
       // Create the order
       const { data: order, error: orderError } = await supabase
         .from('orders')
-        .insert({
-          user_id: user.id,
-          total_amount: totalAmount,
-          shipping_address: shippingAddress,
-          special_requirements: specialRequirements,
-          status: 'pending',
-        })
+        .insert(orderData)
         .select()
         .single();
       

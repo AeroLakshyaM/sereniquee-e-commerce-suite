@@ -2,15 +2,16 @@ import { Link } from 'react-router-dom';
 import { Product } from '@/types';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { useState } from 'react';
 
 interface ProductCardProps {
   product: Product;
   featured?: boolean;
+  onQuickView?: (product: Product) => void;
 }
 
-export function ProductCard({ product, featured }: ProductCardProps) {
+export function ProductCard({ product, featured, onQuickView }: ProductCardProps) {
   const { addItem } = useCart();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
@@ -25,6 +26,14 @@ export function ProductCard({ product, featured }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation();
     addItem(product, 1);
+  };
+
+  const handleQuickView = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onQuickView) {
+      onQuickView(product);
+    }
   };
 
   const handlePrevImage = (e: React.MouseEvent) => {
@@ -58,7 +67,7 @@ export function ProductCard({ product, featured }: ProductCardProps) {
               alt={`${product.name} - Image ${currentImageIndex + 1}`}
               className="w-full h-full object-cover product-image-zoom"
             />
-            
+
             {/* Image Navigation Arrows - Only show if multiple images */}
             {images.length > 1 && (
               <>
@@ -96,23 +105,34 @@ export function ProductCard({ product, featured }: ProductCardProps) {
             )}
           </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-            <span className="font-serif text-lg">Sereniquee</span>
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+            No image available
           </div>
         )}
-        
-        {/* Quick Add Button */}
-        {product.stock_quantity > 0 && (
-          <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <Button
-              onClick={handleAddToCart}
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add to Cart
-            </Button>
+
+        <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="flex gap-2">
+            {onQuickView && (
+              <Button
+                onClick={handleQuickView}
+                variant="secondary"
+                size="icon"
+                className="bg-white/95 hover:bg-white text-black backdrop-blur-sm"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            )}
+            {product.stock_quantity > 0 && (
+              <Button
+                onClick={handleAddToCart}
+                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add to Cart
+              </Button>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Featured Badge */}
         {featured && (
