@@ -99,6 +99,36 @@ export default function Checkout() {
         } : {})
       });
 
+      // Send the email confirmation via our secure Serverless Function
+      try {
+        const confirmEmail = user ? user.email : formData.email;
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: confirmEmail,
+            subject: 'Order Confirmation - Sereniquee Candles',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h1 style="color: #333;">Thank you for your order!</h1>
+                <p>Hi ${formData.fullName},</p>
+                <p>We've received your order and are getting it ready for shipment.</p>
+                <h3>Order Summary:</h3>
+                <ul>
+                  ${items.map(item => `<li>${item.name} x ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}</li>`).join('')}
+                </ul>
+                <p><strong>Total: $${totalPrice.toFixed(2)}</strong></p>
+                <br />
+                <p>We will notify you when your items are shipped.</p>
+                <p>Best regards,<br/>The Sereniquee Candles Team</p>
+              </div>
+            `
+          })
+        });
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError);
+      }
+
       clearCart();
       toast({
         title: 'Order placed!',
