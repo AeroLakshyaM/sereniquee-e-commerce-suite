@@ -109,18 +109,35 @@ export default function Checkout() {
             to: confirmEmail,
             subject: 'Order Confirmation - Sereniquee Candles',
             html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h1 style="color: #333;">Thank you for your order!</h1>
-                <p>Hi ${formData.fullName},</p>
-                <p>We've received your order and are getting it ready for shipment.</p>
-                <h3>Order Summary:</h3>
-                <ul>
-                  ${items.map(item => `<li>${item.name} x ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}</li>`).join('')}
-                </ul>
-                <p><strong>Total: $${totalPrice.toFixed(2)}</strong></p>
-                <br />
-                <p>We will notify you when your items are shipped.</p>
-                <p>Best regards,<br/>The Sereniquee Candles Team</p>
+              <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                  <h1 style="color: #2c2c2c; margin-bottom: 5px; font-family: serif;">Sereniquee Candles</h1>
+                  <p style="color: #666; font-size: 16px; margin-top: 0;">Order Confirmation</p>
+                </div>
+                
+                <p style="color: #444; font-size: 16px;">Hi <strong>${formData.fullName}</strong>,</p>
+                <p style="color: #444; font-size: 16px;">Thank you for your purchase! We've received your order and are preparing it for shipment.</p>
+                
+                <div style="background-color: #fcfcfc; padding: 15px 20px; border-radius: 6px; margin: 25px 0;">
+                  <h3 style="color: #333; margin-top: 0; font-family: serif;">Order Summary</h3>
+                  <hr style="border: none; border-top: 1px solid #ddd; margin-bottom: 15px;" />
+                  <div style="margin-bottom: 15px;">
+                    ${items.map(item => `
+                      <div style="margin-bottom: 10px; color: #555; text-align: left;">
+                        <span>• ${item.product.name} (x${item.quantity})</span>
+                        <span style="float: right; color: #333; font-weight: 500;">₹${(item.product.price * item.quantity).toFixed(2)}</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                  <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;" />
+                  <div style="font-size: 18px; text-align: left;">
+                    <strong style="color: #333;">Total Amount:</strong>
+                    <strong style="float: right; color: #000;">₹${totalPrice.toFixed(2)}</strong>
+                  </div>
+                </div>
+                
+                <p style="color: #444; font-size: 16px;">We will notify you when your items are shipped.</p>
+                <p style="color: #444; font-size: 16px; margin-top: 30px;">Warm regards,<br/><strong>The Sereniquee Team</strong></p>
               </div>
             `
           })
