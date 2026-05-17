@@ -36,10 +36,12 @@ export default function OrdersManagement() {
   };
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
-    const { error } = await supabase
+    const { data: updatedOrder, error } = await supabase
       .from('orders')
       .update({ status: newStatus })
-      .eq('id', orderId);
+      .eq('id', orderId)
+      .select()
+      .single();
 
     if (error) {
       toast({
@@ -48,7 +50,20 @@ export default function OrdersManagement() {
         variant: 'destructive',
       });
     } else {
+      queryClient.setQueryData(['admin-orders'], (existing: typeof orders | undefined) => {
+        if (!existing) return existing;
+        return existing.map((order) =>
+          order.id === orderId
+            ? { ...order, status: updatedOrder.status, updated_at: updatedOrder.updated_at }
+            : order
+        );
+      });
+      queryClient.setQueryData(['order-details', orderId], (existing: any) => {
+        if (!existing) return existing;
+        return { ...existing, status: updatedOrder.status, updated_at: updatedOrder.updated_at };
+      });
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
       toast({
         title: 'Order updated',

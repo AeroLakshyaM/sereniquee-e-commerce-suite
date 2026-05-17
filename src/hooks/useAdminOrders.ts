@@ -7,6 +7,7 @@ export interface AdminOrder {
   total_amount: number;
   status: string;
   shipping_address: string | null;
+  special_requirements: string | null;
   created_at: string;
   updated_at: string;
   user: {
@@ -85,6 +86,7 @@ export const useAdminOrders = () => {
         total_amount: Number(order.total_amount),
         status: order.status,
         shipping_address: order.shipping_address,
+        special_requirements: order.special_requirements,
         created_at: order.created_at,
         updated_at: order.updated_at,
         user: profileMap[order.user_id] ? {

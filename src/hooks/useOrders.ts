@@ -59,6 +59,7 @@ export function useCreateOrder() {
     mutationFn: async ({ items, shippingAddress, specialRequirements, guestInfo }: CreateOrderParams) => {
       // Guest checkout or authenticated user
       const isGuest = !user && guestInfo;
+      const orderId = crypto.randomUUID();
       
       const totalAmount = items.reduce(
         (sum, item) => sum + item.product.price * item.quantity,
@@ -67,6 +68,7 @@ export function useCreateOrder() {
       
       // Prepare order data
       const orderData: any = {
+        id: orderId,
         total_amount: totalAmount,
         shipping_address: shippingAddress,
         special_requirements: specialRequirements,
@@ -86,17 +88,15 @@ export function useCreateOrder() {
       }
       
       // Create the order
-      const { data: order, error: orderError } = await supabase
+      const { error: orderError } = await supabase
         .from('orders')
-        .insert(orderData)
-        .select()
-        .single();
+        .insert(orderData);
       
       if (orderError) throw orderError;
       
       // Create order items
       const orderItems = items.map(item => ({
-        order_id: order.id,
+        order_id: orderId,
         product_id: item.product.id,
         quantity: item.quantity,
         price_at_time: item.product.price,
@@ -108,7 +108,7 @@ export function useCreateOrder() {
       
       if (itemsError) throw itemsError;
       
-      return order;
+      return { id: orderId, ...orderData };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });

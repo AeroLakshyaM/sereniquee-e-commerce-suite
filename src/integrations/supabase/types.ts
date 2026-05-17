@@ -209,33 +209,42 @@ export type Database = {
       orders: {
         Row: {
           created_at: string | null
+          guest_email: string | null
+          guest_name: string | null
+          guest_phone: string | null
           id: string
           shipping_address: string | null
           special_requirements: string | null
           status: string | null
           total_amount: number
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           shipping_address?: string | null
           special_requirements?: string | null
           status?: string | null
           total_amount: number
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           shipping_address?: string | null
           special_requirements?: string | null
           status?: string | null
           total_amount?: number
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }

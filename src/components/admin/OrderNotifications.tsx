@@ -95,8 +95,13 @@ export default function OrderNotifications() {
           });
 
           // Update recent orders
-          setRecentOrders(prev => [newOrder, ...prev.slice(0, 4)]);
-          setUnreadCount(prev => prev + 1);
+          setRecentOrders(prev => {
+            const newList = [newOrder, ...prev.slice(0, 4)];
+            const pending = newList.filter(o => o.status === 'pending').length;
+            setUnreadCount(pending);
+            return newList;
+          });
+          
           lastOrderIdRef.current = newOrder.id;
 
           // Show browser notification if permitted
@@ -118,13 +123,13 @@ export default function OrderNotifications() {
         },
         (payload) => {
           const updatedOrder = payload.new as Order;
-          setRecentOrders(prev =>
-            prev.map(order => (order.id === updatedOrder.id ? updatedOrder : order))
-          );
-          
-          // Recalculate pending count
-          const pending = recentOrders.filter(o => o.status === 'pending').length;
-          setUnreadCount(pending);
+          setRecentOrders(prev => {
+            const newList = prev.map(order => (order.id === updatedOrder.id ? updatedOrder : order));
+            // Recalculate pending count
+            const pending = newList.filter(o => o.status === 'pending').length;
+            setUnreadCount(pending);
+            return newList;
+          });
         }
       )
       .subscribe();
@@ -132,7 +137,7 @@ export default function OrderNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [toast, recentOrders]);
+  }, [toast]);
 
   // Request notification permission
   useEffect(() => {
