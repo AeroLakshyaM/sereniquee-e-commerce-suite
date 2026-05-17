@@ -26,7 +26,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import ShippingReturns from "./pages/ShippingReturns";
 import NotFound from "./pages/NotFound";
-import { SpeedInsights } from "@vercel/speed-insights/react";
+
 
 const queryClient = new QueryClient();
 

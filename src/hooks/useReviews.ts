@@ -17,13 +17,7 @@ export function useProductReviews(productId: string, filters?: {
     queryFn: async () => {
       let query = supabase
         .from('product_reviews')
-        .select(`
-          *,
-          user:profiles!user_id (
-            full_name,
-            email
-          )
-        `)
+        .select('*')
         .eq('product_id', productId);
 
       // Apply filters
@@ -40,10 +34,37 @@ export function useProductReviews(productId: string, filters?: {
         query = query.order('created_at', { ascending: false });
       }
 
-      const { data, error } = await query;
+      const { data: reviewsData, error } = await query;
 
       if (error) throw error;
-      return data as ProductReview[];
+      
+      if (!reviewsData || reviewsData.length === 0) {
+        return [];
+      }
+
+      // Fetch user profiles separately since there is no direct foreign key to public.profiles
+      const userIds = [...new Set(reviewsData.map(r => r.user_id))];
+      
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', userIds);
+        
+      if (profilesError) {
+        console.error('Error fetching profiles for reviews:', profilesError);
+      }
+
+      const profilesMap = (profilesData || []).reduce((acc, profile) => {
+        acc[profile.id] = profile;
+        return acc;
+      }, {} as Record<string, any>);
+
+      const formattedReviews = reviewsData.map((review) => ({
+        ...review,
+        user: profilesMap[review.user_id] || { full_name: 'Anonymous User', email: null }
+      }));
+
+      return formattedReviews as ProductReview[];
     },
     enabled: !!productId,
   });
@@ -146,6 +167,7 @@ export function useCreateReview() {
           ...review,
           user_id: user.id,
           images: review.images || [],
+          is_approved: true, // Auto-approve to show everywhere immediately
         }])
         .select()
         .single();

@@ -9,12 +9,8 @@ import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import { Minus, Plus, ArrowLeft, Flame, Clock, AlertTriangle, Sparkles, Heart, Home, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ProductReviews } from '@/components/product/ProductReviews';
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -501,6 +497,11 @@ export default function ProductDetail() {
 
       {/* Related Products Section */}
       <RelatedProducts currentProduct={product} limit={4} />
+
+      {/* Product Reviews */}
+      <div className="mt-16 pt-8 border-t border-border">
+        <ProductReviews productId={product.id} />
+      </div>
     </div>
   );
 }
