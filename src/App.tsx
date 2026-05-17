@@ -180,7 +180,7 @@ const App = () => (
             <SpeedInsights />
           </BrowserRouter>
         </TooltipProvider>
-      </CartProvider>>
+      </CartProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
