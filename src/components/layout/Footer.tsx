@@ -1,7 +1,36 @@
 import { Link } from 'react-router-dom';
 import { Instagram, Mail, Facebook, Twitter } from 'lucide-react';
+import { useState } from 'react';
+import { useSubscribe } from '@/hooks/useNewsletter';
+import { useToast } from '@/hooks/use-toast';
 
 export function Footer() {
+  const [email, setEmail] = useState('');
+  const { mutate: subscribe, isPending } = useSubscribe();
+  const { toast } = useToast();
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    subscribe(email, {
+      onSuccess: () => {
+        toast({
+          title: "Welcome to the community!",
+          description: "Thank you for subscribing. Check your email for a special gift!",
+        });
+        setEmail('');
+      },
+      onError: (err) => {
+        toast({
+          title: "Oops!",
+          description: err.message || "Failed to subscribe. Please try again.",
+          variant: "destructive"
+        });
+      }
+    });
+  };
+
   return (
     <footer className="bg-primary text-primary-foreground mt-20">
       {/* Newsletter Section */}
@@ -12,16 +41,24 @@ export function Footer() {
             <p className="text-primary-foreground/70 mb-6">
               Subscribe for exclusive offers, new scents, and moments of serenity.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <input
                 type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 className="flex-1 px-4 py-3 bg-primary-foreground/10 border border-primary-foreground/20 rounded-sm text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:border-primary-foreground/40 transition-colors"
+                disabled={isPending}
               />
-              <button className="px-6 py-3 bg-primary-foreground text-primary font-medium rounded-sm hover:opacity-90 transition-opacity">
-                Subscribe
+              <button 
+                type="submit"
+                disabled={isPending}
+                className="px-6 py-3 bg-primary-foreground text-primary font-medium rounded-sm hover:opacity-90 transition-opacity disabled:opacity-50 min-w-[120px]"
+              >
+                {isPending ? 'Joining...' : 'Subscribe'}
               </button>
-            </div>
+            </form>
           </div>
         </div>
       </div>
