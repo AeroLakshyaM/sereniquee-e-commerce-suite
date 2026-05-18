@@ -5,9 +5,10 @@ import { ProductGrid } from '@/components/product/ProductGrid';
 import { ProductGridSkeleton } from '@/components/product/ProductCardSkeleton';
 import { ProductQuickView } from '@/components/product/ProductQuickView';
 import { Button } from '@/components/ui/button';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
 import { Product } from '@/types';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -106,6 +107,22 @@ export default function Shop() {
         keywords="buy handmade candles, luxury candles shop, soy wax candles, scented candles online, natural candles, eco-friendly candles, aromatherapy candles"
         url="/shop"
       />
+      
+      {/* Top Right Custom Orders Button */}
+      <div className="flex justify-end mb-4">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          asChild 
+          className="border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] hover:border-amber-500 transition-all duration-300 group bg-amber-50/50 dark:bg-amber-950/20"
+        >
+          <Link to="/custom-orders" className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform animate-pulse" />
+            <span className="font-medium text-amber-900 dark:text-amber-100">Custom Orders</span>
+          </Link>
+        </Button>
+      </div>
+
       {/* Header */}
       <div className="text-center mb-12">
         <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-3">
@@ -182,6 +199,30 @@ export default function Shop() {
         isOpen={!!quickViewProduct}
         onClose={() => setQuickViewProduct(null)}
       />
+
+      {/* Custom Orders Teaser (Bottom) */}
+      <section className="bg-primary/5 py-12 sm:py-16 md:py-20 -mx-4 lg:mx-0 rounded-2xl mt-16 mb-8">
+        <div className="container-luxury text-center max-w-4xl mx-auto px-6">
+          <div className="inline-flex items-center gap-2 mb-4">
+            <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              Personalized for You
+            </p>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-serif mb-6 leading-tight">
+            Didn't Find What You're Looking For?
+          </h2>
+          <p className="text-base sm:text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Whether you need bulk orders for an event, personalized wedding favors, or a custom scent blended just for you, our bespoke service can bring your unique vision to life.
+          </p>
+          <Link to="/custom-orders">
+            <Button size="lg" className="bg-primary text-white hover:bg-primary/90 px-8 py-6 text-sm sm:text-base transition-all group">
+              Request a Custom Order
+              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
