@@ -314,7 +314,10 @@ export function generateInvoiceHTML(order: OrderData): string {
           <!-- Header -->
           <div class="header">
             <div class="company-info">
-              <div class="company-name">Sereniquee Candles</div>
+              <div class="company-name">
+                <img src="https://www.sereniqueecandles.com/footer-logo.png" alt="Sereniquee Candles" style="max-height: 60px; margin-bottom: 10px; display: block;" />
+                Sereniquee Candles
+              </div>
               <div class="company-tagline">Premium Handcrafted Candles</div>
               <div class="company-contact">
                 Email: sereniqueecandles@gmail.com<br>

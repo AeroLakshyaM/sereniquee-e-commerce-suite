@@ -70,7 +70,7 @@ export function Footer() {
           <div className="md:col-span-5">
             <div className="mb-6">
               <img 
-                src="/footer_logo.png" 
+                src="/footer-logo.png" 
                 alt="Sereniquee Logo" 
                 className="h-32 w-32 object-contain mb-6 opacity-90"
               />

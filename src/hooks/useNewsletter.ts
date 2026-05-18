@@ -17,6 +17,7 @@ export function useSubscribe() {
       // Beautiful elegant HTML template for the email
       const htmlTemplate = `
         <div style="font-family: 'Georgia', serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6; text-align: center; padding: 40px 20px; background-color: #faf9f7;">
+          <img src="https://www.sereniqueecandles.com/footer-logo.png" alt="Sereniquee Candles" style="max-height: 80px; margin-bottom: 20px;" />
           <h1 style="font-size: 28px; color: #1a1a1a; margin-bottom: 20px;">Welcome to Sereniquee</h1>
           <p style="font-size: 16px; margin-bottom: 30px;">Thank you for joining our community. We are thrilled to share our moments of serenity, new scent collections, and exclusive updates with you.</p>
           

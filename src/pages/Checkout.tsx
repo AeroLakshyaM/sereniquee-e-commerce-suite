@@ -111,6 +111,7 @@ export default function Checkout() {
             html: `
               <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
                 <div style="text-align: center; margin-bottom: 20px;">
+                  <img src="https://www.sereniqueecandles.com/footer-logo.png" alt="Sereniquee Candles" style="max-height: 80px; margin-bottom: 15px;" />
                   <h1 style="color: #2c2c2c; margin-bottom: 5px; font-family: serif;">Sereniquee Candles</h1>
                   <p style="color: #666; font-size: 16px; margin-top: 0;">Order Confirmation</p>
                 </div>
