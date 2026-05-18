@@ -24,6 +24,7 @@ import { BlogManager } from '@/components/admin/BlogManager';
 import BusinessInsights from '@/components/admin/BusinessInsights';
 import CategoryManager from '@/components/admin/CategoryManager';
 import SocialPostsManager from '@/components/admin/SocialPostsManager';
+import CustomOrdersManager from '@/components/admin/CustomOrdersManager';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -114,6 +115,7 @@ export default function Admin() {
             <option value="calendar">📅 Calendar</option>
             <option value="blogs">📰 Blogs</option>
             <option value="social">📱 Social</option>
+            <option value="custom-orders">📦 Custom Orders</option>
           </select>
         </div>
 
@@ -158,6 +160,10 @@ export default function Admin() {
           <TabsTrigger value="social" className="flex items-center gap-2">
             <Instagram className="h-4 w-4" />
             <span>Social</span>
+          </TabsTrigger>
+          <TabsTrigger value="custom-orders" className="flex items-center gap-2 bg-gradient-to-r from-teal-600/10 to-emerald-600/10 hover:text-teal-700">
+            <Package className="h-4 w-4 text-emerald-600" />
+            <span className="font-semibold text-emerald-700 dark:text-emerald-400">Custom Orders</span>
           </TabsTrigger>
         </TabsList>
 
@@ -355,6 +361,10 @@ export default function Admin() {
 
         <TabsContent value="blogs" className="space-y-6">
           <BlogManager />
+        </TabsContent>
+
+        <TabsContent value="custom-orders" className="space-y-6">
+          <CustomOrdersManager />
         </TabsContent>
 
         <TabsContent value="social" className="space-y-6">

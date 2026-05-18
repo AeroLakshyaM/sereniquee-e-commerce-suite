@@ -533,6 +533,30 @@ export default function Home() {
       {/* Instagram Feed */}
       <InstagramFeed />
 
+      {/* Custom Orders Teaser */}
+      <section className="bg-primary/5 py-12 sm:py-16 md:py-20 -mx-4 lg:mx-0">
+        <div className="container-luxury text-center max-w-4xl mx-auto px-6">
+          <div className="inline-flex items-center gap-2 mb-4">
+            <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              Personalized for You
+            </p>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-serif mb-6 leading-tight">
+            Looking for Something Special?
+          </h2>
+          <p className="text-base sm:text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Whether you need bulk orders for an event, personalized wedding favors, or a custom scent blended just for you, our bespoke service can bring your unique vision to life.
+          </p>
+          <Link to="/custom-orders">
+            <Button size="lg" className="bg-primary text-white hover:bg-primary/90 px-8 py-6 text-sm sm:text-base transition-all group">
+              Request a Custom Order
+              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="py-12 sm:py-16 md:py-24">
         <div className="container-luxury px-4">

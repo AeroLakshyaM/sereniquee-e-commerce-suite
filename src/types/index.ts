@@ -329,3 +329,21 @@ export interface SeoSettings {
   created_at: string;
   updated_at: string;
 }
+
+// ============================================
+// CUSTOM & BULK ORDERS
+// ============================================
+
+export interface CustomOrderInquiry {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  inquiry_type: 'custom' | 'bulk' | 'wholesale' | 'other';
+  description: string;
+  quantity_estimate?: number;
+  budget_range?: string;
+  status: 'new' | 'contacted' | 'quoted' | 'ordered';
+  created_at: string;
+  updated_at: string;
+}

@@ -26,7 +26,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import ShippingReturns from "./pages/ShippingReturns";
 import NotFound from "./pages/NotFound";
-
+import CustomOrders from "./pages/CustomOrders";
 
 const queryClient = new QueryClient();
 
@@ -172,6 +172,14 @@ const App = () => (
                 element={
                   <Layout>
                     <ShippingReturns />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/custom-orders"
+                element={
+                  <Layout>
+                    <CustomOrders />
                   </Layout>
                 }
               />
