@@ -1,19 +1,56 @@
 import { useState } from 'react';
-import { useUsers } from '@/hooks/useUsers';
+import { useUsers, useDeleteUser } from '@/hooks/useUsers';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, Mail, Phone, MapPin, Calendar, ShoppingBag, DollarSign } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { Search, Mail, Phone, MapPin, Calendar, ShoppingBag, DollarSign, Trash2 } from 'lucide-react';
 
 export default function UsersManagement() {
   const { data: users, isLoading } = useUsers();
+  const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser();
+  const { toast } = useToast();
+  
   const [searchTerm, setSearchTerm] = useState('');
+  const [userToDelete, setUserToDelete] = useState<{ id: string, name: string | null } | null>(null);
 
   const filteredUsers = users?.filter((user) =>
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleDelete = () => {
+    if (!userToDelete) return;
+    
+    deleteUser(userToDelete.id, {
+      onSuccess: () => {
+        toast({
+          title: "User deleted",
+          description: "The user has been successfully removed from the platform.",
+        });
+        setUserToDelete(null);
+      },
+      onError: (error: any) => {
+        toast({
+          variant: "destructive",
+          title: "Error deleting user",
+          description: error.message || "Failed to delete user.",
+        });
+        setUserToDelete(null);
+      }
+    });
+  };
 
   if (isLoading) {
     return (
@@ -125,6 +162,15 @@ export default function UsersManagement() {
                   <Button variant="outline" size="sm" className="flex-1">
                     Send Email
                   </Button>
+                  {user.role !== 'admin' && (
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={() => setUserToDelete({ id: user.id, name: user.full_name || user.email })}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -137,6 +183,29 @@ export default function UsersManagement() {
           <p className="text-muted-foreground">No users found matching your search.</p>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the user account for <strong>{userToDelete?.name}</strong> and remove all their data from our servers.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete User"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
