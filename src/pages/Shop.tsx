@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
 import { ProductGrid } from '@/components/product/ProductGrid';
@@ -17,77 +17,42 @@ export default function Shop() {
   const searchQuery = searchParams.get('search') || '';
   const categoryFromUrl = searchParams.get('category');
   
-  const { data: allProducts, isLoading } = useProducts();
+  const {
+    data,
+    isLoading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useProducts(selectedCategory, searchQuery);
   const { activeCategories } = useCategories();
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const allProducts = useMemo(
+    () => data?.pages.flatMap((page) => page.products) || [],
+    [data],
+  );
 
   // Set category from URL on mount
   useEffect(() => {
     if (categoryFromUrl && categoryFromUrl !== selectedCategory) {
       setSelectedCategory(categoryFromUrl);
     }
-  }, [categoryFromUrl]);
+  }, [categoryFromUrl, selectedCategory]);
 
-  // Filter by category
-  const categoryFilteredProducts = useMemo(() => {
-    if (!allProducts) return [];
-    if (selectedCategory === 'all') return allProducts;
-    
-    return allProducts.filter(product => 
-      product.category === selectedCategory
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: '600px' },
     );
-  }, [allProducts, selectedCategory]);
 
-  // Advanced search function with keyword matching
-  const filteredProducts = useMemo(() => {
-    const products = categoryFilteredProducts;
-    if (!products) return [];
-    if (!searchQuery) return products;
+    const loadMoreElement = loadMoreRef.current;
+    if (loadMoreElement) observer.observe(loadMoreElement);
 
-    const query = searchQuery.toLowerCase().trim();
-    const keywords = query.split(/\s+/); // Split by spaces to get individual keywords
-
-    return products.filter(product => {
-      // Create searchable text from all product fields
-      const searchableText = [
-        product.name,
-        product.description || '',
-        product.category || '',
-      ].join(' ').toLowerCase();
-
-      // Check if ALL keywords are present (AND logic)
-      const matchesAllKeywords = keywords.every(keyword => 
-        searchableText.includes(keyword)
-      );
-
-      // Also check if ANY keyword matches (OR logic for more results)
-      const matchesAnyKeyword = keywords.some(keyword => 
-        searchableText.includes(keyword)
-      );
-
-      // Return products that match all keywords first, then any keyword
-      return matchesAllKeywords || matchesAnyKeyword;
-    }).sort((a, b) => {
-      // Prioritize products that match ALL keywords
-      const aMatchesAll = keywords.every(keyword => 
-        [a.name, a.description || '', a.category || ''].join(' ').toLowerCase().includes(keyword)
-      );
-      const bMatchesAll = keywords.every(keyword => 
-        [b.name, b.description || '', b.category || ''].join(' ').toLowerCase().includes(keyword)
-      );
-
-      if (aMatchesAll && !bMatchesAll) return -1;
-      if (!aMatchesAll && bMatchesAll) return 1;
-
-      // Then prioritize name matches over description matches
-      const aNameMatch = a.name.toLowerCase().includes(query);
-      const bNameMatch = b.name.toLowerCase().includes(query);
-      
-      if (aNameMatch && !bNameMatch) return -1;
-      if (!aNameMatch && bNameMatch) return 1;
-
-      return 0;
-    });
-  }, [categoryFilteredProducts, searchQuery]);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
@@ -135,7 +100,7 @@ export default function Shop() {
               Showing results for <span className="font-semibold text-foreground">"{searchQuery}"</span>
             </p>
             <p className="text-sm text-muted-foreground">
-              {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
+              {allProducts.length} {allProducts.length === 1 ? 'product' : 'products'} loaded
             </p>
           </div>
         )}
@@ -165,9 +130,9 @@ export default function Shop() {
       {/* Products Grid */}
       {isLoading ? (
         <ProductGridSkeleton count={8} />
-      ) : filteredProducts && filteredProducts.length > 0 ? (
+      ) : allProducts.length > 0 ? (
         <ProductGrid 
-          products={filteredProducts} 
+          products={allProducts}
           masonry 
           onQuickView={setQuickViewProduct}
         />
@@ -190,6 +155,12 @@ export default function Shop() {
               </ul>
             </div>
           )}
+        </div>
+      )}
+
+      {allProducts.length > 0 && hasNextPage && (
+        <div ref={loadMoreRef} className="mt-8">
+          {isFetchingNextPage && <ProductGridSkeleton count={4} />}
         </div>
       )}
 
