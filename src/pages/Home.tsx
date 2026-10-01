@@ -2,9 +2,9 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
-import { useFeaturedProducts } from '@/hooks/useProducts';
+import { useProducts } from '@/hooks/useProducts';
 import { useBlogs } from '@/hooks/useBlogs';
-import { ProductGrid } from '@/components/product/ProductGrid';
+import { ProductCard } from '@/components/product/ProductCard';
 import { ProductGridSkeleton } from '@/components/product/ProductCardSkeleton';
 import { ProductQuickView } from '@/components/product/ProductQuickView';
 import { BlogCard } from '@/components/blog/BlogCard';
@@ -14,7 +14,7 @@ import { Product } from '@/types';
 import { ArrowRight, BookOpen, Flame, Heart, Leaf, Sparkles, Star, Timer } from 'lucide-react';
 
 export default function Home() {
-  const { data: featuredProducts, isLoading } = useFeaturedProducts();
+  const { data: products, isLoading } = useProducts();
   const { data: latestBlogs, isLoading: blogsLoading } = useBlogs({ limit: 3 });
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
@@ -103,12 +103,35 @@ export default function Home() {
 
         {isLoading ? (
           <ProductGridSkeleton count={6} />
-        ) : featuredProducts && featuredProducts.length > 0 ? (
+        ) : products && products.length > 0 ? (
           <>
-            <ProductGrid 
-              products={featuredProducts} 
-              onQuickView={setQuickViewProduct}
-            />
+            <div
+              className="product-marquee scrollbar-hide overflow-x-auto"
+              aria-label="All products"
+            >
+              <div className="product-marquee-track">
+                {[0, 1].map((groupIndex) => (
+                  <div
+                    key={groupIndex}
+                    className="product-marquee-group"
+                    aria-hidden={groupIndex === 1}
+                  >
+                    {products.map((product) => (
+                      <div
+                        key={`${groupIndex}-${product.id}`}
+                        className="w-[220px] shrink-0 sm:w-[240px] lg:w-[280px]"
+                      >
+                        <ProductCard
+                          product={product}
+                          featured={product.featured}
+                          onQuickView={setQuickViewProduct}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="mt-8 sm:mt-12 text-center">
               <Link to="/shop">
                 <Button variant="outline" className="px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background transition-all group">
@@ -121,7 +144,7 @@ export default function Home() {
         ) : (
           <div className="text-center py-12 sm:py-16 bg-secondary/30 rounded-lg mx-4">
             <Sparkles className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground/50 mx-auto mb-3 sm:mb-4" />
-            <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4 px-4">No featured products yet. Add some in the admin dashboard.</p>
+            <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4 px-4">No products yet. Add some in the admin dashboard.</p>
             <Link to="/admin">
               <Button className="text-sm sm:text-base">Go to Admin Dashboard</Button>
             </Link>

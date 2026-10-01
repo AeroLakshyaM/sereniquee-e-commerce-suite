@@ -250,4 +250,43 @@
   .animate-scroll:hover {
     animation-play-state: paused;
   }
+
+  .product-marquee {
+    width: 100%;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
+  }
+
+  .product-marquee-track {
+    display: flex;
+    width: max-content;
+    animation: productMarquee 50s linear infinite;
+  }
+
+  .product-marquee:hover .product-marquee-track,
+  .product-marquee:focus-within .product-marquee-track {
+    animation-play-state: paused;
+  }
+
+  .product-marquee-group {
+    display: flex;
+    flex-shrink: 0;
+    gap: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  @keyframes productMarquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (pointer: coarse), (prefers-reduced-motion: reduce) {
+    .product-marquee-track {
+      animation: none;
+    }
+  }
 }
