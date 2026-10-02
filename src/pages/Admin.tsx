@@ -29,9 +29,22 @@ import CustomOrdersManager from '@/components/admin/CustomOrdersManager';
 export default function Admin() {
   const navigate = useNavigate();
   const { user, isAdmin, loading: authLoading } = useAuth();
-  const { data: products, isLoading } = useProducts();
+  const {
+    data: productsData,
+    isLoading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useProducts();
+  const products = productsData?.pages.flatMap((page) => page.products) ?? [];
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const [activeTab, setActiveTab] = useState('home');
   const [showForm, setShowForm] = useState(false);
