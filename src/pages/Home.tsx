@@ -10,6 +10,7 @@ import { ProductQuickView } from '@/components/product/ProductQuickView';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { InstagramFeed } from '@/components/social/InstagramFeed';
 import { CategorySection } from '@/components/CategorySection';
+import { galleryImages } from '@/data/galleryImages';
 import { Product } from '@/types';
 import { ArrowRight, BookOpen, Flame, Heart, Leaf, Sparkles, Star, Timer } from 'lucide-react';
 
@@ -555,12 +556,14 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
-            {[1, 2, 3, 4].map((index) => (
-              <div key={index} className="group relative aspect-square rounded-xl overflow-hidden bg-secondary border border-border/50 hover:border-amber-500/50 transition-all duration-300">
+            {galleryImages.slice(0, 4).map((image) => (
+              <div key={image.id} className="group relative aspect-square rounded-xl overflow-hidden bg-secondary border border-border/50 hover:border-amber-500/50 transition-all duration-300">
                 <img
-                  src="/landing-candles.jpg"
-                  alt={`Gallery preview ${index}`}
+                  src={image.url}
+                  alt={image.caption}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
