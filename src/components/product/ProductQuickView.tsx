@@ -67,6 +67,8 @@ export function ProductQuickView({ product, isOpen, onClose }: ProductQuickViewP
                   <img
                     src={images[currentImageIndex]}
                     alt={`${product.name} - Image ${currentImageIndex + 1}`}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                   

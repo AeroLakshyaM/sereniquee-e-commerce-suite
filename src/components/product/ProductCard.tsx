@@ -66,6 +66,7 @@ export function ProductCard({ product, featured, onQuickView }: ProductCardProps
               src={images[currentImageIndex]}
               alt={`${product.name} - Image ${currentImageIndex + 1}`}
               loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover product-image-zoom"
             />
 
