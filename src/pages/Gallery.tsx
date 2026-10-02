@@ -95,49 +95,41 @@ export default function Gallery() {
 
       {/* Gallery Grid */}
       <section className="container-luxury pb-16 sm:pb-20 md:pb-24">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {filteredImages.map((image, index) => (
-            <div
-              key={image.id}
-              className="group relative cursor-pointer animate-fade-in"
-              style={{ animationDelay: `${index * 50}ms` }}
-              onClick={() => setSelectedImage(image)}
-            >
-              {/* Image Container */}
-              <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-secondary border border-border/50 group-hover:border-amber-500/50 transition-all duration-300">
-                <img
-                  src={image.url}
-                  alt={image.caption}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  loading="lazy"
-                />
-                {/* Overlay on hover */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
-                {/* Category badge */}
-                <div className="absolute top-4 right-4 px-3 py-1 bg-white/90 dark:bg-black/90 backdrop-blur-sm rounded-full text-xs font-medium">
-                  {image.category}
-                </div>
-
-                {/* Hover icon */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="w-12 h-12 rounded-full bg-white/90 dark:bg-black/90 flex items-center justify-center backdrop-blur-sm">
-                    <Camera className="h-6 w-6 text-foreground" />
+        {filteredImages.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {filteredImages.map((image, index) => (
+              <div
+                key={image.id}
+                className="group relative cursor-pointer animate-fade-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+                onClick={() => setSelectedImage(image)}
+              >
+                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-secondary border border-border/50 group-hover:border-amber-500/50 transition-all duration-300">
+                  <img
+                    src={image.url}
+                    alt={image.caption}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute top-4 right-4 px-3 py-1 bg-white/90 dark:bg-black/90 backdrop-blur-sm rounded-full text-xs font-medium">
+                    {image.category}
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="w-12 h-12 rounded-full bg-white/90 dark:bg-black/90 flex items-center justify-center backdrop-blur-sm">
+                      <Camera className="h-6 w-6 text-foreground" />
+                    </div>
                   </div>
                 </div>
+                <div className="mt-4 px-2">
+                  <p className="text-sm text-muted-foreground leading-relaxed text-center">
+                    {image.caption}
+                  </p>
+                </div>
               </div>
-
-              {/* Caption */}
-              <div className="mt-4 px-2">
-                <p className="text-sm text-muted-foreground leading-relaxed text-center">
-                  {image.caption}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredImages.length === 0 && (
+            ))}
+          </div>
+        ) : (
           <div className="text-center py-16">
             <Camera className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
             <p className="text-muted-foreground">No images found in this category.</p>

@@ -555,19 +555,32 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
-            {galleryImages.slice(0, 4).map((image) => (
-              <div key={image.id} className="group relative aspect-square rounded-xl overflow-hidden bg-secondary border border-border/50 hover:border-amber-500/50 transition-all duration-300">
-                <img
-                  src={image.url}
-                  alt={image.caption}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
-            ))}
+          <div className="gallery-marquee scrollbar-hide overflow-x-auto" aria-label="Gallery images">
+            <div className="gallery-marquee-track">
+              {[0, 1].map((groupIndex) => (
+                <div
+                  key={groupIndex}
+                  className="gallery-marquee-group"
+                  aria-hidden={groupIndex === 1}
+                >
+                  {galleryImages.map((image) => (
+                    <div
+                      key={`${groupIndex}-${image.id}`}
+                      className="gallery-marquee-item group relative aspect-square rounded-xl overflow-hidden bg-secondary border border-border/50 hover:border-amber-500/50 transition-all duration-300"
+                    >
+                      <img
+                        src={image.url}
+                        alt={image.caption}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="text-center">
