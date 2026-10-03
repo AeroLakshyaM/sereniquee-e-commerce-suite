@@ -145,7 +145,8 @@ Cost Kam Karne Ke Tarike:
 REMEMBER: Write in NATURAL HINGLISH like Indians speak. Mix Hindi-English freely. Keep it SHORT, SIMPLE, FRIENDLY. Use bullet points and emojis. Make it easy to read quickly!`;
 
 export default function BusinessInsights() {
-  const { data: products } = useProducts();
+  const { data: productsData } = useProducts();
+  const products = productsData?.pages.flatMap((page) => page.products) ?? [];
   const { data: orders } = useAdminOrders();
   const { toast } = useToast();
   

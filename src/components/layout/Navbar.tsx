@@ -14,7 +14,11 @@ export function Navbar() {
   const { totalItems, setIsCartOpen } = useCart();
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const { data: products } = useProducts('all');
+  const { data: productsData } = useProducts('all');
+  const products = useMemo(
+    () => productsData?.pages.flatMap((page) => page.products) ?? [],
+    [productsData],
+  );
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +31,7 @@ export function Navbar() {
 
   // Filter products based on search query
   const searchResults = useMemo(() => {
-    if (!products || !searchQuery.trim()) return [];
+    if (!searchQuery.trim()) return [];
 
     const query = searchQuery.toLowerCase().trim();
     const keywords = query.split(/\s+/);

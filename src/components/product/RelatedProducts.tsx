@@ -11,8 +11,9 @@ interface RelatedProductsProps {
 }
 
 export function RelatedProducts({ currentProduct, limit = 4 }: RelatedProductsProps) {
-  const { data: allProducts, isLoading } = useProducts();
+  const { data: productsData, isLoading } = useProducts();
   const { addItem } = useCart();
+  const allProducts = productsData?.pages.flatMap((page) => page.products) ?? [];
 
   const handleAddToCart = (e: React.MouseEvent, product: Product) => {
     e.preventDefault();
@@ -39,7 +40,7 @@ export function RelatedProducts({ currentProduct, limit = 4 }: RelatedProductsPr
 
   // Filter related products by category, excluding current product
   const relatedProducts = allProducts
-    ?.filter(
+    .filter(
       (p) =>
         p.id !== currentProduct.id &&
         (p.category === currentProduct.category ||
@@ -51,7 +52,7 @@ export function RelatedProducts({ currentProduct, limit = 4 }: RelatedProductsPr
   const productsToShow =
     relatedProducts && relatedProducts.length > 0
       ? relatedProducts
-      : allProducts?.filter((p) => p.id !== currentProduct.id).slice(0, limit);
+      : allProducts.filter((p) => p.id !== currentProduct.id).slice(0, limit);
 
   if (!productsToShow || productsToShow.length === 0) {
     return null;
