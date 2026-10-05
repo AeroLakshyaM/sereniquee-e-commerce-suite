@@ -102,7 +102,7 @@ export default function Checkout() {
       // Send the email confirmation via our secure Serverless Function
       try {
         const confirmEmail = user ? user.email : formData.email;
-        await fetch('/api/send-email', {
+        const emailResponse = await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

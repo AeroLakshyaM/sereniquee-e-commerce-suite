@@ -101,12 +101,18 @@ Get your API key from: https://makersuite.google.com/app/apikey
 
 ### Order email notifications
 
-Order confirmations are sent to the buyer and, using Resend blind copies, to the
-internal addresses configured in `ORDER_NOTIFICATION_EMAILS`. Set
-`RESEND_API_KEY` and `ORDER_NOTIFICATION_EMAILS` in the Vercel project
-environment variables. `ORDER_NOTIFICATION_EMAILS` must contain at least two
-comma-separated email addresses. These values are server-side only and must not
-use the `VITE_` prefix.
+Order confirmations are sent to the buyer and then to the internal addresses
+configured in `ORDER_NOTIFICATION_EMAILS`. Set `RESEND_API_KEY` and
+`ORDER_NOTIFICATION_EMAILS` in the Vercel project environment variables.
+`ORDER_NOTIFICATION_EMAILS` must contain at least two comma-separated email
+addresses. These values are server-side only and must not use the `VITE_` prefix.
+
+In Resend, add and verify the sending domain `sereniqueecandles.com`, then make
+sure the DNS records Resend provides are present at your domain host. The
+`from` address used by the API (`team@sereniqueecandles.com`) must belong to a
+verified domain. After changing Vercel variables or source code, redeploy the
+project and test with a fresh checkout; an old browser bundle can continue to
+show `emailResponse is not defined` until the new deployment is live.
 
 ## How can I deploy this project?
 

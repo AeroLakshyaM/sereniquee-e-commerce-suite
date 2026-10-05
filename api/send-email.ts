@@ -42,23 +42,33 @@ export default async function handler(req: EmailRequest, res: EmailResponse) {
       ? orderNotificationEmails.filter((email) => email !== to.toLowerCase())
       : [];
 
-    if (type === 'order-confirmation' && recipients.length < 2) {
-      return res.status(500).json({
-        error: 'Order notifications are not configured with two internal addresses different from the buyer.',
-      });
-    }
-
-    const data = await resend.emails.send({
+    const buyerEmail = await resend.emails.send({
       // IMPORTANT: This 'from' email MUST be verified in your Resend dashboard!
       // For development, Resend allows sending from 'onboarding@resend.dev' ONLY to your own verified email address.
       from: 'Sereniquee Candles <team@sereniqueecandles.com>',
       to: [to],
-      ...(recipients.length > 0 ? { bcc: recipients } : {}),
       subject: subject,
       html: html,
     });
 
-    res.status(200).json(data);
+    if (type !== 'order-confirmation') {
+      return res.status(200).json(buyerEmail);
+    }
+
+    if (recipients.length < 2) {
+      return res.status(502).json({
+        error: 'Buyer email sent, but order notifications are not configured with two internal addresses different from the buyer.',
+      });
+    }
+
+    const internalEmail = await resend.emails.send({
+      from: 'Sereniquee Candles <team@sereniqueecandles.com>',
+      to: recipients,
+      subject: `[New order] ${subject}`,
+      html,
+    });
+
+    res.status(200).json({ buyerEmail, internalEmail });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unable to send email';
     res.status(500).json({ error: message });
