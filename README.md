@@ -99,6 +99,15 @@ VITE_GEMINI_API_KEY=your_api_key_here
 
 Get your API key from: https://makersuite.google.com/app/apikey
 
+### Order email notifications
+
+Order confirmations are sent to the buyer and, using Resend blind copies, to the
+internal addresses configured in `ORDER_NOTIFICATION_EMAILS`. Set
+`RESEND_API_KEY` and `ORDER_NOTIFICATION_EMAILS` in the Vercel project
+environment variables. `ORDER_NOTIFICATION_EMAILS` must contain at least two
+comma-separated email addresses. These values are server-side only and must not
+use the `VITE_` prefix.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.

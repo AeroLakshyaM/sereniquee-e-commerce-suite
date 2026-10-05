@@ -86,7 +86,7 @@ export default function Checkout() {
         });
       }
 
-      await createOrder.mutateAsync({
+      const createdOrder = await createOrder.mutateAsync({
         items,
         shippingAddress,
         specialRequirements: formData.specialRequirements || null,
@@ -107,6 +107,7 @@ export default function Checkout() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             to: confirmEmail,
+            type: 'order-confirmation',
             subject: 'Order Confirmation - Sereniquee Candles',
             html: `
               <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
@@ -118,6 +119,7 @@ export default function Checkout() {
                 
                 <p style="color: #444; font-size: 16px;">Hi <strong>${formData.fullName}</strong>,</p>
                 <p style="color: #444; font-size: 16px;">Thank you for your purchase! We've received your order and are preparing it for shipment.</p>
+                <p style="color: #444; font-size: 14px;">Order reference: <strong>${createdOrder.id}</strong></p>
                 
                 <div style="background-color: #fcfcfc; padding: 15px 20px; border-radius: 6px; margin: 25px 0;">
                   <h3 style="color: #333; margin-top: 0; font-family: serif;">Order Summary</h3>
@@ -143,6 +145,11 @@ export default function Checkout() {
             `
           })
         });
+
+        if (!emailResponse.ok) {
+          const errorText = await emailResponse.text();
+          console.error('Order confirmation email request failed:', emailResponse.status, errorText);
+        }
       } catch (emailError) {
         console.error('Failed to send confirmation email:', emailError);
       }
