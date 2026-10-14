@@ -214,6 +214,7 @@ export type Database = {
           guest_phone: string | null
           id: string
           order_number: string | null
+          order_source: string
           shipping_address: string | null
           special_requirements: string | null
           status: string | null
@@ -232,6 +233,7 @@ export type Database = {
           guest_phone?: string | null
           id?: string
           order_number?: string | null
+          order_source?: string
           shipping_address?: string | null
           special_requirements?: string | null
           status?: string | null
@@ -250,6 +252,7 @@ export type Database = {
           guest_phone?: string | null
           id?: string
           order_number?: string | null
+          order_source?: string
           shipping_address?: string | null
           special_requirements?: string | null
           status?: string | null

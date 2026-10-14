@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface AdminOrder {
   id: string;
   order_number: string | null;
+  order_source: 'online' | 'offline';
   user_id: string | null;
   guest_email: string | null;
   guest_name: string | null;
@@ -106,6 +107,7 @@ export const useAdminOrders = (search = '', startDate?: string, endDate?: string
       return (orders || []).map((order) => ({
         id: order.id,
         order_number: order.order_number,
+        order_source: order.order_source,
         user_id: order.user_id,
         guest_email: order.guest_email,
         guest_name: order.guest_name,

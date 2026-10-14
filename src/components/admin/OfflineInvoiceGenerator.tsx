@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { FileText, Plus, Trash2 } from 'lucide-react';
 import { openInvoiceInNewTab } from '@/lib/invoiceGenerator';
 
@@ -31,6 +33,8 @@ export default function OfflineInvoiceGenerator() {
   const [invoiceDate, setInvoiceDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [lines, setLines] = useState<InvoiceLine[]>([]);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isSaving, setIsSaving] = useState(false);
   const { data, isLoading } = useProducts(undefined, productSearch);
 
   const products = useMemo(
@@ -66,7 +70,7 @@ export default function OfflineInvoiceGenerator() {
     } : line));
   };
 
-  const generateInvoice = () => {
+  const generateInvoice = async () => {
     if (!customerName.trim() || lines.length === 0) {
       toast({
         title: 'Complete the invoice details',
@@ -76,28 +80,77 @@ export default function OfflineInvoiceGenerator() {
       return;
     }
 
-    const invoiceId = `OFFLINE-${new Date().toISOString().replace(/\D/g, '').slice(0, 14)}`;
-    openInvoiceInNewTab({
-      id: invoiceId,
-      order_number: invoiceId,
-      created_at: new Date(`${invoiceDate}T12:00:00`).toISOString(),
-      total_amount: total,
-      subtotal_amount: subtotal,
-      shipping_amount: shipping,
-      gst_amount: gst,
-      status: 'paid',
-      shipping_address: shippingAddress || null,
-      user: {
-        full_name: customerName.trim(),
-        email: customerEmail.trim(),
-      },
-      order_items: lines.map(line => ({
-        id: line.id,
-        quantity: line.quantity,
-        price_at_time: line.price,
-        product: { name: line.product.name },
-      })),
-    });
+    setIsSaving(true);
+    const orderId = crypto.randomUUID();
+    const orderNumber = `OFFLINE-${invoiceDate.replace(/-/g, '')}-${orderId.slice(0, 6).toUpperCase()}`;
+    const createdAt = new Date(`${invoiceDate}T12:00:00`).toISOString();
+
+    try {
+      const { error: orderError } = await supabase.from('orders').insert({
+        id: orderId,
+        order_number: orderNumber,
+        user_id: null,
+        guest_name: customerName.trim(),
+        guest_email: customerEmail.trim() || null,
+        total_amount: total,
+        subtotal_amount: subtotal,
+        shipping_amount: shipping,
+        gst_amount: gst,
+        shipping_address: shippingAddress || null,
+        status: 'delivered',
+        order_source: 'offline',
+        created_at: createdAt,
+      });
+      if (orderError) throw orderError;
+
+      const { error: itemError } = await supabase.from('order_items').insert(
+        lines.map(line => ({
+          order_id: orderId,
+          product_id: line.product.id,
+          quantity: line.quantity,
+          price_at_time: line.price,
+        })),
+      );
+      if (itemError) {
+        await supabase.from('orders').delete().eq('id', orderId);
+        throw itemError;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
+
+      openInvoiceInNewTab({
+        id: orderId,
+        order_number: orderNumber,
+        created_at: createdAt,
+        total_amount: total,
+        subtotal_amount: subtotal,
+        shipping_amount: shipping,
+        gst_amount: gst,
+        status: 'delivered',
+        shipping_address: shippingAddress || null,
+        user: {
+          full_name: customerName.trim(),
+          email: customerEmail.trim(),
+        },
+        order_items: lines.map(line => ({
+          id: line.id,
+          quantity: line.quantity,
+          price_at_time: line.price,
+          product: { name: line.product.name },
+        })),
+      });
+      toast({ title: 'Invoice saved', description: 'The invoice is now available in Orders and revenue summaries.' });
+    } catch (error) {
+      toast({
+        title: 'Invoice could not be saved',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -196,7 +249,10 @@ export default function OfflineInvoiceGenerator() {
           <div className="flex justify-between text-sm"><span>GST (5%)</span><span>₹{gst.toFixed(2)}</span></div>
           <div className="flex justify-between border-t pt-3 font-semibold"><span>Grand total</span><span>₹{total.toFixed(2)}</span></div>
           <p className="text-xs text-muted-foreground">Shipping charges are exclusive and are not included in product prices. This invoice is for offline sales and will not create an online order or change inventory.</p>
-          <Button className="w-full" onClick={generateInvoice}><Plus className="mr-2 h-4 w-4" />Generate Invoice</Button>
+          <Button className="w-full" onClick={generateInvoice} disabled={isSaving}>
+            <Plus className="mr-2 h-4 w-4" />
+            {isSaving ? 'Saving invoice...' : 'Save & Generate Invoice'}
+          </Button>
         </CardContent>
       </Card>
     </div>
