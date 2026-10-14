@@ -140,11 +140,22 @@ export default function OrdersManagement() {
 
   const deleteSelectedOrder = async () => {
     if (!deleteOrder) return;
-    const { error } = await supabase.from('orders').delete().eq('id', deleteOrder.id);
+    const { data: deletedOrders, error } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', deleteOrder.id)
+      .select('id');
     if (error) {
       toast({ title: 'Delete failed', description: error.message, variant: 'destructive' });
+    } else if (!deletedOrders || deletedOrders.length === 0) {
+      toast({
+        title: 'Delete failed',
+        description: 'The order was not deleted. Confirm that your account has administrator permissions.',
+        variant: 'destructive',
+      });
     } else {
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      setSelectedOrder(current => current?.id === deleteOrder.id ? null : current);
       toast({ title: 'Order deleted' });
     }
     setDeleteOrder(null);
