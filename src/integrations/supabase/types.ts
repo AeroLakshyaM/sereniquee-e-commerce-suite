@@ -296,6 +296,48 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_settings: {
+        Row: {
+          id: string
+          site_name: string | null
+          site_description: string | null
+          default_og_image: string | null
+          canonical_base_url: string
+          instagram_handle: string | null
+          facebook_url: string | null
+          twitter_handle: string | null
+          google_analytics_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          site_name?: string | null
+          site_description?: string | null
+          default_og_image?: string | null
+          canonical_base_url?: string
+          instagram_handle?: string | null
+          facebook_url?: string | null
+          twitter_handle?: string | null
+          google_analytics_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          site_name?: string | null
+          site_description?: string | null
+          default_og_image?: string | null
+          canonical_base_url?: string
+          instagram_handle?: string | null
+          facebook_url?: string | null
+          twitter_handle?: string | null
+          google_analytics_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       product_reviews: {
         Row: {
           id: string

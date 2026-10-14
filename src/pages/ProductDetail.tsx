@@ -74,8 +74,9 @@ export default function ProductDetail() {
         description={product.seo_description || product.description || `Shop ${product.name} from Sereniquee. Luxury handmade candles crafted with love.`}
         keywords={product.seo_keywords || `${product.name}, ${product.category}, handmade candles, luxury candles, scented candles`}
         image={product.image_url || undefined}
-        url={`/products/${product.slug}`}
+        url={`/product/${product.slug}`}
         type="product"
+        product={product}
       />
       
       {/* Back Button */}
