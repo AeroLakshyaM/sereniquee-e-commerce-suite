@@ -101,12 +101,13 @@ export default function Admin() {
     return () => window.clearTimeout(timer);
   }, [productSearch]);
 
-  // ── Product list — first page only; admin fetches more on demand ──────────
-  // We no longer eagerly fetch ALL pages; the table shows the first page (12)
-  // and an "Edit" search is available instead.
+  // ── Product list — fetched in pages so the admin table remains responsive ──
   const {
     data: productsData,
     isLoading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
   } = useProducts(undefined, debouncedProductSearch);
 
   const products = useMemo(
@@ -567,6 +568,17 @@ export default function Admin() {
               </div>
             )}
           </div>
+          {products.length > 0 && hasNextPage && (
+            <div className="flex justify-center pt-4">
+              <Button
+                variant="outline"
+                onClick={() => void fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? 'Loading products...' : 'Load More Products'}
+              </Button>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="orders" className="space-y-6">
