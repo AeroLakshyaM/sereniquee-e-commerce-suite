@@ -118,6 +118,11 @@ export default function ProductDetail() {
                 <img
                   src={images[selectedImageIndex]}
                   alt={`${product.name} - Image ${selectedImageIndex + 1}`}
+                  width={800}
+                  height={800}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                   className="w-full h-full object-cover"
                 />
                 
@@ -169,6 +174,10 @@ export default function ProductDetail() {
                   <img
                     src={image}
                     alt={`Thumbnail ${index + 1}`}
+                    width={200}
+                    height={200}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                 </button>

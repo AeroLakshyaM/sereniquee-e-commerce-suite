@@ -127,6 +127,7 @@ export default function Home() {
                           product={product}
                           featured={product.featured}
                           onQuickView={setQuickViewProduct}
+                          priority={groupIndex === 0 && product.id === products[0]?.id}
                         />
                       </div>
                     ))}
@@ -314,11 +315,16 @@ export default function Home() {
               </Link>
             </div>
             <div className="order-1 md:order-2 relative">
-              <div className="aspect-square rounded-lg overflow-hidden relative group shadow-xl">
+              <div className="aspect-[3/4] rounded-lg overflow-hidden relative group shadow-xl">
                 {/* Main Image */}
                 <img 
                   src="/landing-candles.jpg" 
                   alt="Hand-poured luxury candles by Sereniquee"
+                  width={800}
+                  height={1067}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 {/* Subtle gradient overlay for depth */}
@@ -571,6 +577,8 @@ export default function Home() {
                       <img
                         src={image.url}
                         alt={image.caption}
+                        width={400}
+                        height={400}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         loading="lazy"
                         decoding="async"

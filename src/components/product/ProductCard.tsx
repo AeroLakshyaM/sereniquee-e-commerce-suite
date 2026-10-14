@@ -9,9 +9,10 @@ interface ProductCardProps {
   product: Product;
   featured?: boolean;
   onQuickView?: (product: Product) => void;
+  priority?: boolean;
 }
 
-export function ProductCard({ product, featured, onQuickView }: ProductCardProps) {
+export function ProductCard({ product, featured, onQuickView, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
@@ -65,7 +66,10 @@ export function ProductCard({ product, featured, onQuickView }: ProductCardProps
             <img
               src={images[currentImageIndex]}
               alt={`${product.name} - Image ${currentImageIndex + 1}`}
-              loading="lazy"
+              width={400}
+              height={533}
+              loading={priority ? 'eager' : 'lazy'}
+              fetchPriority={priority ? 'high' : 'auto'}
               decoding="async"
               className="w-full h-full object-cover product-image-zoom"
             />

@@ -22,6 +22,7 @@ export function ProductGrid({ products, masonry, isLoading, onQuickView }: Produ
               product={product} 
               featured={product.featured} 
               onQuickView={onQuickView}
+              priority={index === 0}
             />
           </div>
         ))}
@@ -41,6 +42,7 @@ export function ProductGrid({ products, masonry, isLoading, onQuickView }: Produ
             product={product} 
             featured={product.featured} 
             onQuickView={onQuickView}
+            priority={index === 0}
           />
         </div>
       ))}
