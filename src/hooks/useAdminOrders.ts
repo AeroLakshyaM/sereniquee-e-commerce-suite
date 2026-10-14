@@ -10,6 +10,9 @@ export interface AdminOrder {
   guest_phone: string | null;
   tracking_number: string | null;
   total_amount: number;
+  subtotal_amount: number;
+  shipping_amount: number;
+  gst_amount: number;
   status: string;
   shipping_address: string | null;
   special_requirements: string | null;
@@ -109,6 +112,9 @@ export const useAdminOrders = (search = '', startDate?: string, endDate?: string
         guest_phone: order.guest_phone,
         tracking_number: order.tracking_number,
         total_amount: Number(order.total_amount),
+        subtotal_amount: Number(order.subtotal_amount ?? 0),
+        shipping_amount: Number(order.shipping_amount ?? 0),
+        gst_amount: Number(order.gst_amount ?? 0),
         status: order.status,
         shipping_address: order.shipping_address,
         special_requirements: order.special_requirements,

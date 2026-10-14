@@ -43,6 +43,8 @@ export function useOrderItems(orderId: string) {
 interface CreateOrderParams {
   items: CartItem[];
   shippingAddress: string;
+  shippingAmount: number;
+  gstAmount: number;
   specialRequirements?: string | null;
   guestInfo?: {
     email: string;
@@ -64,16 +66,20 @@ export function useCreateOrder() {
       const customerCode = customerName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase() || 'CUSTOMER';
       const orderNumber = `SC-${customerCode}-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
       
-      const totalAmount = items.reduce(
+      const subtotalAmount = items.reduce(
         (sum, item) => sum + item.product.price * item.quantity,
         0
       );
+      const totalAmount = subtotalAmount + shippingAmount + gstAmount;
       
       // Prepare order data
       const orderData: any = {
         id: orderId,
         order_number: orderNumber,
         total_amount: totalAmount,
+        subtotal_amount: subtotalAmount,
+        shipping_amount: shippingAmount,
+        gst_amount: gstAmount,
         shipping_address: shippingAddress,
         special_requirements: specialRequirements,
         status: 'pending',

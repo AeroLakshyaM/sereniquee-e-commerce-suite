@@ -34,6 +34,9 @@ export interface Order {
   guest_name?: string | null; // For guest checkout
   guest_phone?: string | null; // For guest checkout
   total_amount: number;
+  subtotal_amount?: number;
+  shipping_amount?: number;
+  gst_amount?: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   tracking_number?: string | null;
   shipping_address: string | null;

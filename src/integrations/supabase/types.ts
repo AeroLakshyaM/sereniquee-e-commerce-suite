@@ -219,6 +219,9 @@ export type Database = {
           status: string | null
           tracking_number: string | null
           total_amount: number
+          subtotal_amount: number
+          shipping_amount: number
+          gst_amount: number
           updated_at: string | null
           user_id: string | null
         }
@@ -234,6 +237,9 @@ export type Database = {
           status?: string | null
           tracking_number?: string | null
           total_amount: number
+          subtotal_amount?: number
+          shipping_amount?: number
+          gst_amount?: number
           updated_at?: string | null
           user_id?: string | null
         }
@@ -249,6 +255,9 @@ export type Database = {
           status?: string | null
           tracking_number?: string | null
           total_amount?: number
+          subtotal_amount?: number
+          shipping_amount?: number
+          gst_amount?: number
           updated_at?: string | null
           user_id?: string | null
         }

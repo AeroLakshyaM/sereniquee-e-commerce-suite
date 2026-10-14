@@ -2,8 +2,12 @@ interface OrderData {
   id: string;
   created_at: string;
   total_amount: number;
+  subtotal_amount?: number | null;
+  shipping_amount?: number | null;
+  gst_amount?: number | null;
   status: string;
   shipping_address: string | null;
+  order_number?: string | null;
   user?: {
     email?: string;
     full_name?: string;
@@ -30,8 +34,8 @@ export function generateInvoiceHTML(order: OrderData): string {
     (sum, item) => sum + item.quantity * item.price_at_time,
     0
   );
-  const tax = 0; // Add tax calculation if needed
-  const shipping = 0; // Add shipping calculation if needed
+  const shipping = Number(order.shipping_amount ?? 0);
+  const tax = Number(order.gst_amount ?? 0);
   const total = order.total_amount;
 
   return `
@@ -48,8 +52,8 @@ export function generateInvoiceHTML(order: OrderData): string {
           }
           
           body {
-            font-family: 'Georgia', 'Times New Roman', serif;
-            line-height: 1.8;
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.5;
             color: #1a1a1a;
             padding: 40px;
             background: #f5f1e8;
@@ -78,11 +82,11 @@ export function generateInvoiceHTML(order: OrderData): string {
           }
           
           .company-name {
-            font-size: 36px;
+            font-size: 30px;
             font-weight: normal;
             color: #1a1a1a;
             margin-bottom: 8px;
-            font-family: 'Georgia', serif;
+            font-family: Arial, Helvetica, sans-serif;
             letter-spacing: 1px;
           }
           
@@ -105,7 +109,7 @@ export function generateInvoiceHTML(order: OrderData): string {
           }
           
           .invoice-title h1 {
-            font-size: 48px;
+            font-size: 36px;
             color: #2c2c2c;
             margin-bottom: 8px;
             font-weight: normal;
@@ -177,6 +181,13 @@ export function generateInvoiceHTML(order: OrderData): string {
             border-bottom: 1px solid #e8e3d6;
             font-size: 14px;
             color: #2c2c2c;
+          }
+
+          .item-note {
+            margin-top: 4px;
+            color: #666;
+            font-size: 11px;
+            font-style: italic;
           }
           
           tbody tr {
@@ -366,7 +377,10 @@ export function generateInvoiceHTML(order: OrderData): string {
                 .map(
                   (item) => `
                 <tr>
-                  <td>${item.product?.name || 'Product'}</td>
+                  <td>
+                    <strong>${item.product?.name || 'Product'}</strong>
+                    <div class="item-note">Shipping charges are exclusive and are not included in the product price.</div>
+                  </td>
                   <td class="text-right">${item.quantity}</td>
                   <td class="text-right">₹${item.price_at_time.toFixed(2)}</td>
                   <td class="text-right">₹${(item.quantity * item.price_at_time).toFixed(2)}</td>
@@ -388,7 +402,7 @@ export function generateInvoiceHTML(order: OrderData): string {
                 tax > 0
                   ? `
               <tr>
-                <td>Tax:</td>
+                <td>GST (5%):</td>
                 <td class="text-right">₹${tax.toFixed(2)}</td>
               </tr>
               `

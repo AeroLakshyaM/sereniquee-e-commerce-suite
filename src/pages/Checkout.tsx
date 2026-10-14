@@ -35,6 +35,9 @@ export default function Checkout() {
     country: '',
     specialRequirements: '',
   });
+  const shippingAmount = formData.country.trim().toLowerCase() === 'india' ? 100 : 500;
+  const gstAmount = (totalPrice + shippingAmount) * 0.05;
+  const grandTotal = totalPrice + shippingAmount + gstAmount;
 
   useEffect(() => {
     if (user) {
@@ -114,6 +117,8 @@ export default function Checkout() {
       const createdOrder = await createOrder.mutateAsync({
         items,
         shippingAddress,
+        shippingAmount,
+        gstAmount,
         specialRequirements: formData.specialRequirements || null,
         ...(checkoutMode === 'guest' && !user ? {
           guestInfo: {
@@ -172,7 +177,7 @@ export default function Checkout() {
                   <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;" />
                   <div style="font-size: 18px; text-align: left;">
                     <strong style="color: #333;">Total Amount:</strong>
-                    <strong style="float: right; color: #000;">₹${totalPrice.toFixed(2)}</strong>
+                    <strong style="float: right; color: #000;">₹${grandTotal.toFixed(2)}</strong>
                   </div>
                 </div>
                 
@@ -403,7 +408,7 @@ export default function Checkout() {
                 disabled={createOrder.isPending}
                 className="w-full bg-primary text-primary-foreground py-6 hover:bg-primary/90 active:scale-[0.98] transition-all"
               >
-                {createOrder.isPending ? 'Processing...' : `Place Order ₹${totalPrice.toFixed(2)}`}
+                {createOrder.isPending ? 'Processing...' : `Place Order ₹${grandTotal.toFixed(2)}`}
               </Button>
             </form>
           </div>
@@ -443,11 +448,15 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span>Free</span>
+                  <span>₹{shippingAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">GST (5%)</span>
+                  <span>₹{gstAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-medium pt-2 border-t border-border">
                   <span>Total</span>
-                  <span className="font-serif text-lg">₹{totalPrice.toFixed(2)}</span>
+                  <span className="font-serif text-lg">₹{grandTotal.toFixed(2)}</span>
                 </div>
               </div>
             </div>
