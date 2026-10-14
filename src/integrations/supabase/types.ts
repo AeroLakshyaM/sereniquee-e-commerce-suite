@@ -638,6 +638,13 @@ export type Database = {
       }
     }
     Functions: {
+      decrement_stock: {
+        Args: {
+          product_id: string
+          qty: number
+        }
+        Returns: undefined
+      }
       has_purchased_product: {
         Args: {
           p_user_id: string

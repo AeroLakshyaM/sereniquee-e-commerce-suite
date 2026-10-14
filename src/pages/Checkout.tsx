@@ -13,6 +13,7 @@ import { SeoHelmet } from '@/components/layout/SeoHelmet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCircle, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -75,6 +76,30 @@ export default function Checkout() {
     const shippingAddress = `${formData.fullName}\n${formData.address}\n${formData.city}, ${formData.postalCode}\n${formData.country}\n${formData.phone}`;
 
     try {
+      const stockCheck = await Promise.all(
+        items.map(item =>
+          supabase
+            .from('products')
+            .select('stock_quantity, name')
+            .eq('id', item.product.id)
+            .single()
+        )
+      );
+
+      for (const [index, result] of stockCheck.entries()) {
+        if (result.error) throw result.error;
+
+        const currentStock = result.data.stock_quantity ?? 0;
+        if (items[index].quantity > currentStock) {
+          toast({
+            title: 'Insufficient stock',
+            description: `Sorry, only ${currentStock} of ${result.data.name} are available. Please update your cart.`,
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
+
       if (user) {
         await updateProfile.mutateAsync({
           full_name: formData.fullName,
@@ -98,6 +123,18 @@ export default function Checkout() {
           }
         } : {})
       });
+
+      const stockUpdates = await Promise.all(
+        items.map(item =>
+          supabase.rpc('decrement_stock', {
+            product_id: item.product.id,
+            qty: item.quantity,
+          })
+        )
+      );
+
+      const stockUpdateError = stockUpdates.find(result => result.error)?.error;
+      if (stockUpdateError) throw stockUpdateError;
 
       // Send the email confirmation via our secure Serverless Function
       try {
