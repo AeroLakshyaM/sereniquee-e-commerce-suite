@@ -290,19 +290,21 @@ export default function Admin() {
           </select>
         </div>
 
-        {/* Desktop: Tab List */}
-        <TabsList className="hidden lg:inline-flex lg:flex-wrap w-full lg:w-auto gap-1">
-          {TABS.map(tab => (
-            <TabsTrigger
-              key={tab.value}
-              value={tab.value}
-              className={`flex items-center gap-2 ${tab.className}`}
-            >
-              <tab.icon className="h-4 w-4" />
-              <span>{tab.label}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        {/* Desktop: Keep every navigation tab on one horizontal row. */}
+        <div className="hidden lg:block w-full overflow-x-auto pb-1">
+          <TabsList className="inline-flex w-max min-w-full flex-nowrap gap-1">
+            {TABS.map(tab => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className={`flex shrink-0 items-center gap-2 ${tab.className}`}
+              >
+                <tab.icon className="h-4 w-4" />
+                <span>{tab.label}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         <TabsContent value="home" className="space-y-6">
           <SimpleDashboard />
