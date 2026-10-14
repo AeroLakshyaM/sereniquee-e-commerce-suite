@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
 import { ProductGrid } from '@/components/product/ProductGrid';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Link, useSearchParams } from 'react-router-dom';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
 import { Product } from '@/types';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Loader2, Sparkles } from 'lucide-react';
 
 export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -25,7 +25,6 @@ export default function Shop() {
     fetchNextPage,
   } = useProducts(selectedCategory, searchQuery);
   const { activeCategories } = useCategories();
-  const loadMoreRef = useRef<HTMLDivElement>(null);
   const allProducts = useMemo(
     () => data?.pages.flatMap((page) => page.products) || [],
     [data],
@@ -37,22 +36,6 @@ export default function Shop() {
       setSelectedCategory(categoryFromUrl);
     }
   }, [categoryFromUrl, selectedCategory]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { rootMargin: '600px' },
-    );
-
-    const loadMoreElement = loadMoreRef.current;
-    if (loadMoreElement) observer.observe(loadMoreElement);
-
-    return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
@@ -159,7 +142,23 @@ export default function Shop() {
       )}
 
       {allProducts.length > 0 && hasNextPage && (
-        <div ref={loadMoreRef} className="mt-8">
+        <div className="mt-10 flex flex-col items-center gap-4">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="min-w-52"
+          >
+            {isFetchingNextPage ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Loading Products...
+              </>
+            ) : (
+              'Load More Products'
+            )}
+          </Button>
           {isFetchingNextPage && <ProductGridSkeleton count={4} />}
         </div>
       )}
