@@ -1,12 +1,24 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+/**
+ * Lazily creates the Gemini client so the module can be imported without
+ * crashing when VITE_GEMINI_API_KEY is not set (e.g., during SSR or testing).
+ * Calling any generate function without a key will throw a clear error.
+ */
+let _genAI: GoogleGenerativeAI | null = null;
 
-if (!GEMINI_API_KEY) {
-  console.error('VITE_GEMINI_API_KEY is not set in environment variables');
+function getGenAI(): GoogleGenerativeAI {
+  if (_genAI) return _genAI;
+
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      'VITE_GEMINI_API_KEY is not set. Add it to your .env file to use AI features.',
+    );
+  }
+  _genAI = new GoogleGenerativeAI(apiKey);
+  return _genAI;
 }
-
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY || '');
 
 export interface BlogGenerationInput {
   topic: string;
@@ -26,7 +38,7 @@ export interface GeneratedBlogContent {
 export async function generateBlogContent(
   input: BlogGenerationInput
 ): Promise<GeneratedBlogContent> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const model = getGenAI().getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const prompt = `You are a professional content writer for Sereniquee, a luxury handmade candle e-commerce business run by a mother. The brand focuses on handcrafted, aromatic candles made with love, natural ingredients, and beautiful fragrances.
 
@@ -123,7 +135,7 @@ export async function enhanceExistingContent(
   existingContent: string,
   instructions: string
 ): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const model = getGenAI().getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const prompt = `You are a professional content editor for Sereniquee, a luxury handmade candle business.
 

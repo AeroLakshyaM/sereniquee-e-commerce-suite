@@ -11,75 +11,33 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  // Debounced value — only updated after the user stops typing for 300 ms
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const { totalItems, setIsCartOpen } = useCart();
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const { data: productsData } = useProducts('all');
-  const products = useMemo(
-    () => productsData?.pages.flatMap((page) => page.products) ?? [],
-    [productsData],
+
+  // Debounce the search query so we don't fire a DB request on every keystroke
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+      setDebouncedQuery('');
+      return;
+    }
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Only run the Supabase query when the search bar is open AND we have a debounced term
+  const { data: searchData, isFetching: isSearching } = useProducts(
+    undefined,
+    debouncedQuery || undefined,
+    // enabled flag keeps the query dormant until needed
   );
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
-      setSearchOpen(false);
-    }
-  };
-
-  // Filter products based on search query
   const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-
-    const query = searchQuery.toLowerCase().trim();
-    const keywords = query.split(/\s+/);
-
-    return products
-      .filter(product => {
-        const searchableText = [
-          product.name,
-          product.description || '',
-          product.category || '',
-        ].join(' ').toLowerCase();
-
-        const matchesAllKeywords = keywords.every(keyword => 
-          searchableText.includes(keyword)
-        );
-        const matchesAnyKeyword = keywords.some(keyword => 
-          searchableText.includes(keyword)
-        );
-
-        return matchesAllKeywords || matchesAnyKeyword;
-      })
-      .sort((a, b) => {
-        const aMatchesAll = keywords.every(keyword => 
-          [a.name, a.description || '', a.category || ''].join(' ').toLowerCase().includes(keyword)
-        );
-        const bMatchesAll = keywords.every(keyword => 
-          [b.name, b.description || '', b.category || ''].join(' ').toLowerCase().includes(keyword)
-        );
-
-        if (aMatchesAll && !bMatchesAll) return -1;
-        if (!aMatchesAll && bMatchesAll) return 1;
-
-        const aNameMatch = a.name.toLowerCase().includes(query);
-        const bNameMatch = b.name.toLowerCase().includes(query);
-        
-        if (aNameMatch && !bNameMatch) return -1;
-        if (!aNameMatch && bNameMatch) return 1;
-
-        return 0;
-      })
-      .slice(0, 6); // Limit to 6 results
-  }, [products, searchQuery]);
-
-  const handleProductClick = (slug: string) => {
-    navigate(`/product/${slug}`);
-    setSearchQuery('');
-    setSearchOpen(false);
-  };
+    if (!debouncedQuery) return [];
+    return (searchData?.pages.flatMap(p => p.products) ?? []).slice(0, 6);
+  }, [searchData, debouncedQuery]);
 
   // Close mobile menu when window is resized to desktop
   useEffect(() => {
@@ -221,26 +179,47 @@ export function Navbar() {
         {searchOpen && (
           <div className="absolute top-full left-0 right-0 bg-background border-b border-border shadow-lg animate-slide-down">
             <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4">
-              <form onSubmit={handleSearch} className="relative">
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  if (searchQuery.trim()) {
+                    navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+                    setSearchQuery('');
+                    setDebouncedQuery('');
+                    setSearchOpen(false);
+                  }
+                }}
+                className="relative"
+              >
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Search for candles, scents, collections..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   className="pl-10 pr-4 py-6 text-base w-full"
                   autoFocus
                 />
               </form>
 
+              {/* Searching spinner */}
+              {isSearching && debouncedQuery && (
+                <p className="mt-3 text-xs text-muted-foreground animate-pulse">Searching...</p>
+              )}
+
               {/* Search Results Dropdown */}
-              {searchQuery.trim() && searchResults.length > 0 && (
+              {debouncedQuery && !isSearching && searchResults.length > 0 && (
                 <div className="mt-4 bg-background border border-border rounded-lg shadow-lg overflow-hidden">
                   <div className="max-h-[400px] overflow-y-auto">
-                    {searchResults.map((product) => (
+                    {searchResults.map(product => (
                       <button
                         key={product.id}
-                        onClick={() => handleProductClick(product.slug)}
+                        onClick={() => {
+                          navigate(`/product/${product.slug}`);
+                          setSearchQuery('');
+                          setDebouncedQuery('');
+                          setSearchOpen(false);
+                        }}
                         className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left border-b border-border last:border-b-0"
                       >
                         <div className="flex-shrink-0 w-16 h-16 bg-muted rounded-md overflow-hidden">
@@ -248,6 +227,7 @@ export function Navbar() {
                             <img
                               src={product.image_url}
                               alt={product.name}
+                              loading="lazy"
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -260,19 +240,19 @@ export function Navbar() {
                             {product.description}
                           </p>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-sm font-semibold">${product.price}</span>
+                            <span className="text-sm font-semibold">₹{product.price}</span>
                             {product.stock_quantity !== undefined && (
                               <span className={`text-xs ${
-                                product.stock_quantity === 0 
-                                  ? 'text-destructive' 
-                                  : product.stock_quantity <= 5 
-                                    ? 'text-orange-500' 
+                                product.stock_quantity === 0
+                                  ? 'text-destructive'
+                                  : product.stock_quantity <= 5
+                                    ? 'text-orange-500'
                                     : 'text-green-600'
                               }`}>
-                                {product.stock_quantity === 0 
-                                  ? 'Out of stock' 
-                                  : product.stock_quantity <= 5 
-                                    ? `Only ${product.stock_quantity} left` 
+                                {product.stock_quantity === 0
+                                  ? 'Out of stock'
+                                  : product.stock_quantity <= 5
+                                    ? `Only ${product.stock_quantity} left`
                                     : 'In stock'}
                               </span>
                             )}
@@ -282,19 +262,24 @@ export function Navbar() {
                     ))}
                   </div>
                   <button
-                    onClick={handleSearch}
+                    onClick={() => {
+                      navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+                      setSearchQuery('');
+                      setDebouncedQuery('');
+                      setSearchOpen(false);
+                    }}
                     className="w-full p-3 text-sm text-primary hover:bg-muted/50 transition-colors font-medium border-t border-border"
                   >
-                    View all results for "{searchQuery}"
+                    View all results for &ldquo;{searchQuery}&rdquo;
                   </button>
                 </div>
               )}
 
               {/* No results message */}
-              {searchQuery.trim() && searchResults.length === 0 && (
+              {debouncedQuery && !isSearching && searchResults.length === 0 && (
                 <div className="mt-4 p-4 bg-muted/30 border border-border rounded-lg text-center">
                   <p className="text-sm text-muted-foreground">
-                    No products found for "{searchQuery}"
+                    No products found for &ldquo;{searchQuery}&rdquo;
                   </p>
                 </div>
               )}

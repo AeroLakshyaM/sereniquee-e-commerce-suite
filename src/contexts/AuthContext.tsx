@@ -6,7 +6,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  isAdmin: boolean;
+  /** true = confirmed admin, false = confirmed non-admin, null = still checking */
+  isAdmin: boolean | null;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string, phone?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -18,20 +19,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  // null = unknown (check in flight), true = admin, false = not admin
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   const checkAdminRole = async (userId: string) => {
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('role', 'admin')
-      .maybeSingle();
-    
-    setIsAdmin(!!data);
+    try {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      setIsAdmin(!!data);
+    } catch {
+      // If the check fails, default to non-admin to be safe
+      setIsAdmin(false);
+    }
   };
 
   useEffect(() => {
+    // 1. Subscribe to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -39,22 +47,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
 
         if (session?.user) {
-          setTimeout(() => {
-            checkAdminRole(session.user.id);
-          }, 0);
+          // Reset to null (unknown) while the check runs so ProtectedRoute
+          // shows a loading state instead of a premature redirect.
+          setIsAdmin(null);
+          checkAdminRole(session.user.id);
         } else {
           setIsAdmin(false);
         }
       }
     );
 
+    // 2. Hydrate on mount with the persisted session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
 
       if (session?.user) {
+        setIsAdmin(null);
         checkAdminRole(session.user.id);
+      } else {
+        setIsAdmin(false);
       }
     });
 
@@ -76,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: { full_name: fullName },
       },
     });
-    
+
     // If signup successful and phone provided, update profile
     if (!error && data.user && phone) {
       await supabase
@@ -84,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .update({ phone })
         .eq('id', data.user.id);
     }
-    
+
     return { error };
   };
 
