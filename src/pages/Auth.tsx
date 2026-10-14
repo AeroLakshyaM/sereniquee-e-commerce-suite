@@ -1,22 +1,31 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Mail, Phone, MapPin, Sparkles } from 'lucide-react';
 import { Footer } from '@/components/layout/Footer';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+type AuthTab = 'login' | 'signup' | 'reset';
 
 export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, signIn, signUp, loading } = useAuth();
   const { toast } = useToast();
   
-  const [isLogin, setIsLogin] = useState(true);
+  const requestedTab = searchParams.get('tab');
+  const initialTab: AuthTab = requestedTab === 'signup' || requestedTab === 'reset' ? requestedTab : 'login';
+  const [activeTab, setActiveTab] = useState<AuthTab>(initialTab);
+  const [isRecoveryFlow, setIsRecoveryFlow] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -26,17 +35,76 @@ export default function Auth() {
   const from = (location.state as { from?: string })?.from || '/';
 
   useEffect(() => {
-    if (user && !loading) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecoveryFlow(true);
+        setActiveTab('reset');
+        setSearchParams({ tab: 'reset' });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [setSearchParams]);
+
+  useEffect(() => {
+    if (requestedTab === 'signup' || requestedTab === 'reset') {
+      setActiveTab(requestedTab);
+    } else if (!requestedTab) {
+      setActiveTab('login');
+    }
+  }, [requestedTab]);
+
+  useEffect(() => {
+    if (user && !loading && activeTab !== 'reset' && !isRecoveryFlow) {
       navigate(from, { replace: true });
     }
-  }, [user, loading, navigate, from]);
+  }, [user, loading, navigate, from, activeTab, isRecoveryFlow]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      if (isLogin) {
+      if (activeTab === 'reset' && !isRecoveryFlow) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth?tab=reset`,
+        });
+
+        if (error) {
+          toast({
+            title: 'Password reset failed',
+            description: error.message,
+            variant: 'destructive',
+          });
+        } else {
+          toast({ title: 'Check your email for a reset link' });
+        }
+      } else if (activeTab === 'reset') {
+        if (password !== confirmPassword) {
+          toast({
+            title: 'Passwords do not match',
+            description: 'Please enter the same password in both fields.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) {
+          toast({
+            title: 'Password update failed',
+            description: error.message,
+            variant: 'destructive',
+          });
+        } else {
+          toast({ title: 'Password updated successfully' });
+          setIsRecoveryFlow(false);
+          setPassword('');
+          setConfirmPassword('');
+          setActiveTab('login');
+          setSearchParams({});
+        }
+      } else if (activeTab === 'login') {
         const { error } = await signIn(email, password);
         if (error) {
           toast({
@@ -64,7 +132,8 @@ export default function Auth() {
             title: 'Account created!',
             description: 'Welcome to sereniquee candles, please enjoy your shopping.',
           });
-          setIsLogin(true);
+          setActiveTab('login');
+          setSearchParams({});
         }
       }
     } finally {
@@ -165,18 +234,45 @@ export default function Auth() {
               {/* Header */}
               <div className="mb-6 lg:mb-8">
                 <h2 className="font-serif text-2xl lg:text-3xl mb-2">
-                  {isLogin ? 'Welcome Back' : 'Create Account'}
+                  {activeTab === 'login'
+                    ? 'Welcome Back'
+                    : activeTab === 'signup'
+                      ? 'Create Account'
+                      : isRecoveryFlow
+                        ? 'Set New Password'
+                        : 'Reset Password'}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  {isLogin 
-                    ? 'Sign in to access your account and orders' 
-                    : 'Join our community for exclusive offers'}
+                  {activeTab === 'login'
+                    ? 'Sign in to access your account and orders'
+                    : activeTab === 'signup'
+                      ? 'Join our community for exclusive offers'
+                      : isRecoveryFlow
+                        ? 'Choose a new password for your account'
+                        : 'Enter your email to receive a password reset link'}
                 </p>
               </div>
 
+              <Tabs
+                value={activeTab}
+                onValueChange={(value) => {
+                  const tab = value as AuthTab;
+                  if (isRecoveryFlow) return;
+                  setActiveTab(tab);
+                  setSearchParams(tab === 'login' ? {} : { tab });
+                }}
+                className="mb-6"
+              >
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="login" disabled={isRecoveryFlow}>Sign In</TabsTrigger>
+                  <TabsTrigger value="signup" disabled={isRecoveryFlow}>Sign Up</TabsTrigger>
+                  <TabsTrigger value="reset">Reset Password</TabsTrigger>
+                </TabsList>
+              </Tabs>
+
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
-                {!isLogin && (
+                {activeTab === 'signup' && (
                   <>
                     <div className="space-y-2">
                       <Label htmlFor="fullName" className="text-sm font-medium">
@@ -188,7 +284,7 @@ export default function Auth() {
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         placeholder="John Doe"
-                        required={!isLogin}
+                        required
                         className="h-10 lg:h-11"
                       />
                     </div>
@@ -208,7 +304,8 @@ export default function Auth() {
                   </>
                 )}
 
-                <div className="space-y-2">
+                {activeTab !== 'reset' || !isRecoveryFlow ? (
+                  <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium">
                     Email Address *
                   </Label>
@@ -221,12 +318,14 @@ export default function Auth() {
                     required
                     className="h-10 lg:h-11"
                   />
-                </div>
+                  </div>
+                ) : null}
 
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium">
-                    Password *
-                  </Label>
+                {(activeTab !== 'reset' || isRecoveryFlow) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium">
+                      {isRecoveryFlow ? 'New Password *' : 'Password *'}
+                    </Label>
                   <div className="relative">
                     <Input
                       id="password"
@@ -246,12 +345,31 @@ export default function Auth() {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                  {!isLogin && (
+                  {activeTab === 'signup' || isRecoveryFlow ? (
                     <p className="text-xs text-muted-foreground mt-1">
                       Must be at least 6 characters
                     </p>
-                  )}
-                </div>
+                  ) : null}
+                  </div>
+                )}
+
+                {isRecoveryFlow && (
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-sm font-medium">
+                      Confirm New Password *
+                    </Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      minLength={6}
+                      className="h-10 lg:h-11"
+                    />
+                  </div>
+                )}
 
                 <Button
                   type="submit"
@@ -264,31 +382,29 @@ export default function Auth() {
                       Please wait...
                     </span>
                   ) : (
-                    isLogin ? 'Sign In' : 'Create Account'
+                    activeTab === 'login'
+                      ? 'Sign In'
+                      : activeTab === 'signup'
+                        ? 'Create Account'
+                        : isRecoveryFlow
+                          ? 'Set New Password'
+                          : 'Send Reset Link'
                   )}
                 </Button>
               </form>
 
-              {/* Divider */}
-              <div className="relative my-6 lg:my-8">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border"></div>
+              {!isRecoveryFlow && activeTab !== 'reset' && (
+                <div className="relative my-6 lg:my-8">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-4 text-muted-foreground">
+                      {activeTab === 'login' ? "Don't have an account?" : "Already have an account?"}
+                    </span>
+                  </div>
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-4 text-muted-foreground">
-                    {isLogin ? "Don't have an account?" : "Already have an account?"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Toggle Button */}
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="w-full h-10 lg:h-11 border border-border rounded-sm font-medium hover:bg-secondary transition-colors text-sm lg:text-base"
-              >
-                {isLogin ? 'Create New Account' : 'Sign In Instead'}
-              </button>
+              )}
 
               {/* Back to Shop */}
               <div className="mt-6 lg:mt-8 text-center">
