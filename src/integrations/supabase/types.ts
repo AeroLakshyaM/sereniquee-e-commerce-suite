@@ -213,9 +213,11 @@ export type Database = {
           guest_name: string | null
           guest_phone: string | null
           id: string
+          order_number: string | null
           shipping_address: string | null
           special_requirements: string | null
           status: string | null
+          tracking_number: string | null
           total_amount: number
           updated_at: string | null
           user_id: string | null
@@ -226,9 +228,11 @@ export type Database = {
           guest_name?: string | null
           guest_phone?: string | null
           id?: string
+          order_number?: string | null
           shipping_address?: string | null
           special_requirements?: string | null
           status?: string | null
+          tracking_number?: string | null
           total_amount: number
           updated_at?: string | null
           user_id?: string | null
@@ -239,9 +243,11 @@ export type Database = {
           guest_name?: string | null
           guest_phone?: string | null
           id?: string
+          order_number?: string | null
           shipping_address?: string | null
           special_requirements?: string | null
           status?: string | null
+          tracking_number?: string | null
           total_amount?: number
           updated_at?: string | null
           user_id?: string | null

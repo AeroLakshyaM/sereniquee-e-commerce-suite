@@ -60,6 +60,9 @@ export function useCreateOrder() {
       // Guest checkout or authenticated user
       const isGuest = !user && guestInfo;
       const orderId = crypto.randomUUID();
+      const customerName = guestInfo?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'customer';
+      const customerCode = customerName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase() || 'CUSTOMER';
+      const orderNumber = `SC-${customerCode}-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
       
       const totalAmount = items.reduce(
         (sum, item) => sum + item.product.price * item.quantity,
@@ -69,6 +72,7 @@ export function useCreateOrder() {
       // Prepare order data
       const orderData: any = {
         id: orderId,
+        order_number: orderNumber,
         total_amount: totalAmount,
         shipping_address: shippingAddress,
         special_requirements: specialRequirements,

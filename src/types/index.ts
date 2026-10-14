@@ -28,12 +28,14 @@ export interface CartItem {
 
 export interface Order {
   id: string;
+  order_number?: string | null;
   user_id: string | null; // Nullable for guest orders
   guest_email?: string | null; // For guest checkout
   guest_name?: string | null; // For guest checkout
   guest_phone?: string | null; // For guest checkout
   total_amount: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  tracking_number?: string | null;
   shipping_address: string | null;
   special_requirements: string | null;
   created_at: string;

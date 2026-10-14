@@ -3,7 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface AdminOrder {
   id: string;
-  user_id: string;
+  order_number: string | null;
+  user_id: string | null;
+  guest_email: string | null;
+  guest_name: string | null;
+  guest_phone: string | null;
+  tracking_number: string | null;
   total_amount: number;
   status: string;
   shipping_address: string | null;
@@ -25,15 +30,30 @@ export interface AdminOrder {
   }>;
 }
 
-export const useAdminOrders = () => {
+export const useAdminOrders = (search = '', startDate?: string, endDate?: string) => {
   return useQuery({
     queryKey: ['admin-orders'],
     queryFn: async (): Promise<AdminOrder[]> => {
       // Fetch orders
-      const { data: orders, error: ordersError } = await supabase
+      let ordersQuery = supabase
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false });
+
+      if (search.trim()) {
+        const term = search.trim().replace(/([\\(),])/g, '\\$1');
+        ordersQuery = ordersQuery.or(
+          `guest_name.ilike.%${term}%,guest_email.ilike.%${term}%,guest_phone.ilike.%${term}%,shipping_address.ilike.%${term}%,order_number.ilike.%${term}%`,
+        );
+      }
+      if (startDate) ordersQuery = ordersQuery.gte('created_at', `${startDate}T00:00:00`);
+      if (endDate) {
+        const exclusiveEndDate = new Date(`${endDate}T00:00:00`);
+        exclusiveEndDate.setDate(exclusiveEndDate.getDate() + 1);
+        ordersQuery = ordersQuery.lt('created_at', exclusiveEndDate.toISOString());
+      }
+
+      const { data: orders, error: ordersError } = await ordersQuery;
 
       if (ordersError) throw ordersError;
 
@@ -82,7 +102,12 @@ export const useAdminOrders = () => {
       // Combine all data
       return (orders || []).map((order) => ({
         id: order.id,
+        order_number: order.order_number,
         user_id: order.user_id,
+        guest_email: order.guest_email,
+        guest_name: order.guest_name,
+        guest_phone: order.guest_phone,
+        tracking_number: order.tracking_number,
         total_amount: Number(order.total_amount),
         status: order.status,
         shipping_address: order.shipping_address,

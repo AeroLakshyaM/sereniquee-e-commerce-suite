@@ -19,7 +19,7 @@ interface OrderData {
 }
 
 export function generateInvoiceHTML(order: OrderData): string {
-  const invoiceNumber = `INV-${order.id.slice(0, 8).toUpperCase()}`;
+  const invoiceNumber = `INV-${(order.order_number || order.id.slice(0, 8)).toUpperCase()}`;
   const orderDate = new Date(order.created_at).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -343,7 +343,7 @@ export function generateInvoiceHTML(order: OrderData): string {
             <div class="info-box">
               <h3>Invoice Details</h3>
               <p><strong>Date:</strong> ${orderDate}</p>
-              <p><strong>Order ID:</strong> ${order.id.slice(0, 8)}</p>
+              <p><strong>Order ID:</strong> ${order.order_number || order.id.slice(0, 8)}</p>
               <p>
                 <strong>Status:</strong> 
                 <span class="status-badge status-${order.status}">${order.status}</span>
@@ -457,7 +457,7 @@ export function downloadInvoice(order: OrderData) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `invoice-${order.id.slice(0, 8)}.html`;
+  link.download = `invoice-${order.order_number || order.id.slice(0, 8)}.html`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

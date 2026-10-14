@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAdminOrders } from '@/hooks/useAdminOrders';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { Package, User, Calendar, DollarSign, MapPin, ChevronDown, ChevronUp, Printer, CheckCircle, Clock, Truck, FileText } from 'lucide-react';
 import { openInvoiceInNewTab } from '@/lib/invoiceGenerator';
+import { Input } from '@/components/ui/input';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Search, Download, Trash2, Send } from 'lucide-react';
 
 const STATUS_COLORS = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -17,13 +21,35 @@ const STATUS_COLORS = {
   delivered: 'bg-green-100 text-green-800',
   cancelled: 'bg-red-100 text-red-800',
 };
+const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
 export default function OrdersManagement() {
-  const { data: orders, isLoading } = useAdminOrders();
+  const [search, setSearch] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const { data: orders, isLoading } = useAdminOrders(search, startDate, endDate ? new Date(`${endDate}T00:00:00Z`).toISOString().slice(0, 10) : undefined);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [trackingOrder, setTrackingOrder] = useState<any | null>(null);
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [deleteOrder, setDeleteOrder] = useState<any | null>(null);
+  const [giftDetails, setGiftDetails] = useState<any | null>(null);
+  const [statusHistory, setStatusHistory] = useState<Array<{ status: string; created_at: string }>>([]);
+  const statuses = ORDER_STATUSES;
+
+  useEffect(() => {
+    if (!selectedOrder) return;
+    Promise.all([
+      supabase.from('order_gift_details').select('*').eq('order_id', selectedOrder.id).maybeSingle(),
+      supabase.from('order_status_history').select('status, created_at').eq('order_id', selectedOrder.id).order('created_at', { ascending: true }),
+    ]).then(([giftResult, historyResult]) => {
+      setGiftDetails(giftResult.data);
+      setStatusHistory(historyResult.data || []);
+    });
+  }, [selectedOrder]);
 
   const toggleOrder = (orderId: string) => {
     const newExpanded = new Set(expandedOrders);
@@ -70,6 +96,74 @@ export default function OrdersManagement() {
         description: `Order status changed to ${newStatus}.`,
       });
     }
+  };
+
+  const customerName = (order: any) => order.guest_name || order.user?.full_name || order.user?.email?.split('@')[0] || 'Guest customer';
+  const customerEmail = (order: any) => order.guest_email || order.user?.email || '';
+  const customerPhone = (order: any) => order.guest_phone || '';
+  const displayOrderNumber = (order: any) => order.order_number || order.id.slice(0, 8).toUpperCase();
+
+  const sendTrackingEmail = async () => {
+    if (!trackingOrder || !trackingNumber.trim()) return;
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: 'shipped', tracking_number: trackingNumber.trim() })
+      .eq('id', trackingOrder.id);
+    if (error) {
+      toast({ title: 'Shipping update failed', description: error.message, variant: 'destructive' });
+      return;
+    }
+
+    try {
+      const email = customerEmail(trackingOrder);
+      if (email) {
+        const response = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: email,
+            type: 'tracking-update',
+            subject: `Your order ${displayOrderNumber(trackingOrder)} has shipped`,
+            html: `<p>Your order <strong>${displayOrderNumber(trackingOrder)}</strong> has shipped.</p><p>Tracking number: <strong>${trackingNumber.trim()}</strong></p>`,
+          }),
+        });
+        if (!response.ok) throw new Error('Tracking email could not be sent');
+      }
+      await handleStatusUpdate(trackingOrder.id, 'shipped');
+      setTrackingOrder(null);
+      setTrackingNumber('');
+      toast({ title: 'Order marked as shipped' });
+    } catch (error) {
+      toast({ title: 'Tracking email failed', description: error instanceof Error ? error.message : 'Unable to send tracking email', variant: 'destructive' });
+    }
+  };
+
+  const deleteSelectedOrder = async () => {
+    if (!deleteOrder) return;
+    const { error } = await supabase.from('orders').delete().eq('id', deleteOrder.id);
+    if (error) {
+      toast({ title: 'Delete failed', description: error.message, variant: 'destructive' });
+    } else {
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      toast({ title: 'Order deleted' });
+    }
+    setDeleteOrder(null);
+  };
+
+  const exportOrders = () => {
+    const rows = (filteredOrders || []).map(order => [
+      displayOrderNumber(order), order.created_at, customerName(order), customerEmail(order),
+      customerPhone(order), order.order_items.map(item => `${item.product?.name || 'Item'} x${item.quantity}`).join('; '),
+      order.total_amount, order.status, order.shipping_address || '',
+    ]);
+    const csv = [['Order ID', 'Date', 'Customer', 'Email', 'Phone', 'Items', 'Total', 'Status', 'Shipping Address'], ...rows]
+      .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'orders.csv';
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const handlePrintOrder = (order: any) => {
@@ -141,9 +235,18 @@ export default function OrdersManagement() {
     openInvoiceInNewTab(order);
   };
 
-  const filteredOrders = orders?.filter((order) =>
-    filterStatus === 'all' ? true : order.status === filterStatus
-  );
+  const filteredOrders = orders?.filter((order) => {
+    if (filterStatus !== 'all' && order.status !== filterStatus) return false;
+    const normalized = search.toLowerCase();
+    if (!normalized) return true;
+    return [order.id, order.order_number, customerName(order), customerEmail(order), customerPhone(order), order.shipping_address]
+      .some(value => value?.toLowerCase().includes(normalized));
+  });
+
+  const ordersByStatus = useMemo(() => statuses.reduce((acc, status) => {
+    acc[status] = (filteredOrders || []).filter(order => order.status === status);
+    return acc;
+  }, {} as Record<string, any[]>), [filteredOrders]);
 
   const statusCounts = orders?.reduce((acc, order) => {
     acc[order.status] = (acc[order.status] || 0) + 1;
@@ -160,6 +263,48 @@ export default function OrdersManagement() {
 
   return (
     <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {[
+          ['Orders today', orders?.filter(order => order.created_at.slice(0, 10) === new Date().toISOString().slice(0, 10)).length || 0],
+          ['Revenue today', `₹${(orders || []).filter(order => order.created_at.slice(0, 10) === new Date().toISOString().slice(0, 10)).reduce((sum, order) => sum + order.total_amount, 0).toFixed(2)}`],
+          ['Pending', statusCounts?.pending || 0],
+          ['Average order', `₹${orders?.length ? (orders.reduce((sum, order) => sum + order.total_amount, 0) / orders.length).toFixed(2) : '0.00'}`],
+        ].map(([label, value]) => (
+          <Card key={String(label)}><CardContent className="p-4"><p className="text-xs text-muted-foreground">{label}</p><p className="text-xl font-semibold">{value}</p></CardContent></Card>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-3 md:flex-row">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search order ID, customer, email, or phone..." className="pl-9" />
+        </div>
+        <Input type="date" value={startDate} onChange={event => setStartDate(event.target.value)} aria-label="Start date" />
+        <Input type="date" value={endDate} onChange={event => setEndDate(event.target.value)} aria-label="End date" />
+        <Button variant="outline" onClick={exportOrders}><Download className="mr-2 h-4 w-4" /> Export CSV</Button>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-5">
+        {statuses.map(status => (
+          <div key={status} className="rounded-lg border bg-muted/20 p-3">
+            <h3 className="mb-3 font-semibold capitalize">{status} ({ordersByStatus[status]?.length || 0})</h3>
+            <div className="space-y-2">
+              {ordersByStatus[status]?.map(order => (
+                <button key={order.id} type="button" onClick={() => setSelectedOrder(order)} className="w-full rounded-md border bg-background p-3 text-left hover:border-primary">
+                  <p className="font-mono text-xs">{displayOrderNumber(order)}</p>
+                  <p className="truncate text-sm font-medium">{customerName(order)}</p>
+                  <p className="text-xs text-muted-foreground">₹{order.total_amount.toFixed(2)}</p>
+                  <Select value={order.status} onValueChange={value => void handleStatusUpdate(order.id, value)}>
+                    <SelectTrigger className="mt-2 h-8 text-xs" onClick={event => event.stopPropagation()}><SelectValue /></SelectTrigger>
+                    <SelectContent>{statuses.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
+                  </Select>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Header with Filter */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -194,14 +339,17 @@ export default function OrdersManagement() {
               {/* Order Header */}
               <div
                 className="p-4 md:p-6 cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => toggleOrder(order.id)}
+                onClick={() => {
+                  toggleOrder(order.id);
+                  setSelectedOrder(order);
+                }}
               >
                 {/* Mobile Layout */}
                 <div className="block md:hidden space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Package className="h-4 w-4 text-muted-foreground" />
-                      <p className="font-mono text-xs">#{order.id.slice(0, 8)}</p>
+                      <p className="font-mono text-xs">#{displayOrderNumber(order)}</p>
                     </div>
                     <Badge className={`text-xs ${STATUS_COLORS[order.status as keyof typeof STATUS_COLORS]}`}>
                       {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -272,7 +420,7 @@ export default function OrdersManagement() {
                       <Package className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-xs text-muted-foreground">Order ID</p>
-                        <p className="font-mono text-sm">{order.id.slice(0, 8)}...</p>
+                        <p className="font-mono text-sm">{displayOrderNumber(order)}</p>
                       </div>
                     </div>
 
@@ -438,7 +586,10 @@ export default function OrdersManagement() {
                           <Button
                             size="sm"
                             variant={order.status === 'shipped' ? 'default' : 'outline'}
-                            onClick={() => handleQuickStatusUpdate(order.id, 'shipped')}
+                            onClick={() => {
+                              setTrackingOrder(order);
+                              setTrackingNumber(order.tracking_number || '');
+                            }}
                             className="flex items-center gap-1 md:gap-2 text-xs md:text-sm"
                           >
                             <Truck className="h-3 w-3 md:h-4 md:w-4" />
@@ -480,6 +631,11 @@ export default function OrdersManagement() {
                           Last updated: {new Date(order.updated_at).toLocaleString()}
                         </p>
                       </div>
+                      <div className="flex gap-2 pt-2">
+                        <Button variant="destructive" size="sm" onClick={() => setDeleteOrder(order)}>
+                          <Trash2 className="mr-2 h-4 w-4" /> Delete Order
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -494,6 +650,57 @@ export default function OrdersManagement() {
           <p className="text-muted-foreground">No orders found.</p>
         </div>
       )}
+
+      <Sheet open={!!selectedOrder} onOpenChange={open => !open && setSelectedOrder(null)}>
+        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
+          <SheetHeader>
+            <SheetTitle>Order {selectedOrder && displayOrderNumber(selectedOrder)}</SheetTitle>
+            <SheetDescription>Full order details and status history</SheetDescription>
+          </SheetHeader>
+          {selectedOrder && (
+            <div className="mt-6 space-y-6">
+              <div>
+                <h4 className="font-semibold">Shipping address</h4>
+                <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{selectedOrder.shipping_address || 'Not provided'}</p>
+                <p className="mt-2 text-sm">{customerName(selectedOrder)} · {customerEmail(selectedOrder)} · {customerPhone(selectedOrder)}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold">Line items</h4>
+                <div className="mt-2 space-y-2">
+                  {selectedOrder.order_items.map((item: any) => (
+                    <div key={item.id} className="flex justify-between border-b py-2 text-sm">
+                      <span>{item.product?.name || 'Product'} × {item.quantity}</span>
+                      <span>₹{item.price_at_time.toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {giftDetails && <div><h4 className="font-semibold">Gift details</h4><p className="mt-2 text-sm text-muted-foreground">{giftDetails.gift_message || 'Gift order'}</p></div>}
+              <div>
+                <h4 className="font-semibold">Status history</h4>
+                <div className="mt-2 space-y-2">{statusHistory.map(entry => <div key={`${entry.status}-${entry.created_at}`} className="flex justify-between text-sm"><span className="capitalize">{entry.status}</span><span className="text-muted-foreground">{new Date(entry.created_at).toLocaleString()}</span></div>)}</div>
+              </div>
+              <Button variant="destructive" onClick={() => setDeleteOrder(selectedOrder)}><Trash2 className="mr-2 h-4 w-4" /> Delete Order</Button>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      <Dialog open={!!trackingOrder} onOpenChange={open => !open && setTrackingOrder(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Mark as shipped</DialogTitle></DialogHeader>
+          <Input value={trackingNumber} onChange={event => setTrackingNumber(event.target.value)} placeholder="Tracking number" />
+          <DialogFooter><Button onClick={() => void sendTrackingEmail()} disabled={!trackingNumber.trim()}><Send className="mr-2 h-4 w-4" /> Save and email customer</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteOrder} onOpenChange={open => !open && setDeleteOrder(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Delete this order?</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">This permanently removes the order and its line items.</p>
+          <DialogFooter><Button variant="destructive" onClick={() => void deleteSelectedOrder()}>Delete Order</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
