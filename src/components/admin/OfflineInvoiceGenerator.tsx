@@ -1,0 +1,204 @@
+import { useMemo, useState } from 'react';
+import { useProducts } from '@/hooks/useProducts';
+import { Product } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { FileText, Plus, Trash2 } from 'lucide-react';
+import { openInvoiceInNewTab } from '@/lib/invoiceGenerator';
+
+interface InvoiceLine {
+  id: string;
+  product: Product;
+  quantity: number;
+  price: number;
+}
+
+const INDIA_SHIPPING = 100;
+const INTERNATIONAL_SHIPPING = 500;
+const GST_RATE = 0.05;
+
+export default function OfflineInvoiceGenerator() {
+  const [productSearch, setProductSearch] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [shippingAddress, setShippingAddress] = useState('');
+  const [country, setCountry] = useState('India');
+  const [invoiceDate, setInvoiceDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [lines, setLines] = useState<InvoiceLine[]>([]);
+  const { toast } = useToast();
+  const { data, isLoading } = useProducts(undefined, productSearch);
+
+  const products = useMemo(
+    () => data?.pages.flatMap(page => page.products) ?? [],
+    [data],
+  );
+  const subtotal = lines.reduce((sum, line) => sum + line.quantity * line.price, 0);
+  const shipping = country === 'India' ? INDIA_SHIPPING : INTERNATIONAL_SHIPPING;
+  const gst = (subtotal + shipping) * GST_RATE;
+  const total = subtotal + shipping + gst;
+
+  const addProduct = (product: Product) => {
+    setLines(current => {
+      const existing = current.find(line => line.product.id === product.id);
+      if (existing) {
+        return current.map(line => line.product.id === product.id
+          ? { ...line, quantity: line.quantity + 1 }
+          : line);
+      }
+      return [...current, {
+        id: crypto.randomUUID(),
+        product,
+        quantity: 1,
+        price: product.price,
+      }];
+    });
+  };
+
+  const updateLine = (id: string, field: 'quantity' | 'price', value: number) => {
+    setLines(current => current.map(line => line.id === id ? {
+      ...line,
+      [field]: field === 'quantity' ? Math.max(1, Math.floor(value)) : Math.max(0, value),
+    } : line));
+  };
+
+  const generateInvoice = () => {
+    if (!customerName.trim() || lines.length === 0) {
+      toast({
+        title: 'Complete the invoice details',
+        description: 'Add a customer name and at least one product.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const invoiceId = `OFFLINE-${new Date().toISOString().replace(/\D/g, '').slice(0, 14)}`;
+    openInvoiceInNewTab({
+      id: invoiceId,
+      order_number: invoiceId,
+      created_at: new Date(`${invoiceDate}T12:00:00`).toISOString(),
+      total_amount: total,
+      subtotal_amount: subtotal,
+      shipping_amount: shipping,
+      gst_amount: gst,
+      status: 'paid',
+      shipping_address: shippingAddress || null,
+      user: {
+        full_name: customerName.trim(),
+        email: customerEmail.trim(),
+      },
+      order_items: lines.map(line => ({
+        id: line.id,
+        quantity: line.quantity,
+        price_at_time: line.price,
+        product: { name: line.product.name },
+      })),
+    });
+  };
+
+  return (
+    <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Offline Invoice
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="offline-customer-name">Customer name</Label>
+              <Input id="offline-customer-name" value={customerName} onChange={event => setCustomerName(event.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="offline-customer-email">Customer email</Label>
+              <Input id="offline-customer-email" type="email" value={customerEmail} onChange={event => setCustomerEmail(event.target.value)} />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="offline-invoice-date">Invoice date</Label>
+              <Input id="offline-invoice-date" type="date" value={invoiceDate} onChange={event => setInvoiceDate(event.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Destination</Label>
+              <Select value={country} onValueChange={setCountry}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="India">India (₹100 shipping)</SelectItem>
+                  <SelectItem value="International">International (₹500 shipping)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="offline-shipping-address">Billing/shipping address</Label>
+            <Textarea id="offline-shipping-address" value={shippingAddress} onChange={event => setShippingAddress(event.target.value)} rows={3} />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="offline-product-search">Add products</Label>
+            <Input
+              id="offline-product-search"
+              placeholder="Search by product name, category, or SKU"
+              value={productSearch}
+              onChange={event => setProductSearch(event.target.value)}
+            />
+            {productSearch && (
+              <div className="max-h-48 overflow-y-auto rounded-md border">
+                {isLoading ? (
+                  <p className="p-3 text-sm text-muted-foreground">Searching products...</p>
+                ) : products.length > 0 ? products.slice(0, 8).map(product => (
+                  <button
+                    key={product.id}
+                    type="button"
+                    className="flex w-full items-center justify-between border-b p-3 text-left text-sm last:border-0 hover:bg-muted"
+                    onClick={() => { addProduct(product); setProductSearch(''); }}
+                  >
+                    <span>{product.name}</span>
+                    <span className="text-muted-foreground">₹{product.price.toFixed(2)}</span>
+                  </button>
+                )) : (
+                  <p className="p-3 text-sm text-muted-foreground">No products found.</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {lines.length > 0 && (
+            <div className="space-y-3">
+              <Label>Invoice items</Label>
+              {lines.map(line => (
+                <div key={line.id} className="grid grid-cols-[1fr_80px_100px_auto] items-center gap-2">
+                  <span className="truncate text-sm">{line.product.name}</span>
+                  <Input type="number" min={1} value={line.quantity} aria-label={`${line.product.name} quantity`} onChange={event => updateLine(line.id, 'quantity', Number(event.target.value))} />
+                  <Input type="number" min={0} step="0.01" value={line.price} aria-label={`${line.product.name} price`} onChange={event => updateLine(line.id, 'price', Number(event.target.value))} />
+                  <Button type="button" variant="ghost" size="icon" onClick={() => setLines(current => current.filter(item => item.id !== line.id))} aria-label={`Remove ${line.product.name}`}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="h-fit">
+        <CardHeader><CardTitle>Invoice total</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex justify-between text-sm"><span>Subtotal</span><span>₹{subtotal.toFixed(2)}</span></div>
+          <div className="flex justify-between text-sm"><span>Shipping</span><span>₹{shipping.toFixed(2)}</span></div>
+          <div className="flex justify-between text-sm"><span>GST (5%)</span><span>₹{gst.toFixed(2)}</span></div>
+          <div className="flex justify-between border-t pt-3 font-semibold"><span>Grand total</span><span>₹{total.toFixed(2)}</span></div>
+          <p className="text-xs text-muted-foreground">Shipping charges are exclusive and are not included in product prices. This invoice is for offline sales and will not create an online order or change inventory.</p>
+          <Button className="w-full" onClick={generateInvoice}><Plus className="mr-2 h-4 w-4" />Generate Invoice</Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

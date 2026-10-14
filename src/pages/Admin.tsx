@@ -43,6 +43,7 @@ import {
   Download,
   Copy,
   ExternalLink,
+  FileText,
 } from 'lucide-react';
 import { Product } from '@/types';
 import SimpleDashboard from '@/components/admin/SimpleDashboard';
@@ -57,6 +58,7 @@ import BusinessInsights from '@/components/admin/BusinessInsights';
 import CategoryManager from '@/components/admin/CategoryManager';
 import SocialPostsManager from '@/components/admin/SocialPostsManager';
 import CustomOrdersManager from '@/components/admin/CustomOrdersManager';
+import OfflineInvoiceGenerator from '@/components/admin/OfflineInvoiceGenerator';
 import { slugify } from '@/lib/utils';
 
 // Tab definitions — a single source of truth for the admin nav
@@ -67,6 +69,7 @@ const TABS = [
   { value: 'categories',    label: 'Categories',    icon: FolderTree,   className: '' },
   { value: 'products',      label: 'Products',      icon: Package,      className: '' },
   { value: 'orders',        label: 'Orders',        icon: ShoppingCart, className: '' },
+  { value: 'invoices',      label: 'Invoices',      icon: FileText,      className: '' },
   { value: 'users',         label: 'Users',         icon: Users,        className: '' },
   { value: 'calendar',      label: 'Calendar',      icon: Calendar,     className: '' },
   { value: 'blogs',         label: 'Blogs',         icon: Newspaper,    className: '' },
@@ -583,6 +586,10 @@ export default function Admin() {
 
         <TabsContent value="orders" className="space-y-6">
           <OrdersManagement />
+        </TabsContent>
+
+        <TabsContent value="invoices" className="space-y-6">
+          <OfflineInvoiceGenerator />
         </TabsContent>
 
         <TabsContent value="users" className="space-y-6">
