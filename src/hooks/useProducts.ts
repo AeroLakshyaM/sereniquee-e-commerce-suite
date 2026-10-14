@@ -33,7 +33,7 @@ export function useProducts(category?: string, searchQuery?: string) {
         const searchFilters = keywords
           .map((keyword) => {
             const term = escapeSearchTerm(keyword);
-            return `name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`;
+            return `name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%,sku.ilike.%${term}%`;
           })
           .join(',');
         query = query.or(searchFilters);

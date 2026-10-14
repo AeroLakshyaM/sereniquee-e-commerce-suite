@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { Upload, X, Image as ImageIcon, Loader2, Eye, EyeOff } from 'lucide-react';
 import { Product } from '@/types';
+import type { ProductVariant } from '@/types';
 import { useCategories } from '@/hooks/useCategories';
+import { useProductVariants } from '@/hooks/useVariants';
 import { ProductDescription } from '@/components/product/ProductDescription';
 import {
   Select,
@@ -24,6 +26,17 @@ interface QuickProductFormProps {
   editingProduct?: Product | null;
 }
 
+type VariantDraft = {
+  id?: string;
+  name: string;
+  sku: string;
+  size: string;
+  scent: string;
+  color: string;
+  price: string;
+  stock_quantity: string;
+};
+
 export default function QuickProductForm({ onClose, editingProduct }: QuickProductFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -31,6 +44,9 @@ export default function QuickProductForm({ onClose, editingProduct }: QuickProdu
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const { data: existingVariants } = useProductVariants(editingProduct?.id || '');
+  const [variants, setVariants] = useState<VariantDraft[]>([]);
+  const [deletedVariantIds, setDeletedVariantIds] = useState<string[]>([]);
   
   const [formData, setFormData] = useState({
     name: editingProduct?.name || '',
@@ -42,7 +58,45 @@ export default function QuickProductForm({ onClose, editingProduct }: QuickProdu
     image_url: editingProduct?.image_url || '',
     image_urls: editingProduct?.image_urls || [],
     featured: editingProduct?.featured || false,
+    sku: editingProduct?.sku || '',
   });
+
+  useEffect(() => {
+    setVariants(existingVariants?.map((variant: ProductVariant) => ({
+      id: variant.id,
+      name: variant.name,
+      sku: variant.sku || '',
+      size: variant.size || '',
+      scent: variant.scent || '',
+      color: variant.color || '',
+      price: String(variant.price),
+      stock_quantity: String(variant.stock_quantity),
+    })) || []);
+  }, [existingVariants]);
+
+  const addVariant = () => {
+    setVariants(current => [...current, {
+      name: '',
+      sku: '',
+      size: '',
+      scent: '',
+      color: '',
+      price: formData.price || '0',
+      stock_quantity: '0',
+    }]);
+  };
+
+  const updateVariant = (index: number, field: keyof VariantDraft, value: string) => {
+    setVariants(current => current.map((variant, variantIndex) => (
+      variantIndex === index ? { ...variant, [field]: value } : variant
+    )));
+  };
+
+  const removeVariant = (index: number) => {
+    const variant = variants[index];
+    if (variant.id) setDeletedVariantIds(current => [...current, variant.id as string]);
+    setVariants(current => current.filter((_, variantIndex) => variantIndex !== index));
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -125,7 +179,7 @@ export default function QuickProductForm({ onClose, editingProduct }: QuickProdu
           description: 'Your product images have been uploaded successfully',
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Upload error:', error);
       toast({
         title: 'Upload failed',
@@ -172,9 +226,11 @@ export default function QuickProductForm({ onClose, editingProduct }: QuickProdu
       image_url: formData.image_urls[0] || null, // First image as primary
       image_urls: formData.image_urls,
       featured: formData.featured,
+      sku: formData.sku.trim() || null,
     };
 
     try {
+      let productId = editingProduct?.id;
       if (editingProduct) {
         const { error } = await supabase
           .from('products')
@@ -188,9 +244,10 @@ export default function QuickProductForm({ onClose, editingProduct }: QuickProdu
           description: `${formData.name} has been saved successfully`,
         });
       } else {
-        const { error } = await supabase.from('products').insert(productData);
+        const { data, error } = await supabase.from('products').insert(productData).select('id').single();
 
         if (error) throw error;
+        productId = data.id;
 
         toast({
           title: '✅ Product Added!',
@@ -198,9 +255,40 @@ export default function QuickProductForm({ onClose, editingProduct }: QuickProdu
         });
       }
 
+      if (productId) {
+        if (deletedVariantIds.length > 0) {
+          const { error } = await supabase
+            .from('product_variants')
+            .delete()
+            .in('id', deletedVariantIds);
+          if (error) throw error;
+        }
+
+        for (const [index, variant] of variants.entries()) {
+          const variantData = {
+            product_id: productId,
+            name: variant.name.trim() || `${formData.name} Variant`,
+            sku: variant.sku.trim() || null,
+            size: variant.size.trim() || null,
+            scent: variant.scent.trim() || null,
+            color: variant.color.trim() || null,
+            price: parseFloat(variant.price) || 0,
+            stock_quantity: parseInt(variant.stock_quantity, 10) || 0,
+            sort_order: index,
+            is_active: true,
+          };
+
+          const result = variant.id
+            ? await supabase.from('product_variants').update(variantData).eq('id', variant.id)
+            : await supabase.from('product_variants').insert(variantData);
+          if (result.error) throw result.error;
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product-variants', productId] });
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Save error:', error);
       toast({
         title: 'Error',
@@ -478,6 +566,71 @@ Meticulously hand-poured in small batches, this candle represents the intersecti
             <p className="text-xs text-muted-foreground">
               💡 Manage categories in the Categories tab
             </p>
+          </div>
+
+          {/* SKU */}
+          <div className="space-y-2">
+            <Label htmlFor="sku" className="text-lg">🔖 SKU</Label>
+            <Input
+              id="sku"
+              value={formData.sku}
+              onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+              placeholder="e.g., LAV-200"
+            />
+          </div>
+
+          {/* Variants */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-lg">🎨 Variants</Label>
+              <Button type="button" variant="outline" size="sm" onClick={addVariant}>
+                Add Variant
+              </Button>
+            </div>
+            {variants.length > 0 && (
+              <div className="overflow-x-auto border rounded-lg">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      {['Name', 'Size', 'Scent', 'Color', 'Price', 'Stock', ''].map((heading) => (
+                        <th key={heading} className="p-2 text-left font-medium whitespace-nowrap">{heading}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {variants.map((variant, index) => (
+                      <tr key={variant.id || `new-${index}`} className="border-t">
+                        {([
+                          ['name', 'Variant name', 'text'],
+                          ['size', 'Size', 'text'],
+                          ['scent', 'Scent', 'text'],
+                          ['color', 'Color', 'text'],
+                          ['price', '0.00', 'number'],
+                          ['stock_quantity', '0', 'number'],
+                        ] as const).map(([field, placeholder, type]) => (
+                          <td key={field} className="p-2">
+                            <Input
+                              type={type}
+                              min={type === 'number' ? '0' : undefined}
+                              step={field === 'price' ? '0.01' : undefined}
+                              value={variant[field]}
+                              onChange={(e) => updateVariant(index, field, e.target.value)}
+                              placeholder={placeholder}
+                              className="min-w-24 h-9"
+                            />
+                          </td>
+                        ))}
+                        <td className="p-2">
+                          <Button type="button" variant="ghost" size="icon" onClick={() => removeVariant(index)}>
+                            <X className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Featured Toggle */}

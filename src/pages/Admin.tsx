@@ -1,8 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProducts } from '@/hooks/useProducts';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   AlertDialog,
@@ -29,6 +38,11 @@ import {
   Newspaper,
   FolderTree,
   Instagram,
+  MoreHorizontal,
+  Search,
+  Download,
+  Copy,
+  ExternalLink,
 } from 'lucide-react';
 import { Product } from '@/types';
 import SimpleDashboard from '@/components/admin/SimpleDashboard';
@@ -43,6 +57,7 @@ import BusinessInsights from '@/components/admin/BusinessInsights';
 import CategoryManager from '@/components/admin/CategoryManager';
 import SocialPostsManager from '@/components/admin/SocialPostsManager';
 import CustomOrdersManager from '@/components/admin/CustomOrdersManager';
+import { slugify } from '@/lib/utils';
 
 // Tab definitions — a single source of truth for the admin nav
 const TABS = [
@@ -74,13 +89,25 @@ export default function Admin() {
     });
   };
 
+  const [productSearch, setProductSearch] = useState('');
+  const [debouncedProductSearch, setDebouncedProductSearch] = useState('');
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [stockPopoverProductId, setStockPopoverProductId] = useState<string | null>(null);
+  const [stockDraft, setStockDraft] = useState('');
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedProductSearch(productSearch.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [productSearch]);
+
   // ── Product list — first page only; admin fetches more on demand ──────────
   // We no longer eagerly fetch ALL pages; the table shows the first page (12)
   // and an "Edit" search is available instead.
   const {
     data: productsData,
     isLoading,
-  } = useProducts();
+  } = useProducts(undefined, debouncedProductSearch);
 
   const products = useMemo(
     () => productsData?.pages.flatMap(page => page.products) ?? [],
@@ -132,6 +159,82 @@ export default function Admin() {
       });
     }
   };
+
+  const toggleProductSelection = (id: string, checked: boolean) => {
+    setSelectedProductIds(current => checked ? [...current, id] : current.filter(productId => productId !== id));
+  };
+
+  const exportSelectedProducts = () => {
+    const selected = products.filter(product => selectedProductIds.includes(product.id));
+    const headers = ['Name', 'SKU', 'Category', 'Price', 'Stock', 'Featured'];
+    const rows = selected.map(product => [
+      product.name,
+      product.sku || '',
+      product.category || '',
+      product.price,
+      product.stock_quantity,
+      product.featured ? 'Yes' : 'No',
+    ]);
+    const csv = [headers, ...rows]
+      .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'products.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleBulkAction = async (action: 'featured' | 'unfeatured' | 'delete') => {
+    if (selectedProductIds.length === 0) return;
+    setIsBulkUpdating(true);
+    const result = action === 'delete'
+      ? await supabase.from('products').delete().in('id', selectedProductIds)
+      : await supabase.from('products').update({ featured: action === 'featured' }).in('id', selectedProductIds);
+
+    if (result.error) {
+      toast({ title: 'Bulk action failed', description: result.error.message, variant: 'destructive' });
+    } else {
+      toast({ title: action === 'delete' ? 'Products deleted' : 'Products updated' });
+      setSelectedProductIds([]);
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    }
+    setIsBulkUpdating(false);
+  };
+
+  const updateStock = async (productId: string) => {
+    const stock = Number.parseInt(stockDraft, 10);
+    if (!Number.isInteger(stock) || stock < 0) return;
+    const { error } = await supabase.from('products').update({ stock_quantity: stock }).eq('id', productId);
+    if (error) {
+      toast({ title: 'Stock update failed', description: error.message, variant: 'destructive' });
+    } else {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      setStockPopoverProductId(null);
+    }
+  };
+
+  const duplicateProduct = async (product: Product) => {
+    const { id: _id, created_at: _createdAt, updated_at: _updatedAt, ...copy } = product;
+    const { error } = await supabase.from('products').insert({
+      ...copy,
+      name: `${product.name} (Copy)`,
+      slug: `${slugify(product.name)}-copy-${Date.now()}`,
+    });
+    if (error) {
+      toast({ title: 'Duplication failed', description: error.message, variant: 'destructive' });
+    } else {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({ title: 'Product duplicated' });
+    }
+  };
+
+  const stockBadge = (stock: number) => stock === 0
+    ? <span className="ml-2 rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-300">Out of Stock</span>
+    : stock <= 5
+      ? <span className="ml-2 rounded bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">Low Stock</span>
+      : null;
 
   return (
     <div className="container-luxury py-6 md:py-12">
@@ -236,6 +339,41 @@ export default function Admin() {
             />
           )}
 
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-md">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={productSearch}
+                onChange={(event) => setProductSearch(event.target.value)}
+                placeholder="Search by name, category, or SKU..."
+                className="pl-9"
+              />
+            </div>
+            {selectedProductIds.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" disabled={isBulkUpdating}>
+                    Bulk Actions ({selectedProductIds.length})
+                    <MoreHorizontal className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={() => void handleBulkAction('featured')}>Mark as Featured</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => void handleBulkAction('unfeatured')}>Unmark Featured</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={exportSelectedProducts}>
+                    <Download className="mr-2 h-4 w-4" /> Export CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => void handleBulkAction('delete')}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+
           {/* Products Table */}
           <div className="bg-card shadow-soft overflow-hidden rounded-lg">
             {isLoading ? (
@@ -249,6 +387,11 @@ export default function Admin() {
                   {products.map(product => (
                     <div key={product.id} className="p-4 space-y-3">
                       <div className="flex items-start gap-3">
+                        <Checkbox
+                          checked={selectedProductIds.includes(product.id)}
+                          onCheckedChange={(checked) => toggleProductSelection(product.id, checked === true)}
+                          aria-label={`Select ${product.name}`}
+                        />
                         <div className="w-16 h-16 bg-secondary flex-shrink-0 overflow-hidden rounded">
                           {product.image_url ? (
                             <img
@@ -269,6 +412,7 @@ export default function Admin() {
                           <div className="flex items-center gap-3 mt-1">
                             <span className="font-semibold text-sm">₹{product.price.toFixed(2)}</span>
                             <span className="text-xs text-muted-foreground">Stock: {product.stock_quantity}</span>
+                            {stockBadge(product.stock_quantity)}
                           </div>
                           {product.featured && (
                             <span className="inline-block mt-1 text-xs px-2 py-0.5 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 rounded">
@@ -281,6 +425,9 @@ export default function Admin() {
                         <Button size="sm" variant="outline" onClick={() => handleEdit(product)} className="flex-1">
                           <Pencil className="h-3 w-3 mr-1" />
                           Edit
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => window.open(`/product/${product.slug}`, '_blank')}>
+                          <ExternalLink className="h-3 w-3 mr-1" /> Preview
                         </Button>
                         <Button
                           size="sm"
@@ -301,6 +448,13 @@ export default function Admin() {
                   <table className="w-full">
                     <thead className="bg-muted/50">
                       <tr>
+                        <th className="p-4">
+                          <Checkbox
+                            checked={products.length > 0 && selectedProductIds.length === products.length}
+                            onCheckedChange={(checked) => setSelectedProductIds(checked ? products.map(product => product.id) : [])}
+                            aria-label="Select all products"
+                          />
+                        </th>
                         <th className="text-left p-4 text-sm font-medium">Product</th>
                         <th className="text-left p-4 text-sm font-medium">Category</th>
                         <th className="text-left p-4 text-sm font-medium">Price</th>
@@ -312,6 +466,13 @@ export default function Admin() {
                     <tbody>
                       {products.map(product => (
                         <tr key={product.id} className="border-t border-border">
+                          <td className="p-4">
+                            <Checkbox
+                              checked={selectedProductIds.includes(product.id)}
+                              onCheckedChange={(checked) => toggleProductSelection(product.id, checked === true)}
+                              aria-label={`Select ${product.name}`}
+                            />
+                          </td>
                           <td className="p-4">
                             <div className="flex items-center gap-3">
                               <div className="w-12 h-12 bg-secondary flex-shrink-0 overflow-hidden">
@@ -328,12 +489,44 @@ export default function Admin() {
                                   </div>
                                 )}
                               </div>
-                              <span className="font-medium">{product.name}</span>
+                              <div>
+                                <span className="font-medium">{product.name}</span>
+                                {product.sku && <p className="text-xs text-muted-foreground">SKU: {product.sku}</p>}
+                              </div>
                             </div>
                           </td>
                           <td className="p-4 text-muted-foreground">{product.category || '-'}</td>
                           <td className="p-4">₹{product.price.toFixed(2)}</td>
-                          <td className="p-4">{product.stock_quantity}</td>
+                          <td className="p-4">
+                            <Popover
+                              open={stockPopoverProductId === product.id}
+                              onOpenChange={(open) => {
+                                setStockPopoverProductId(open ? product.id : null);
+                                if (open) setStockDraft(String(product.stock_quantity));
+                              }}
+                            >
+                              <PopoverTrigger asChild>
+                                <button type="button" className="font-medium underline decoration-dotted underline-offset-4">
+                                  {product.stock_quantity}
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-56">
+                                <div className="space-y-2">
+                                  <p className="text-sm font-medium">Update stock</p>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    value={stockDraft}
+                                    onChange={(event) => setStockDraft(event.target.value)}
+                                  />
+                                  <Button size="sm" className="w-full" onClick={() => void updateStock(product.id)}>
+                                    Save
+                                  </Button>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                            {stockBadge(product.stock_quantity)}
+                          </td>
                           <td className="p-4">
                             {product.featured && (
                               <span className="bg-accent text-accent-foreground text-xs px-2 py-1">
@@ -343,6 +536,12 @@ export default function Admin() {
                           </td>
                           <td className="p-4">
                             <div className="flex justify-end gap-2">
+                              <Button variant="ghost" size="icon" onClick={() => window.open(`/product/${product.slug}`, '_blank')} title="Preview">
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => void duplicateProduct(product)} title="Duplicate">
+                                <Copy className="h-4 w-4" />
+                              </Button>
                               <Button variant="ghost" size="icon" onClick={() => handleEdit(product)}>
                                 <Pencil className="h-4 w-4" />
                               </Button>

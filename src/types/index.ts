@@ -2,6 +2,7 @@ export interface Product {
   id: string;
   name: string;
   slug?: string;
+  sku?: string | null;
   description: string | null;
   full_description?: string | null; // Detailed product description with specifications, care instructions, etc.
   price: number;
