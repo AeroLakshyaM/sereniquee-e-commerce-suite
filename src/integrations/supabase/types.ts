@@ -305,6 +305,27 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_subscribers: {
+        Row: {
+          id: string
+          email: string
+          subscribed_at: string | null
+          is_active: boolean | null
+        }
+        Insert: {
+          id?: string
+          email: string
+          subscribed_at?: string | null
+          is_active?: boolean | null
+        }
+        Update: {
+          id?: string
+          email?: string
+          subscribed_at?: string | null
+          is_active?: boolean | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string | null

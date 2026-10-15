@@ -47,6 +47,7 @@ import {
   MessageSquare,
   Warehouse,
   TicketPercent,
+  Mail,
 } from 'lucide-react';
 import { Product } from '@/types';
 import SimpleDashboard from '@/components/admin/SimpleDashboard';
@@ -65,6 +66,7 @@ import OfflineInvoiceGenerator from '@/components/admin/OfflineInvoiceGenerator'
 import ReviewsManagement from '@/components/admin/ReviewsManagement';
 import InventoryManager from '@/components/admin/InventoryManager';
 import CouponsManager from '@/components/admin/CouponsManager';
+import NewsletterManager from '@/components/admin/NewsletterManager';
 import { slugify } from '@/lib/utils';
 
 // Tab definitions — a single source of truth for the admin nav
@@ -84,6 +86,7 @@ const TABS = [
   { value: 'reviews',       label: 'Reviews',       icon: MessageSquare, className: '' },
   { value: 'inventory',     label: 'Inventory',     icon: Warehouse,     className: '' },
   { value: 'coupons',       label: 'Coupons',       icon: TicketPercent, className: '' },
+  { value: 'newsletter',    label: 'Newsletter',    icon: Mail,          className: '' },
 ] as const;
 
 type TabValue = (typeof TABS)[number]['value'];
@@ -633,6 +636,10 @@ export default function Admin() {
 
         <TabsContent value="coupons" className="space-y-6">
           <CouponsManager />
+        </TabsContent>
+
+        <TabsContent value="newsletter" className="space-y-6">
+          <NewsletterManager />
         </TabsContent>
       </Tabs>
     </div>
