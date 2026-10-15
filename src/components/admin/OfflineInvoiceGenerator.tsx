@@ -29,7 +29,7 @@ export default function OfflineInvoiceGenerator() {
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [shippingAddress, setShippingAddress] = useState('');
-  const [country, setCountry] = useState('India');
+  const [shippingOption, setShippingOption] = useState<'India' | 'International' | 'none'>('India');
   const [invoiceDate, setInvoiceDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [lines, setLines] = useState<InvoiceLine[]>([]);
   const { toast } = useToast();
@@ -42,7 +42,11 @@ export default function OfflineInvoiceGenerator() {
     [data],
   );
   const subtotal = lines.reduce((sum, line) => sum + line.quantity * line.price, 0);
-  const shipping = country === 'India' ? INDIA_SHIPPING : INTERNATIONAL_SHIPPING;
+  const shipping = shippingOption === 'India'
+    ? INDIA_SHIPPING
+    : shippingOption === 'International'
+      ? INTERNATIONAL_SHIPPING
+      : 0;
   const gst = (subtotal + shipping) * GST_RATE;
   const total = subtotal + shipping + gst;
 
@@ -179,12 +183,13 @@ export default function OfflineInvoiceGenerator() {
               <Input id="offline-invoice-date" type="date" value={invoiceDate} onChange={event => setInvoiceDate(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Destination</Label>
-              <Select value={country} onValueChange={setCountry}>
+              <Label>Shipping</Label>
+              <Select value={shippingOption} onValueChange={(value: 'India' | 'International' | 'none') => setShippingOption(value)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="India">India (₹100 shipping)</SelectItem>
                   <SelectItem value="International">International (₹500 shipping)</SelectItem>
+                  <SelectItem value="none">No shipping fee (₹0)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
