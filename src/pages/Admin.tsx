@@ -306,23 +306,23 @@ export default function Admin() {
           </TabsList>
         </div>
 
-        <TabsContent value="home" className="space-y-6">
+        <TabsContent value="home" forceMount className="space-y-6">
           <SimpleDashboard />
         </TabsContent>
 
-        <TabsContent value="insights" className="space-y-6">
+        <TabsContent value="insights" forceMount className="space-y-6">
           <BusinessInsights />
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-6">
+        <TabsContent value="analytics" forceMount className="space-y-6">
           <AnalyticsDashboard />
         </TabsContent>
 
-        <TabsContent value="categories" className="space-y-6">
+        <TabsContent value="categories" forceMount className="space-y-6">
           <CategoryManager />
         </TabsContent>
 
-        <TabsContent value="products" className="space-y-6">
+        <TabsContent value="products" forceMount className="space-y-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
             <h2 className="font-serif text-xl md:text-2xl">Product Management</h2>
             <Button
@@ -586,31 +586,31 @@ export default function Admin() {
           )}
         </TabsContent>
 
-        <TabsContent value="orders" className="space-y-6">
+        <TabsContent value="orders" forceMount className="space-y-6">
           <OrdersManagement />
         </TabsContent>
 
-        <TabsContent value="invoices" className="space-y-6">
+        <TabsContent value="invoices" forceMount className="space-y-6">
           <OfflineInvoiceGenerator />
         </TabsContent>
 
-        <TabsContent value="users" className="space-y-6">
+        <TabsContent value="users" forceMount className="space-y-6">
           <UsersManagement />
         </TabsContent>
 
-        <TabsContent value="calendar" className="space-y-6">
+        <TabsContent value="calendar" forceMount className="space-y-6">
           <CalendarView />
         </TabsContent>
 
-        <TabsContent value="blogs" className="space-y-6">
+        <TabsContent value="blogs" forceMount className="space-y-6">
           <BlogManager />
         </TabsContent>
 
-        <TabsContent value="custom-orders" className="space-y-6">
+        <TabsContent value="custom-orders" forceMount className="space-y-6">
           <CustomOrdersManager />
         </TabsContent>
 
-        <TabsContent value="social" className="space-y-6">
+        <TabsContent value="social" forceMount className="space-y-6">
           <SocialPostsManager />
         </TabsContent>
       </Tabs>

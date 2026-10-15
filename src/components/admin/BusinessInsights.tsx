@@ -150,13 +150,13 @@ export default function BusinessInsights() {
   const { data: orders } = useAdminOrders();
   const { toast } = useToast();
   
-  // Load from sessionStorage on mount
+  // Keep generated insights across browser tabs and page reloads.
   const [insights, setInsights] = useState<string>(() => {
-    return sessionStorage.getItem('businessInsights') || '';
+    return localStorage.getItem('businessInsights') || '';
   });
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(() => {
-    const saved = sessionStorage.getItem('businessInsightsTimestamp');
+    const saved = localStorage.getItem('businessInsightsTimestamp');
     return saved ? new Date(saved) : null;
   });
   const [activeSection, setActiveSection] = useState('overview');
@@ -240,9 +240,8 @@ Average Order Value: ₹${(orders.reduce((sum, o) => sum + o.total_amount, 0) / 
       setInsights(text);
       setLastUpdated(new Date());
       
-      // Save to sessionStorage
-      sessionStorage.setItem('businessInsights', text);
-      sessionStorage.setItem('businessInsightsTimestamp', new Date().toISOString());
+      localStorage.setItem('businessInsights', text);
+      localStorage.setItem('businessInsightsTimestamp', new Date().toISOString());
       
       toast({
         title: 'Insights Generated!',

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useProducts } from '@/hooks/useProducts';
 import { Product } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -23,15 +23,43 @@ interface InvoiceLine {
 const INDIA_SHIPPING = 100;
 const INTERNATIONAL_SHIPPING = 500;
 const GST_RATE = 0.05;
+const INVOICE_DRAFT_STORAGE_KEY = 'sereniquee_offline_invoice_draft';
+
+interface InvoiceDraft {
+  productSearch: string;
+  customerName: string;
+  customerEmail: string;
+  shippingAddress: string;
+  shippingOption: 'India' | 'International' | 'none';
+  invoiceDate: string;
+  lines: InvoiceLine[];
+}
+
+function loadInvoiceDraft(): Partial<InvoiceDraft> {
+  try {
+    const stored = localStorage.getItem(INVOICE_DRAFT_STORAGE_KEY);
+    if (!stored) return {};
+    const parsed: unknown = JSON.parse(stored);
+    if (!parsed || typeof parsed !== 'object') return {};
+    return parsed as Partial<InvoiceDraft>;
+  } catch {
+    return {};
+  }
+}
 
 export default function OfflineInvoiceGenerator() {
-  const [productSearch, setProductSearch] = useState('');
-  const [customerName, setCustomerName] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
-  const [shippingAddress, setShippingAddress] = useState('');
-  const [shippingOption, setShippingOption] = useState<'India' | 'International' | 'none'>('India');
-  const [invoiceDate, setInvoiceDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [lines, setLines] = useState<InvoiceLine[]>([]);
+  const [initialDraft] = useState(loadInvoiceDraft);
+  const [productSearch, setProductSearch] = useState(initialDraft.productSearch ?? '');
+  const [customerName, setCustomerName] = useState(initialDraft.customerName ?? '');
+  const [customerEmail, setCustomerEmail] = useState(initialDraft.customerEmail ?? '');
+  const [shippingAddress, setShippingAddress] = useState(initialDraft.shippingAddress ?? '');
+  const [shippingOption, setShippingOption] = useState<'India' | 'International' | 'none'>(
+    initialDraft.shippingOption ?? 'India',
+  );
+  const [invoiceDate, setInvoiceDate] = useState(
+    initialDraft.invoiceDate ?? new Date().toISOString().slice(0, 10),
+  );
+  const [lines, setLines] = useState<InvoiceLine[]>(initialDraft.lines ?? []);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
@@ -49,6 +77,27 @@ export default function OfflineInvoiceGenerator() {
       : 0;
   const gst = (subtotal + shipping) * GST_RATE;
   const total = subtotal + shipping + gst;
+
+  useEffect(() => {
+    try {
+      const draft: InvoiceDraft = {
+        productSearch,
+        customerName,
+        customerEmail,
+        shippingAddress,
+        shippingOption,
+        invoiceDate,
+        lines,
+      };
+      localStorage.setItem(INVOICE_DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    } catch {
+      toast({
+        title: 'Draft could not be saved',
+        description: 'Your browser storage may be unavailable. Keep this tab open until the invoice is saved.',
+        variant: 'destructive',
+      });
+    }
+  }, [productSearch, customerName, customerEmail, shippingAddress, shippingOption, invoiceDate, lines, toast]);
 
   const addProduct = (product: Product) => {
     setLines(current => {
@@ -145,6 +194,14 @@ export default function OfflineInvoiceGenerator() {
           product: { name: line.product.name },
         })),
       });
+      localStorage.removeItem(INVOICE_DRAFT_STORAGE_KEY);
+      setProductSearch('');
+      setCustomerName('');
+      setCustomerEmail('');
+      setShippingAddress('');
+      setShippingOption('India');
+      setInvoiceDate(new Date().toISOString().slice(0, 10));
+      setLines([]);
       toast({ title: 'Invoice saved', description: 'The invoice is now available in Orders and revenue summaries.' });
     } catch (error) {
       toast({
