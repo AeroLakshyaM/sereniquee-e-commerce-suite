@@ -3,7 +3,6 @@ import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { WhatsAppButton } from './WhatsAppButton';
-import { ChatBot } from './ChatBot';
 
 interface LayoutProps {
   children: ReactNode;
@@ -19,7 +18,6 @@ export function Layout({ children }: LayoutProps) {
       <Footer />
       <CartDrawer />
       <WhatsAppButton />
-      <ChatBot />
     </div>
   );
 }

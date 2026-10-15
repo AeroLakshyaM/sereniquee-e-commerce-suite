@@ -19,6 +19,21 @@
     <meta name="twitter:title" content="Sereniquee Candles - Premium Handcrafted Luxury Candles" />
     <meta name="twitter:description" content="Premium handcrafted luxury candles made with natural ingredients" />
     <meta name="twitter:image" content="/logo.svg" />
+
+    <!-- Sereniquee Candles AI Concierge -->
+    <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+    <style>
+      :root {
+        --chat--color-primary: #8c6239;
+        --chat--color-primary-shade-50: #734f2c;
+        --chat--color-primary-shade-100: #5a3d20;
+        --chat--color-secondary: #fbf8f3;
+        --chat--color-dark: #2c221e;
+        --chat--window--width: 380px;
+        --chat--window--height: 560px;
+        --chat--toggle--size: 60px;
+      }
+    </style>
     
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-7GN32ESB08"></script>
@@ -29,6 +44,27 @@
 
         gtag('config', 'G-7GN32ESB08');
       </script>
+
+    <script type="module">
+      import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+      createChat({
+        webhookUrl: 'PASTE_YOUR_N8N_CHAT_TRIGGER_PRODUCTION_URL_HERE',
+        mode: 'window',
+        showWelcomeScreen: false,
+        initialMessages: [
+          'Welcome to Sereniquee Candles ✨',
+          'I can help you pick the right scent, customize festive & wedding favors, or place an order directly in chat. What mood or occasion are you shopping for today?'
+        ],
+        i18n: {
+          en: {
+            title: 'Sereniquee Scent Concierge ✨',
+            subtitle: 'Handcrafted Luxury Candles',
+            inputPlaceholder: 'Ask for scents, prices, or place an order...'
+          }
+        }
+      });
+    </script>
 
   <body>
     <div id="root"></div>
