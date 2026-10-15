@@ -18,6 +18,7 @@ export interface Product {
   seo_keywords?: string | null;
   created_at: string;
   updated_at: string;
+  metadata?: Record<string, unknown> | null;
 }
 
 export interface CartItem {
@@ -211,6 +212,19 @@ export interface ProductReview {
     full_name: string | null;
     email: string | null;
   };
+}
+
+export interface DiscountCode {
+  id: string;
+  code: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  min_order_amount: number;
+  max_uses: number | null;
+  uses_count: number;
+  expires_at: string | null;
+  is_active: boolean;
+  created_at: string;
 }
 
 export interface ReviewVote {

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Order, OrderItem, CartItem } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import type { Database } from '@/integrations/supabase/types';
 
 export function useOrders() {
   const { user } = useAuth();
@@ -51,6 +52,7 @@ interface CreateOrderParams {
     name: string;
     phone: string;
   };
+  discountAmount?: number;
 }
 
 export function useCreateOrder() {
@@ -58,7 +60,7 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ items, shippingAddress, specialRequirements, guestInfo }: CreateOrderParams) => {
+    mutationFn: async ({ items, shippingAddress, shippingAmount, gstAmount, specialRequirements, guestInfo, discountAmount = 0 }: CreateOrderParams) => {
       // Guest checkout or authenticated user
       const isGuest = !user && guestInfo;
       const orderId = crypto.randomUUID();
@@ -70,14 +72,15 @@ export function useCreateOrder() {
         (sum, item) => sum + item.product.price * item.quantity,
         0
       );
-      const totalAmount = subtotalAmount + shippingAmount + gstAmount;
+      const discountedSubtotal = Math.max(0, subtotalAmount - discountAmount);
+      const totalAmount = discountedSubtotal + shippingAmount + gstAmount;
       
       // Prepare order data
-      const orderData: any = {
+      const orderData: Database['public']['Tables']['orders']['Insert'] = {
         id: orderId,
         order_number: orderNumber,
         total_amount: totalAmount,
-        subtotal_amount: subtotalAmount,
+        subtotal_amount: discountedSubtotal,
         shipping_amount: shippingAmount,
         gst_amount: gstAmount,
         shipping_address: shippingAddress,

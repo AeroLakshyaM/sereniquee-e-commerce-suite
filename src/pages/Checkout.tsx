@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserCircle, ShoppingBag } from 'lucide-react';
+import { Tag, UserCircle, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -24,6 +24,10 @@ export default function Checkout() {
   const createOrder = useCreateOrder();
   const { toast } = useToast();
   const [checkoutMode, setCheckoutMode] = useState<'guest' | 'user'>('guest');
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ id: string; code: string; type: 'percentage' | 'fixed'; value: number } | null>(null);
+  const [couponError, setCouponError] = useState('');
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -36,8 +40,39 @@ export default function Checkout() {
     specialRequirements: '',
   });
   const shippingAmount = formData.country.trim().toLowerCase() === 'india' ? 100 : 500;
-  const gstAmount = (totalPrice + shippingAmount) * 0.05;
-  const grandTotal = totalPrice + shippingAmount + gstAmount;
+  const discountAmount = appliedCoupon
+    ? appliedCoupon.type === 'percentage'
+      ? Math.min(totalPrice, totalPrice * appliedCoupon.value / 100)
+      : Math.min(totalPrice, appliedCoupon.value)
+    : 0;
+  const discountedSubtotal = Math.max(0, totalPrice - discountAmount);
+  const gstAmount = (discountedSubtotal + shippingAmount) * 0.05;
+  const grandTotal = discountedSubtotal + shippingAmount + gstAmount;
+
+  const applyCoupon = async () => {
+    const code = couponCode.trim().toUpperCase();
+    setCouponError('');
+    if (!code) return;
+    setIsApplyingCoupon(true);
+    try {
+      const { data: coupon, error } = await supabase
+        .from('discount_codes')
+        .select('*')
+        .eq('code', code)
+        .eq('is_active', true)
+        .single();
+      if (error) throw error;
+      if (coupon.expires_at && new Date(coupon.expires_at) <= new Date()) throw new Error('This coupon has expired.');
+      if (coupon.max_uses !== null && (coupon.uses_count ?? 0) >= coupon.max_uses) throw new Error('This coupon has reached its usage limit.');
+      if (totalPrice < (coupon.min_order_amount ?? 0)) throw new Error(`Add ₹${((coupon.min_order_amount ?? 0) - totalPrice).toFixed(2)} more to use this coupon.`);
+      setAppliedCoupon({ id: coupon.id, code: coupon.code, type: coupon.type as 'percentage' | 'fixed', value: coupon.value });
+    } catch (error) {
+      setAppliedCoupon(null);
+      setCouponError(error instanceof Error ? error.message : 'Coupon is not valid.');
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -119,6 +154,7 @@ export default function Checkout() {
         shippingAddress,
         shippingAmount,
         gstAmount,
+        discountAmount,
         specialRequirements: formData.specialRequirements || null,
         ...(checkoutMode === 'guest' && !user ? {
           guestInfo: {
@@ -140,6 +176,11 @@ export default function Checkout() {
 
       const stockUpdateError = stockUpdates.find(result => result.error)?.error;
       if (stockUpdateError) throw stockUpdateError;
+
+      if (appliedCoupon) {
+        const { error: couponIncrementError } = await supabase.rpc('increment_coupon_uses', { code_id: appliedCoupon.id });
+        if (couponIncrementError) throw couponIncrementError;
+      }
 
       // Send the email confirmation via our secure Serverless Function
       try {
@@ -442,10 +483,22 @@ export default function Checkout() {
               </div>
 
               <div className="border-t border-border pt-4 space-y-2">
+                <div className="mb-4 space-y-2">
+                  <Label htmlFor="coupon-code">Coupon code</Label>
+                  <div className="flex gap-2">
+                    <Input id="coupon-code" value={couponCode} onChange={event => setCouponCode(event.target.value)} placeholder="Enter coupon code" disabled={!!appliedCoupon} />
+                    <Button type="button" variant="outline" onClick={() => void applyCoupon()} disabled={isApplyingCoupon || !!appliedCoupon}>
+                      <Tag className="mr-2 h-4 w-4" />{isApplyingCoupon ? 'Applying...' : appliedCoupon ? 'Applied' : 'Apply'}
+                    </Button>
+                  </div>
+                  {couponError && <p className="text-sm text-destructive">{couponError}</p>}
+                  {appliedCoupon && <p className="text-sm text-green-600">Coupon {appliedCoupon.code} applied.</p>}
+                </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>₹{totalPrice.toFixed(2)}</span>
                 </div>
+                {discountAmount > 0 && <div className="flex justify-between text-sm text-green-600"><span>Discount</span><span>-₹{discountAmount.toFixed(2)}</span></div>}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
                   <span>₹{shippingAmount.toFixed(2)}</span>

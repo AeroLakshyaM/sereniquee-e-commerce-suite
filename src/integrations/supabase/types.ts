@@ -266,6 +266,45 @@ export type Database = {
         }
         Relationships: []
       }
+      discount_codes: {
+        Row: {
+          id: string
+          code: string
+          type: string
+          value: number
+          min_order_amount: number | null
+          max_uses: number | null
+          uses_count: number | null
+          expires_at: string | null
+          is_active: boolean | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          code: string
+          type: string
+          value: number
+          min_order_amount?: number | null
+          max_uses?: number | null
+          uses_count?: number | null
+          expires_at?: string | null
+          is_active?: boolean | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          code?: string
+          type?: string
+          value?: number
+          min_order_amount?: number | null
+          max_uses?: number | null
+          uses_count?: number | null
+          expires_at?: string | null
+          is_active?: boolean | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string | null
@@ -274,6 +313,7 @@ export type Database = {
           featured: boolean | null
           id: string
           image_url: string | null
+          metadata: Json
           name: string
           price: number
           sku: string | null
@@ -287,6 +327,7 @@ export type Database = {
           featured?: boolean | null
           id?: string
           image_url?: string | null
+          metadata?: Json
           name: string
           price: number
           sku?: string | null
@@ -300,6 +341,7 @@ export type Database = {
           featured?: boolean | null
           id?: string
           image_url?: string | null
+          metadata?: Json
           name?: string
           price?: number
           sku?: string | null
@@ -698,6 +740,12 @@ export type Database = {
       }
     }
     Functions: {
+      increment_coupon_uses: {
+        Args: {
+          code_id: string
+        }
+        Returns: undefined
+      }
       decrement_stock: {
         Args: {
           product_id: string

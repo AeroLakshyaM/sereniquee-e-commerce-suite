@@ -44,6 +44,9 @@ import {
   Copy,
   ExternalLink,
   FileText,
+  MessageSquare,
+  Warehouse,
+  TicketPercent,
 } from 'lucide-react';
 import { Product } from '@/types';
 import SimpleDashboard from '@/components/admin/SimpleDashboard';
@@ -59,6 +62,9 @@ import CategoryManager from '@/components/admin/CategoryManager';
 import SocialPostsManager from '@/components/admin/SocialPostsManager';
 import CustomOrdersManager from '@/components/admin/CustomOrdersManager';
 import OfflineInvoiceGenerator from '@/components/admin/OfflineInvoiceGenerator';
+import ReviewsManagement from '@/components/admin/ReviewsManagement';
+import InventoryManager from '@/components/admin/InventoryManager';
+import CouponsManager from '@/components/admin/CouponsManager';
 import { slugify } from '@/lib/utils';
 
 // Tab definitions — a single source of truth for the admin nav
@@ -75,6 +81,9 @@ const TABS = [
   { value: 'blogs',         label: 'Blogs',         icon: Newspaper,    className: '' },
   { value: 'social',        label: 'Social',        icon: Instagram,    className: '' },
   { value: 'custom-orders', label: 'Custom Orders', icon: Package,      className: 'bg-gradient-to-r from-teal-600/10 to-emerald-600/10' },
+  { value: 'reviews',       label: 'Reviews',       icon: MessageSquare, className: '' },
+  { value: 'inventory',     label: 'Inventory',     icon: Warehouse,     className: '' },
+  { value: 'coupons',       label: 'Coupons',       icon: TicketPercent, className: '' },
 ] as const;
 
 type TabValue = (typeof TABS)[number]['value'];
@@ -612,6 +621,18 @@ export default function Admin() {
 
         <TabsContent value="social" className="space-y-6">
           <SocialPostsManager />
+        </TabsContent>
+
+        <TabsContent value="reviews" className="space-y-6">
+          <ReviewsManagement />
+        </TabsContent>
+
+        <TabsContent value="inventory" className="space-y-6">
+          <InventoryManager />
+        </TabsContent>
+
+        <TabsContent value="coupons" className="space-y-6">
+          <CouponsManager />
         </TabsContent>
       </Tabs>
     </div>
