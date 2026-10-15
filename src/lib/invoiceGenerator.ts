@@ -332,8 +332,8 @@ export function generateInvoiceHTML(order: OrderData): string {
               <div class="company-tagline">Premium Handcrafted Candles</div>
               <div class="company-contact">
                 Email: sereniqueecandles@gmail.com<br>
-                Phone: +91 - 9827310636  +91 - 8770222006<br>
-                Website: www.sereniqueecandles.com
+                Phone: +91 - 9827310636 / +91 - 8770222006<br>
+                Website: www.sereniqueecandles.com<br>
                 GSTIN : 23AVEPM0070F1Z4
               </div>
             </div>
