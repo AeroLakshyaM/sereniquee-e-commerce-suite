@@ -144,6 +144,21 @@ Cost Kam Karne Ke Tarike:
 
 REMEMBER: Write in NATURAL HINGLISH like Indians speak. Mix Hindi-English freely. Keep it SHORT, SIMPLE, FRIENDLY. Use bullet points and emojis. Make it easy to read quickly!`;
 
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_MAX_RETRIES = 3;
+
+function isTemporaryGeminiError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /\[(?:503|429)\b/.test(message) || /\b(?:503|429)\b/.test(message);
+}
+
+function getGeminiErrorDescription(error: unknown): string {
+  if (isTemporaryGeminiError(error)) {
+    return 'Google AI is temporarily busy. Your data is safe; please try again in a moment.';
+  }
+  return 'Failed to generate insights. Please check your AI configuration and try again.';
+}
+
 export default function BusinessInsights() {
   const { data: productsData } = useProducts();
   const products = productsData?.pages.flatMap((page) => page.products) ?? [];
@@ -224,8 +239,8 @@ Average Order Value: ₹${(orders.reduce((sum, o) => sum + o.total_amount, 0) / 
         .replace('{product_list}', productList)
         .replace('{orders_summary}', ordersData);
 
-      const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.5-flash',
+      const model = genAI.getGenerativeModel({
+        model: GEMINI_MODEL,
         generationConfig: {
           temperature: 0.9,
           topP: 0.95,
@@ -233,7 +248,22 @@ Average Order Value: ₹${(orders.reduce((sum, o) => sum + o.total_amount, 0) / 
           maxOutputTokens: 8192, // Maximum detailed response
         },
       });
-      const result = await model.generateContent(prompt);
+      let result;
+      for (let attempt = 0; attempt <= GEMINI_MAX_RETRIES; attempt += 1) {
+        try {
+          result = await model.generateContent(prompt);
+          break;
+        } catch (error) {
+          if (!isTemporaryGeminiError(error) || attempt === GEMINI_MAX_RETRIES) {
+            throw error;
+          }
+          const delayMs = 1000 * 2 ** attempt;
+          await new Promise(resolve => window.setTimeout(resolve, delayMs));
+        }
+      }
+      if (!result) {
+        throw new Error('Gemini did not return a response.');
+      }
       const response = await result.response;
       const text = response.text();
 
@@ -250,8 +280,8 @@ Average Order Value: ₹${(orders.reduce((sum, o) => sum + o.total_amount, 0) / 
     } catch (error) {
       console.error('Error generating insights:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to generate insights. Please try again.',
+        title: isTemporaryGeminiError(error) ? 'AI service temporarily busy' : 'Error generating insights',
+        description: getGeminiErrorDescription(error),
         variant: 'destructive',
       });
     } finally {
