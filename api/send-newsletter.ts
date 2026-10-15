@@ -11,13 +11,6 @@ interface NewsletterResponse {
   status: (code: number) => { json: (payload: unknown) => void };
 }
 
-const supabaseAdmin = createClient(
-  process.env.VITE_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-  { auth: { autoRefreshToken: false, persistSession: false } },
-);
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 function markdownToHtml(markdown: string): string {
   return markdown
     .replace(/&/g, '&amp;')
@@ -41,6 +34,19 @@ export default async function handler(req: NewsletterRequest, res: NewsletterRes
   if (!token || !subject || !markdown) return res.status(400).json({ error: 'Missing authorization, subject, or message.' });
 
   try {
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!supabaseUrl || !serviceRoleKey || !resendApiKey) {
+      return res.status(500).json({
+        error: 'Newsletter service is not configured. Set VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and RESEND_API_KEY in Vercel.',
+      });
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const resend = new Resend(resendApiKey);
     const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
     if (userError || !userData.user) return res.status(401).json({ error: 'Authentication required.' });
     const { data: role, error: roleError } = await supabaseAdmin

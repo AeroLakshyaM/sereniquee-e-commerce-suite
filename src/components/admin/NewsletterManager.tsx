@@ -95,7 +95,15 @@ export default function NewsletterManager() {
         },
         body: JSON.stringify({ subject: subject.trim(), markdown: body }),
       });
-      const result = await response.json() as { sent?: number; failed?: number; error?: string };
+      const responseText = await response.text();
+      let result: { sent?: number; failed?: number; error?: string };
+      try {
+        result = JSON.parse(responseText) as { sent?: number; failed?: number; error?: string };
+      } catch {
+        throw new Error(
+          responseText || `Newsletter API failed with status ${response.status}.`,
+        );
+      }
       if (!response.ok) throw new Error(result.error || 'Newsletter could not be sent.');
 
       toast({
