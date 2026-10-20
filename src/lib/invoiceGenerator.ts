@@ -7,10 +7,13 @@ interface OrderData {
   gst_amount?: number | null;
   status: string;
   shipping_address: string | null;
+  guest_phone?: string | null;
+  special_requirements?: string | null;
   order_number?: string | null;
   user?: {
     email?: string;
     full_name?: string;
+    phone?: string;
   };
   order_items: Array<{
     id: string;
@@ -37,6 +40,8 @@ export function generateInvoiceHTML(order: OrderData): string {
   const shipping = Number(order.shipping_amount ?? 0);
   const tax = Number(order.gst_amount ?? 0);
   const total = order.total_amount;
+  const customerEmail = order.user?.email?.trim();
+  const customerPhone = order.guest_phone?.trim() || order.user?.phone?.trim();
 
   return `
     <!DOCTYPE html>
@@ -188,6 +193,15 @@ export function generateInvoiceHTML(order: OrderData): string {
             color: #666;
             font-size: 11px;
             font-style: italic;
+          }
+
+          .invoice-note {
+            margin-top: 24px;
+            padding: 14px 16px;
+            background: #f7f5f0;
+            border-left: 3px solid #d4cdb8;
+            color: #5a5a5a;
+            font-size: 13px;
           }
           
           tbody tr {
@@ -348,7 +362,8 @@ export function generateInvoiceHTML(order: OrderData): string {
             <div class="info-box">
               <h3>Bill To</h3>
               <p><strong>${order.user?.full_name || 'Customer'}</strong></p>
-              <p>${order.user?.email || ''}</p>
+              ${customerEmail ? `<p>Email: ${customerEmail}</p>` : ''}
+              ${customerPhone ? `<p>Phone: ${customerPhone}</p>` : ''}
               ${order.shipping_address ? `<p>${order.shipping_address}</p>` : ''}
             </div>
             
@@ -425,6 +440,16 @@ export function generateInvoiceHTML(order: OrderData): string {
               </tr>
             </table>
           </div>
+
+          ${
+            order.special_requirements?.trim()
+              ? `
+          <div class="invoice-note">
+            <strong>Notes:</strong> ${order.special_requirements.trim()}
+          </div>
+          `
+              : ''
+          }
           
           <!-- Footer -->
           <div class="footer">

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { FileText, Plus, Trash2 } from 'lucide-react';
+import { FileText, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { openInvoiceInNewTab } from '@/lib/invoiceGenerator';
 
 interface InvoiceLine {
@@ -29,8 +29,11 @@ interface InvoiceDraft {
   productSearch: string;
   customerName: string;
   customerEmail: string;
+  customerPhone: string;
   shippingAddress: string;
-  shippingOption: 'India' | 'International' | 'none';
+  shippingOption: 'India' | 'International' | 'custom' | 'none';
+  customShipping: string;
+  invoiceNotes: string;
   invoiceDate: string;
   lines: InvoiceLine[];
 }
@@ -52,10 +55,13 @@ export default function OfflineInvoiceGenerator() {
   const [productSearch, setProductSearch] = useState(initialDraft.productSearch ?? '');
   const [customerName, setCustomerName] = useState(initialDraft.customerName ?? '');
   const [customerEmail, setCustomerEmail] = useState(initialDraft.customerEmail ?? '');
+  const [customerPhone, setCustomerPhone] = useState(initialDraft.customerPhone ?? '');
   const [shippingAddress, setShippingAddress] = useState(initialDraft.shippingAddress ?? '');
-  const [shippingOption, setShippingOption] = useState<'India' | 'International' | 'none'>(
+  const [shippingOption, setShippingOption] = useState<'India' | 'International' | 'custom' | 'none'>(
     initialDraft.shippingOption ?? 'India',
   );
+  const [customShipping, setCustomShipping] = useState(initialDraft.customShipping ?? '');
+  const [invoiceNotes, setInvoiceNotes] = useState(initialDraft.invoiceNotes ?? '');
   const [invoiceDate, setInvoiceDate] = useState(
     initialDraft.invoiceDate ?? new Date().toISOString().slice(0, 10),
   );
@@ -70,11 +76,14 @@ export default function OfflineInvoiceGenerator() {
     [data],
   );
   const subtotal = lines.reduce((sum, line) => sum + line.quantity * line.price, 0);
+  const customShippingAmount = Number(customShipping);
   const shipping = shippingOption === 'India'
     ? INDIA_SHIPPING
     : shippingOption === 'International'
       ? INTERNATIONAL_SHIPPING
-      : 0;
+      : shippingOption === 'custom' && Number.isFinite(customShippingAmount)
+        ? Math.max(0, customShippingAmount)
+        : 0;
   const gst = (subtotal + shipping) * GST_RATE;
   const total = subtotal + shipping + gst;
 
@@ -84,8 +93,11 @@ export default function OfflineInvoiceGenerator() {
         productSearch,
         customerName,
         customerEmail,
+        customerPhone,
         shippingAddress,
         shippingOption,
+        customShipping,
+        invoiceNotes,
         invoiceDate,
         lines,
       };
@@ -97,7 +109,7 @@ export default function OfflineInvoiceGenerator() {
         variant: 'destructive',
       });
     }
-  }, [productSearch, customerName, customerEmail, shippingAddress, shippingOption, invoiceDate, lines, toast]);
+  }, [productSearch, customerName, customerEmail, customerPhone, shippingAddress, shippingOption, customShipping, invoiceNotes, invoiceDate, lines, toast]);
 
   const addProduct = (product: Product) => {
     setLines(current => {
@@ -119,7 +131,9 @@ export default function OfflineInvoiceGenerator() {
   const updateLine = (id: string, field: 'quantity' | 'price', value: number) => {
     setLines(current => current.map(line => line.id === id ? {
       ...line,
-      [field]: field === 'quantity' ? Math.max(1, Math.floor(value)) : Math.max(0, value),
+      [field]: field === 'quantity'
+        ? Number.isFinite(value) ? Math.max(1, Math.floor(value)) : 1
+        : Number.isFinite(value) ? Math.max(0, value) : 0,
     } : line));
   };
 
@@ -128,6 +142,17 @@ export default function OfflineInvoiceGenerator() {
       toast({
         title: 'Complete the invoice details',
         description: 'Add a customer name and at least one product.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (
+      shippingOption === 'custom'
+      && (!customShipping.trim() || !Number.isFinite(customShippingAmount) || customShippingAmount < 0)
+    ) {
+      toast({
+        title: 'Enter a valid shipping fee',
+        description: 'Custom shipping must be a non-negative amount.',
         variant: 'destructive',
       });
       return;
@@ -145,11 +170,13 @@ export default function OfflineInvoiceGenerator() {
         user_id: null,
         guest_name: customerName.trim(),
         guest_email: customerEmail.trim() || null,
+        guest_phone: customerPhone.trim() || null,
         total_amount: total,
         subtotal_amount: subtotal,
         shipping_amount: shipping,
         gst_amount: gst,
         shipping_address: shippingAddress || null,
+        special_requirements: invoiceNotes.trim() || null,
         status: 'delivered',
         order_source: 'offline',
         created_at: createdAt,
@@ -183,9 +210,12 @@ export default function OfflineInvoiceGenerator() {
         gst_amount: gst,
         status: 'delivered',
         shipping_address: shippingAddress || null,
+        guest_phone: customerPhone.trim() || null,
+        special_requirements: invoiceNotes.trim() || null,
         user: {
           full_name: customerName.trim(),
-          email: customerEmail.trim(),
+          email: customerEmail.trim() || undefined,
+          phone: customerPhone.trim() || undefined,
         },
         order_items: lines.map(line => ({
           id: line.id,
@@ -198,8 +228,11 @@ export default function OfflineInvoiceGenerator() {
       setProductSearch('');
       setCustomerName('');
       setCustomerEmail('');
+      setCustomerPhone('');
       setShippingAddress('');
       setShippingOption('India');
+      setCustomShipping('');
+      setInvoiceNotes('');
       setInvoiceDate(new Date().toISOString().slice(0, 10));
       setLines([]);
       toast({ title: 'Invoice saved', description: 'The invoice is now available in Orders and revenue summaries.' });
@@ -230,8 +263,12 @@ export default function OfflineInvoiceGenerator() {
               <Input id="offline-customer-name" value={customerName} onChange={event => setCustomerName(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="offline-customer-email">Customer email</Label>
+              <Label htmlFor="offline-customer-email">Customer email (optional)</Label>
               <Input id="offline-customer-email" type="email" value={customerEmail} onChange={event => setCustomerEmail(event.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="offline-customer-phone">Contact number</Label>
+              <Input id="offline-customer-phone" type="tel" inputMode="tel" placeholder="+91 98765 43210" value={customerPhone} onChange={event => setCustomerPhone(event.target.value)} />
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -241,19 +278,30 @@ export default function OfflineInvoiceGenerator() {
             </div>
             <div className="space-y-2">
               <Label>Shipping</Label>
-              <Select value={shippingOption} onValueChange={(value: 'India' | 'International' | 'none') => setShippingOption(value)}>
+              <Select value={shippingOption} onValueChange={(value: 'India' | 'International' | 'custom' | 'none') => setShippingOption(value)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="India">India (₹100 shipping)</SelectItem>
                   <SelectItem value="International">International (₹500 shipping)</SelectItem>
+                  <SelectItem value="custom">Custom shipping fee</SelectItem>
                   <SelectItem value="none">No shipping fee (₹0)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
+          {shippingOption === 'custom' && (
+            <div className="space-y-2">
+              <Label htmlFor="offline-custom-shipping">Custom shipping fee (₹)</Label>
+              <Input id="offline-custom-shipping" type="number" min={0} step="0.01" placeholder="0.00" value={customShipping} onChange={event => setCustomShipping(event.target.value)} />
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="offline-shipping-address">Billing/shipping address</Label>
             <Textarea id="offline-shipping-address" value={shippingAddress} onChange={event => setShippingAddress(event.target.value)} rows={3} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="offline-invoice-notes">Invoice notes (optional)</Label>
+            <Textarea id="offline-invoice-notes" placeholder="Add delivery instructions, payment notes, or a thank-you message" value={invoiceNotes} onChange={event => setInvoiceNotes(event.target.value)} rows={2} />
           </div>
 
           <div className="space-y-2">
@@ -314,6 +362,28 @@ export default function OfflineInvoiceGenerator() {
           <Button className="w-full" onClick={generateInvoice} disabled={isSaving}>
             <Plus className="mr-2 h-4 w-4" />
             {isSaving ? 'Saving invoice...' : 'Save & Generate Invoice'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              localStorage.removeItem(INVOICE_DRAFT_STORAGE_KEY);
+              setProductSearch('');
+              setCustomerName('');
+              setCustomerEmail('');
+              setCustomerPhone('');
+              setShippingAddress('');
+              setShippingOption('India');
+              setCustomShipping('');
+              setInvoiceNotes('');
+              setInvoiceDate(new Date().toISOString().slice(0, 10));
+              setLines([]);
+            }}
+            disabled={isSaving}
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Clear draft
           </Button>
         </CardContent>
       </Card>
