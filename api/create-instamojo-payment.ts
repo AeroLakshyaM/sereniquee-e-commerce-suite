@@ -33,6 +33,14 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (!supabaseUrl || !serviceKey) {
     return res.status(503).json({ error: 'The website payment database settings are incomplete in Vercel.' });
   }
+  try {
+    const gatewayUrl = new URL(baseUrl);
+    if (gatewayUrl.protocol !== 'https:' || !['test.instamojo.com', 'www.instamojo.com'].includes(gatewayUrl.hostname) || gatewayUrl.pathname !== '/') {
+      return res.status(503).json({ error: 'The Instamojo server address in Vercel is incorrect. Use https://test.instamojo.com for test credentials or https://www.instamojo.com for live credentials.' });
+    }
+  } catch {
+    return res.status(503).json({ error: 'The Instamojo server address in Vercel is invalid.' });
+  }
 
   const orderId = req.body?.orderId;
   if (!orderId) return res.status(400).json({ error: 'Missing order reference.' });
@@ -105,10 +113,22 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       },
       body,
     });
-    const responseData = await apiResponse.json() as { payment_request?: { id?: string; longurl?: string }; message?: string };
+    const responseText = await apiResponse.text();
+    let responseData: { payment_request?: { id?: string; longurl?: string }; message?: string };
+    try {
+      responseData = JSON.parse(responseText) as typeof responseData;
+    } catch {
+      responseData = { message: 'Instamojo returned an unreadable response.' };
+    }
     const paymentRequest = responseData.payment_request;
     if (!apiResponse.ok || !paymentRequest?.id || !paymentRequest.longurl) {
       console.error('Instamojo payment request creation failed:', apiResponse.status, responseData.message || 'No payment link returned');
+      if (apiResponse.status === 401 || apiResponse.status === 403) {
+        return res.status(502).json({ error: 'Instamojo rejected the credentials. Confirm the API key and Auth Token are from the same test or live account as the configured server address.' });
+      }
+      if (apiResponse.status >= 500) {
+        return res.status(502).json({ error: 'Instamojo is temporarily unavailable. Please try again in a few minutes.' });
+      }
       return res.status(502).json({ error: 'Instamojo could not create the payment link. Please try again.' });
     }
 
@@ -125,7 +145,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   } catch (error) {
     console.error(`Unable to start Instamojo checkout (${stage}):`, error);
     if (stage === 'create_instamojo_request') {
-      return res.status(502).json({ error: 'Could not reach Instamojo. Please check the test/live credentials and try again.' });
+      return res.status(502).json({ error: 'The website server could not connect to Instamojo. Check the Instamojo server address and Vercel function logs; credential mismatches will show a separate error.' });
     }
     if (stage === 'save_payment_request') {
       return res.status(503).json({ error: 'Instamojo created a payment link but the website could not save it. Please do not retry yet; check the order in the admin dashboard.' });
