@@ -68,6 +68,7 @@ import InventoryManager from '@/components/admin/InventoryManager';
 import CouponsManager from '@/components/admin/CouponsManager';
 import NewsletterManager from '@/components/admin/NewsletterManager';
 import { slugify } from '@/lib/utils';
+import type { Json } from '@/integrations/supabase/types';
 
 // Tab definitions — a single source of truth for the admin nav
 const TABS = [
@@ -261,6 +262,7 @@ export default function Admin() {
       ...copy,
       name: `${product.name} (Copy)`,
       slug: `${slugify(product.name)}-copy-${Date.now()}`,
+      metadata: product.metadata as Json,
     });
     if (error) {
       toast({ title: 'Duplication failed', description: error.message, variant: 'destructive' });
@@ -372,7 +374,7 @@ export default function Admin() {
           <CategoryManager />
         </TabsContent>
 
-        <TabsContent value="products" className="space-y-6">
+        <TabsContent value="products" forceMount className="space-y-6 data-[state=inactive]:hidden">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
             <h2 className="font-serif text-xl md:text-2xl">Product Management</h2>
             <Button

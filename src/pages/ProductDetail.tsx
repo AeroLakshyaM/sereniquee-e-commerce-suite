@@ -59,6 +59,21 @@ export default function ProductDetail() {
       ? [product.image_url] 
       : [];
 
+  const productMetadata = product.metadata ?? {};
+  const productHighlights = [
+    { label: 'Wax', value: typeof productMetadata.wax_type === 'string' ? productMetadata.wax_type : '', icon: Flame },
+    { label: 'Burn time', value: typeof productMetadata.burn_time_hours === 'number' ? `${productMetadata.burn_time_hours} hours` : '', icon: Clock },
+    { label: 'Scent notes', value: typeof productMetadata.scent_notes === 'string' ? productMetadata.scent_notes : '', icon: Sparkles },
+    { label: 'Wick', value: typeof productMetadata.wick_type === 'string' ? productMetadata.wick_type : '', icon: Heart },
+    { label: 'Net weight', value: typeof productMetadata.net_weight === 'string' ? productMetadata.net_weight : '', icon: Home },
+  ].filter((highlight) => highlight.value);
+  const materialDetails = [
+    { label: 'Wax', value: typeof productMetadata.wax_type === 'string' ? productMetadata.wax_type : '' },
+    { label: 'Wick', value: typeof productMetadata.wick_type === 'string' ? productMetadata.wick_type : '' },
+    { label: 'Net weight', value: typeof productMetadata.net_weight === 'string' ? productMetadata.net_weight : '' },
+    { label: 'Scent notes', value: typeof productMetadata.scent_notes === 'string' ? productMetadata.scent_notes : '' },
+  ].filter((detail) => detail.value);
+
   const handlePrevImage = () => {
     setSelectedImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
@@ -268,21 +283,18 @@ export default function ProductDetail() {
             {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
           </Button>
 
-          {/* Product Highlights */}
-          <div className="mt-8 grid grid-cols-3 gap-4">
-            <div className="text-center p-4 border border-border rounded">
-              <Flame className="h-5 w-5 mx-auto mb-2 text-primary" />
-              <p className="text-xs text-muted-foreground">Natural Soy Wax</p>
+          {/* Product highlights use the details supplied for this product. */}
+          {productHighlights.length > 0 && (
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {productHighlights.map(({ label, value, icon: Icon }) => (
+                <div key={label} className="min-w-0 rounded-lg border border-border p-4 text-center">
+                  <Icon className="mx-auto mb-2 h-5 w-5 text-primary" />
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+                  <p className="mt-1 break-words text-xs font-medium">{value}</p>
+                </div>
+              ))}
             </div>
-            <div className="text-center p-4 border border-border rounded">
-              <Clock className="h-5 w-5 mx-auto mb-2 text-primary" />
-              <p className="text-xs text-muted-foreground">40-50 Hour Burn</p>
-            </div>
-            <div className="text-center p-4 border border-border rounded">
-              <Heart className="h-5 w-5 mx-auto mb-2 text-primary" />
-              <p className="text-xs text-muted-foreground">Hand-Poured</p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -363,20 +375,19 @@ export default function ProductDetail() {
                 Ingredients & Materials
               </div>
             </AccordionTrigger>
-            <AccordionContent className="text-muted-foreground leading-relaxed space-y-4">
-              <div>
-                <h4 className="font-semibold text-foreground mb-2">Premium Quality Components:</h4>
-                <ul className="space-y-2 ml-4">
-                  <li><strong>Wax:</strong> 100% Natural Soy Wax - Renewable, biodegradable, and cleaner burning than paraffin</li>
-                  <li><strong>Wick:</strong> Natural Cotton Wick - Lead-free and provides consistent, even burn</li>
-                  <li><strong>Fragrance:</strong> Premium Phthalate-Free Fragrance Oils - Safe, long-lasting scent throw</li>
-                  <li><strong>Container:</strong> High-Quality Glass Vessel - Reusable after candle is finished</li>
-                  <li><strong>Weight:</strong> Approximately 8 oz (227g) of premium wax</li>
-                </ul>
-              </div>
-              <p className="text-sm italic">
-                Free from parabens, sulfates, and harmful chemicals. Vegan-friendly and cruelty-free.
-              </p>
+            <AccordionContent className="space-y-4 text-muted-foreground leading-relaxed">
+              {materialDetails.length > 0 ? (
+                <dl className="grid gap-3 sm:grid-cols-2">
+                  {materialDetails.map(({ label, value }) => (
+                    <div key={label} className="rounded-lg border border-border p-4">
+                      <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
+                      <dd className="mt-1 font-medium text-foreground">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <p>Add materials and scent details to this product listing for customers to see them here.</p>
+              )}
             </AccordionContent>
           </AccordionItem>
 
@@ -388,7 +399,15 @@ export default function ProductDetail() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="text-muted-foreground leading-relaxed">
-              <div className="space-y-4">
+              {typeof productMetadata.care_instructions === 'string' && productMetadata.care_instructions.trim() ? (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="mb-2 font-semibold text-foreground">Care instructions for this product</h4>
+                    <p className="whitespace-pre-line">{productMetadata.care_instructions}</p>
+                  </div>
+                  <p className="text-sm">Always keep a burning candle in sight and away from children, pets, and flammable materials.</p>
+                </div>
+              ) : <div className="space-y-4">
                 <div>
                   <h4 className="font-semibold text-foreground mb-2">For Best Results:</h4>
                   <ul className="space-y-2 ml-4 list-disc">
@@ -404,7 +423,7 @@ export default function ProductDetail() {
                   <strong>Pro Tip:</strong> To maximize fragrance throw, burn your candle in smaller rooms or 
                   during the first few hours of lighting when scent distribution is strongest.
                 </p>
-              </div>
+              </div>}
             </AccordionContent>
           </AccordionItem>
 
