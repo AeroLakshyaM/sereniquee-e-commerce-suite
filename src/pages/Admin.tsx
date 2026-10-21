@@ -91,10 +91,34 @@ const TABS = [
 
 type TabValue = (typeof TABS)[number]['value'];
 
+const TAB_DESCRIPTIONS: Record<TabValue, string> = {
+  home: 'Your daily store overview and the next actions to take.',
+  insights: 'Recommendations generated from your store activity.',
+  analytics: 'Sales, customer, and product performance at a glance.',
+  categories: 'Organize the collections shoppers use to browse.',
+  products: 'Manage product details, pricing, images, and availability.',
+  orders: 'Review purchases and move orders through fulfillment.',
+  invoices: 'Create and review invoices for offline orders.',
+  users: 'View customer accounts and account details.',
+  calendar: 'Keep upcoming orders and business dates in view.',
+  blogs: 'Write, edit, and publish stories for your customers.',
+  social: 'Prepare and manage social content for your brand.',
+  'custom-orders': 'Track bespoke requests and bulk order inquiries.',
+  reviews: 'Read customer feedback and manage product reviews.',
+  inventory: 'Monitor stock levels and prepare for restocking.',
+  coupons: 'Create offers and monitor coupon usage.',
+  newsletter: 'Manage subscribers and prepare email campaigns.',
+};
+
 export default function Admin() {
   // ── Tab state — URL-synced so it survives refresh & is shareable ──────────
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = (searchParams.get('tab') as TabValue) ?? 'home';
+  const requestedTab = searchParams.get('tab');
+  const activeTab: TabValue = TABS.some(tab => tab.value === requestedTab)
+    ? requestedTab as TabValue
+    : 'home';
+  const activeSection = TABS.find(tab => tab.value === activeTab) ?? TABS[0];
+  const ActiveSectionIcon = activeSection.icon;
 
   const setActiveTab = (tab: string) => {
     setSearchParams(prev => {
@@ -278,10 +302,11 @@ export default function Admin() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="mb-6 md:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="mb-6 flex flex-col items-start justify-between gap-4 rounded-2xl border border-border/70 bg-gradient-to-br from-card via-card to-amber-50/60 p-5 shadow-sm dark:to-amber-950/10 sm:flex-row sm:items-center md:mb-8 md:p-7">
         <div>
-          <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl mb-2">Admin Dashboard</h1>
-          <p className="text-sm md:text-base text-muted-foreground">Manage your e-commerce platform</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-amber-700 dark:text-amber-400">Sereniquee · Store workspace</p>
+          <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl">Admin Dashboard</h1>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">Keep products, orders, and customer experiences moving from one place.</p>
         </div>
         <OrderNotifications />
       </div>
@@ -289,10 +314,12 @@ export default function Admin() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
         {/* Mobile: Dropdown-style selector */}
         <div className="lg:hidden">
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground" htmlFor="admin-section-select">Go to section</label>
           <select
+            id="admin-section-select"
             value={activeTab}
             onChange={e => setActiveTab(e.target.value)}
-            className="w-full p-3 rounded-lg border border-border bg-background text-foreground"
+            className="w-full rounded-xl border border-border bg-card p-3 text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {TABS.map(tab => (
               <option key={tab.value} value={tab.value}>
@@ -303,19 +330,30 @@ export default function Admin() {
         </div>
 
         {/* Desktop: Keep every navigation tab on one horizontal row. */}
-        <div className="hidden lg:block w-full overflow-x-auto pb-1">
-          <TabsList className="inline-flex w-max min-w-full flex-nowrap gap-1">
+        <div className="hidden w-full overflow-x-auto rounded-2xl border border-border/70 bg-muted/40 p-2 pb-3 shadow-sm lg:block">
+          <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Navigate workspace</p>
+          <TabsList aria-label="Admin sections" className="inline-flex h-auto w-max min-w-full flex-nowrap justify-start gap-1 rounded-xl bg-transparent p-0">
             {TABS.map(tab => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className={`flex shrink-0 items-center gap-2 ${tab.className}`}
+                className="flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm xl:px-3.5 xl:text-sm"
               >
-                <tab.icon className="h-4 w-4" />
+                <tab.icon className="h-4 w-4 text-muted-foreground" />
                 <span>{tab.label}</span>
               </TabsTrigger>
             ))}
           </TabsList>
+        </div>
+
+        <div className="flex items-center gap-3 rounded-xl border border-border/70 bg-card/80 px-4 py-3 shadow-sm" aria-live="polite">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+            <ActiveSectionIcon className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">{activeSection.label}</p>
+            <p className="text-xs text-muted-foreground sm:text-sm">{TAB_DESCRIPTIONS[activeTab]}</p>
+          </div>
         </div>
 
         <TabsContent value="home" className="space-y-6">
