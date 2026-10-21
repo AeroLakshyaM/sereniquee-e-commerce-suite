@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
-import { sendPaymentConfirmation } from './_lib/sendPaymentConfirmation';
+import { sendPaymentConfirmation } from './_lib/sendPaymentConfirmation.js';
 
 interface ApiRequest {
   method?: string;

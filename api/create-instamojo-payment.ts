@@ -143,9 +143,22 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     return res.status(200).json({ paymentUrl: paymentRequest.longurl });
   } catch (error) {
-    console.error(`Unable to start Instamojo checkout (${stage}):`, error);
+    const failure = error as Error & { cause?: { code?: string; message?: string } };
+    const gatewayHost = (() => {
+      try { return new URL(baseUrl).host; } catch { return 'invalid-url'; }
+    })();
+    console.error(`Unable to start Instamojo checkout (${stage}):`, {
+      name: failure.name,
+      message: failure.message,
+      causeCode: failure.cause?.code,
+      causeMessage: failure.cause?.message,
+      gatewayHost,
+    });
     if (stage === 'create_instamojo_request') {
-      return res.status(502).json({ error: 'The website server could not connect to Instamojo. Check the Instamojo server address and Vercel function logs; credential mismatches will show a separate error.' });
+      const networkCode = failure.cause?.code;
+      return res.status(502).json({
+        error: `The website server could not connect to Instamojo${networkCode ? ` (${networkCode})` : ''}. Check the server address and Vercel function logs; credential mismatches will show a separate error.`,
+      });
     }
     if (stage === 'save_payment_request') {
       return res.status(503).json({ error: 'Instamojo created a payment link but the website could not save it. Please do not retry yet; check the order in the admin dashboard.' });

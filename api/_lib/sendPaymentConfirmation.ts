@@ -9,7 +9,7 @@ export async function sendPaymentConfirmation(supabase: SupabaseClient, orderId:
   if (!process.env.RESEND_API_KEY) return;
 
   const { data: order, error: orderError } = await supabase.from('orders')
-    .select('id, order_number, total_amount, guest_email, guest_name, user_id, payment_confirmation_email_sent, status')
+    .select('id, order_number, total_amount, guest_email, guest_name, user_id, payment_confirmation_email_sent, payment_status, status')
     .eq('id', orderId).maybeSingle();
   if (orderError) throw orderError;
   if (!order || order.payment_confirmation_email_sent || order.payment_status !== 'paid') return;
