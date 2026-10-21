@@ -50,7 +50,7 @@ export function SeoHelmet({
     : canonicalBaseUrl;
   const resolveAssetUrl = (asset?: string | null) =>
     asset ? (asset.startsWith('http') ? asset : `${canonicalBaseUrl}${asset.startsWith('/') ? asset : `/${asset}`}`) : undefined;
-  const finalImage = resolveAssetUrl(image || seoSettings?.default_og_image) || `${canonicalBaseUrl}/og-default.png`;
+  const finalImage = resolveAssetUrl(image || seoSettings?.default_og_image) || `${canonicalBaseUrl}/landing-candles.jpg`;
   const productImages = product
     ? (product.image_urls?.length ? product.image_urls : product.image_url ? [product.image_url] : [])
         .map(resolveAssetUrl)
@@ -148,7 +148,7 @@ export function SeoHelmet({
             name: siteName,
             logo: {
               '@type': 'ImageObject',
-              url: `${canonicalBaseUrl}/logo.png`,
+              url: `${canonicalBaseUrl}/footer-logo.png`,
             },
           },
         })}

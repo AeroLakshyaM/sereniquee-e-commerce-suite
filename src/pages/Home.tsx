@@ -37,8 +37,21 @@ export default function Home() {
           <div className="absolute top-1/4 right-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-amber-200/20 dark:bg-amber-500/10 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-1/4 left-1/3 w-56 h-56 sm:w-80 sm:h-80 bg-orange-200/20 dark:bg-orange-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
+
+        <div className="absolute inset-y-0 right-0 w-full md:w-[55%]" aria-hidden="true">
+          <img
+            src="/landing-candles.jpg"
+            alt=""
+            width={768}
+            height={1280}
+            fetchPriority="high"
+            decoding="async"
+            className="h-full w-full object-cover object-center opacity-20 md:opacity-100"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/25 md:from-background md:via-background/35 md:to-transparent" />
+        </div>
         
-        <div className="container-luxury relative z-10 py-12 sm:py-16 md:py-20">
+        <div className="container-luxury relative z-10 grid items-center gap-8 py-12 sm:py-16 md:min-h-[90vh] md:grid-cols-[1.05fr_0.95fr] md:py-20">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-4 sm:mb-6 animate-fade-in">
               <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-amber-600 dark:text-amber-400" />
@@ -85,6 +98,7 @@ export default function Home() {
               </Link>
             </div>
           </div>
+          <div className="hidden md:block" aria-hidden="true" />
         </div>
       </section>
 

@@ -1,9 +1,9 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { Product } from '@/types';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
-import { useState } from 'react';
 
 interface ProductCardProps {
   product: Product;
@@ -15,156 +15,134 @@ interface ProductCardProps {
 export function ProductCard({ product, featured, onQuickView, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  
-  // Get all available images (prefer image_urls array, fallback to image_url)
-  const images = product.image_urls && product.image_urls.length > 0 
-    ? product.image_urls 
-    : product.image_url 
-      ? [product.image_url] 
+  const images = product.image_urls?.length
+    ? product.image_urls
+    : product.image_url
+      ? [product.image_url]
       : [];
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addItem(product, 1);
+  const showPreviousImage = () => {
+    setCurrentImageIndex((index) => (index === 0 ? images.length - 1 : index - 1));
   };
 
-  const handleQuickView = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onQuickView) {
-      onQuickView(product);
-    }
-  };
-
-  const handlePrevImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  };
-
-  const handleNextImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  };
-
-  const handleDotClick = (e: React.MouseEvent, index: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentImageIndex(index);
+  const showNextImage = () => {
+    setCurrentImageIndex((index) => (index === images.length - 1 ? 0 : index + 1));
   };
 
   return (
-    <Link
-      to={`/product/${product.slug}`}
-      className="group block"
-    >
-      <div className="relative overflow-hidden bg-secondary aspect-[3/4] mb-4">
-        {images.length > 0 ? (
-          <>
+    <article className="group">
+      <div className="relative mb-4 aspect-[3/4] overflow-hidden bg-secondary">
+        <Link
+          to={`/product/${product.slug}`}
+          className="absolute inset-0 block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          aria-label={`View ${product.name}`}
+        >
+          {images.length > 0 ? (
             <img
               src={images[currentImageIndex]}
-              alt={`${product.name} - Image ${currentImageIndex + 1}`}
+              alt={product.name}
               width={400}
               height={533}
               loading={priority ? 'eager' : 'lazy'}
               fetchPriority={priority ? 'high' : 'auto'}
               decoding="async"
-              className="w-full h-full object-cover product-image-zoom"
+              className="h-full w-full object-cover product-image-zoom"
             />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
+              No image available
+            </div>
+          )}
+        </Link>
 
-            {/* Image Navigation Arrows - Only show if multiple images */}
-            {images.length > 1 && (
-              <>
+        {images.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={showPreviousImage}
+              className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 text-black shadow-lg transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={`Previous image of ${product.name}`}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={showNextImage}
+              className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 text-black shadow-lg transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={`Next image of ${product.name}`}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            <div className="absolute bottom-20 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+              {images.map((_, index) => (
                 <button
-                  onClick={handlePrevImage}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-black rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg z-10"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={handleNextImage}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-black rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg z-10"
-                  aria-label="Next image"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-
-                {/* Image Dots Indicator */}
-                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-                  {images.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={(e) => handleDotClick(e, index)}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                        index === currentImageIndex
-                          ? 'bg-white w-6'
-                          : 'bg-white/50 hover:bg-white/75'
-                      }`}
-                      aria-label={`View image ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
+                  key={index}
+                  type="button"
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`h-2 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                    index === currentImageIndex ? 'w-6 bg-white' : 'w-2 bg-white/60 hover:bg-white/90'
+                  }`}
+                  aria-label={`View image ${index + 1} of ${product.name}`}
+                  aria-current={index === currentImageIndex ? 'true' : undefined}
+                />
+              ))}
+            </div>
           </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
-            No image available
+        )}
+
+        {featured && (
+          <span className="absolute left-4 top-4 bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
+            Bestseller
+          </span>
+        )}
+
+        {product.stock_quantity === 0 && (
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <span className="rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground">
+              Out of Stock
+            </span>
           </div>
         )}
 
-        <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute bottom-4 left-4 right-4 z-20 opacity-100 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
           <div className="flex gap-2">
             {onQuickView && (
               <Button
-                onClick={handleQuickView}
+                type="button"
+                onClick={() => onQuickView(product)}
                 variant="secondary"
                 size="icon"
-                className="bg-white/95 hover:bg-white text-black backdrop-blur-sm"
+                className="bg-white/95 text-black hover:bg-white focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label={`Quick view ${product.name}`}
               >
                 <Eye className="h-4 w-4" />
               </Button>
             )}
             {product.stock_quantity > 0 && (
               <Button
-                onClick={handleAddToCart}
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all"
+                type="button"
+                onClick={() => addItem(product, 1)}
+                className="flex-1 bg-primary text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Add to Cart
               </Button>
             )}
           </div>
         </div>
-
-        {/* Featured Badge */}
-        {featured && (
-          <span className="absolute top-4 left-4 bg-accent text-accent-foreground text-xs px-3 py-1 font-medium">
-            Bestseller
-          </span>
-        )}
-        
-        {/* Out of Stock Badge */}
-        {product.stock_quantity === 0 && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-            <span className="bg-destructive text-destructive-foreground px-4 py-2 font-semibold text-sm rounded-full">
-              Out of Stock
-            </span>
-          </div>
-        )}
       </div>
 
-      <div className="space-y-1">
-        <h3 className="font-serif text-lg group-hover:text-muted-foreground transition-colors">
-          {product.name}
-        </h3>
-        <p className="text-muted-foreground text-sm">
-          ₹{product.price.toFixed(2)}
-        </p>
-      </div>
-    </Link>
+      <Link
+        to={`/product/${product.slug}`}
+        className="block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      >
+        <div className="space-y-1">
+          <h3 className="font-serif text-lg transition-colors group-hover:text-muted-foreground">
+            {product.name}
+          </h3>
+          <p className="text-sm text-muted-foreground">₹{product.price.toFixed(2)}</p>
+        </div>
+      </Link>
+    </article>
   );
 }
