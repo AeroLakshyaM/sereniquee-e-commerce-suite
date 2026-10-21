@@ -53,6 +53,7 @@ interface CreateOrderParams {
     phone: string;
   };
   discountAmount?: number;
+  discountCodeId?: string;
 }
 
 export function useCreateOrder() {
@@ -60,7 +61,7 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ items, shippingAddress, shippingAmount, gstAmount, specialRequirements, guestInfo, discountAmount = 0 }: CreateOrderParams) => {
+    mutationFn: async ({ items, shippingAddress, shippingAmount, gstAmount, specialRequirements, guestInfo, discountAmount = 0, discountCodeId }: CreateOrderParams) => {
       // Guest checkout or authenticated user
       const isGuest = !user && guestInfo;
       const orderId = crypto.randomUUID();
@@ -86,6 +87,7 @@ export function useCreateOrder() {
         shipping_address: shippingAddress,
         special_requirements: specialRequirements,
         status: 'pending',
+        discount_code_id: discountCodeId || null,
       };
 
       // Add user_id for authenticated users or guest info for guest checkout
