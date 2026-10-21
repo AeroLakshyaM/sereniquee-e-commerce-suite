@@ -23,15 +23,21 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   const apiKey = process.env.INSTAMOJO_API_KEY;
   const authToken = process.env.INSTAMOJO_AUTH_TOKEN;
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const baseUrl = process.env.INSTAMOJO_BASE_URL || 'https://www.instamojo.com';
   const siteUrl = process.env.PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
   if (!apiKey || !authToken || !siteUrl) {
     return res.status(503).json({ error: 'Instamojo payment settings are incomplete.' });
   }
+  if (!supabaseUrl || !serviceKey) {
+    return res.status(503).json({ error: 'The website payment database settings are incomplete in Vercel.' });
+  }
 
   const orderId = req.body?.orderId;
   if (!orderId) return res.status(400).json({ error: 'Missing order reference.' });
 
+  let stage = 'load_order';
   try {
     const supabase = getSupabase();
     const { data: order, error: orderError } = await supabase
@@ -40,7 +46,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       .eq('id', orderId)
       .maybeSingle();
 
-    if (orderError) throw orderError;
+    if (orderError) {
+      console.error('Unable to load order for Instamojo checkout:', orderError);
+      if (/payment_status|payment_url|payment_request_id/.test(orderError.message || '')) {
+        return res.status(503).json({ error: 'The payment database update has not been applied yet. Please contact the site administrator.' });
+      }
+      throw orderError;
+    }
     if (!order) return res.status(404).json({ error: 'Order not found.' });
 
     const authorization = req.headers.authorization;
@@ -82,6 +94,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       webhook: `${siteUrl.replace(/\/$/, '')}/api/instamojo-webhook`,
     });
 
+    stage = 'create_instamojo_request';
     const apiResponse = await fetch(`${baseUrl.replace(/\/$/, '')}/api/1.1/payment-requests/`, {
       method: 'POST',
       headers: {
@@ -99,6 +112,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return res.status(502).json({ error: 'Instamojo could not create the payment link. Please try again.' });
     }
 
+    stage = 'save_payment_request';
     const { error: updateError } = await supabase.from('orders').update({
       payment_provider: 'instamojo',
       payment_request_id: paymentRequest.id,
@@ -109,7 +123,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     return res.status(200).json({ paymentUrl: paymentRequest.longurl });
   } catch (error) {
-    console.error('Unable to start Instamojo checkout:', error);
-    return res.status(500).json({ error: 'Unable to start payment right now. Please try again.' });
+    console.error(`Unable to start Instamojo checkout (${stage}):`, error);
+    if (stage === 'create_instamojo_request') {
+      return res.status(502).json({ error: 'Could not reach Instamojo. Please check the test/live credentials and try again.' });
+    }
+    if (stage === 'save_payment_request') {
+      return res.status(503).json({ error: 'Instamojo created a payment link but the website could not save it. Please do not retry yet; check the order in the admin dashboard.' });
+    }
+    return res.status(500).json({ error: 'Unable to load the order for payment. Check the Vercel function logs and server database settings.' });
   }
 }
