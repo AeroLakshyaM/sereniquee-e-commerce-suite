@@ -3,44 +3,21 @@ import { ProductCard } from './ProductCard';
 
 interface ProductGridProps {
   products: Product[];
-  masonry?: boolean;
-  isLoading?: boolean;
   onQuickView?: (product: Product) => void;
 }
 
-export function ProductGrid({ products, masonry, isLoading, onQuickView }: ProductGridProps) {
-  if (masonry) {
-    return (
-      <div className="masonry-grid">
-        {products.map((product, index) => (
-          <div 
-            key={product.id} 
-            className="masonry-item animate-slide-up"
-            style={{ animationDelay: `${index * 100}ms` }}
-          >
-            <ProductCard 
-              product={product} 
-              featured={product.featured} 
-              onQuickView={onQuickView}
-              priority={index === 0}
-            />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
+export function ProductGrid({ products, onQuickView }: ProductGridProps) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
+    <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 lg:gap-8">
       {products.map((product, index) => (
-        <div 
+        <div
           key={product.id}
-          className="animate-slide-up"
-          style={{ animationDelay: `${index * 100}ms` }}
+          className="product-grid-item min-w-0"
+          style={{ animationDelay: `${(index % 12) * 18}ms` }}
         >
-          <ProductCard 
-            product={product} 
-            featured={product.featured} 
+          <ProductCard
+            product={product}
+            featured={product.featured}
             onQuickView={onQuickView}
             priority={index === 0}
           />

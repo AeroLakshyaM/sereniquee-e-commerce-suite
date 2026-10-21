@@ -9,18 +9,25 @@ interface ProductsPage {
   nextPage: number;
 }
 
+interface ProductQueryOptions {
+  listing?: boolean;
+}
+
+const PRODUCT_LISTING_FIELDS = 'id,name,slug,sku,description,price,category,stock_quantity,image_url,image_urls,featured,created_at,updated_at';
+
 function escapeSearchTerm(term: string) {
   return term.replace(/([\\(),])/g, '\\$1');
 }
 
-export function useProducts(category?: string, searchQuery?: string) {
+export function useProducts(category?: string, searchQuery?: string, options: ProductQueryOptions = {}) {
+  const listingOnly = options.listing === true;
   return useInfiniteQuery({
-    queryKey: ['products', category, searchQuery],
+    queryKey: ['products', category, searchQuery, listingOnly ? 'listing' : 'full'],
     initialPageParam: 0,
     queryFn: async ({ pageParam }): Promise<ProductsPage> => {
       let query = supabase
         .from('products')
-        .select('*')
+        .select(listingOnly ? PRODUCT_LISTING_FIELDS : '*')
         .order('created_at', { ascending: false })
         .order('id', { ascending: false });
 

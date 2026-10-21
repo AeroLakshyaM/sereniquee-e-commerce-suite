@@ -15,7 +15,7 @@ import { Product } from '@/types';
 import { ArrowRight, BookOpen, Flame, Heart, Leaf, Sparkles, Star, Timer } from 'lucide-react';
 
 export default function Home() {
-  const { data, isLoading } = useProducts();
+  const { data, isLoading } = useProducts(undefined, undefined, { listing: true });
   const products = data?.pages.flatMap((page) => page.products);
   const { data: latestBlogs, isLoading: blogsLoading } = useBlogs({ limit: 3 });
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);

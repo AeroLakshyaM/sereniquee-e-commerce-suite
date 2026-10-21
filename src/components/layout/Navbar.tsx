@@ -31,7 +31,7 @@ export function Navbar() {
   const { data: searchData, isFetching: isSearching } = useProducts(
     undefined,
     debouncedQuery || undefined,
-    // enabled flag keeps the query dormant until needed
+    { listing: true },
   );
 
   const searchResults = useMemo(() => {

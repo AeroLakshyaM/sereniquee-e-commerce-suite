@@ -23,7 +23,7 @@ export default function Shop() {
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  } = useProducts(selectedCategory, searchQuery);
+  } = useProducts(selectedCategory, searchQuery, { listing: true });
   const { activeCategories } = useCategories();
   const allProducts = useMemo(
     () => data?.pages.flatMap((page) => page.products) || [],
@@ -114,11 +114,7 @@ export default function Shop() {
       {isLoading ? (
         <ProductGridSkeleton count={8} />
       ) : allProducts.length > 0 ? (
-        <ProductGrid 
-          products={allProducts}
-          masonry 
-          onQuickView={setQuickViewProduct}
-        />
+        <ProductGrid products={allProducts} onQuickView={setQuickViewProduct} />
       ) : (
         <div className="text-center py-16 space-y-4">
           <p className="text-lg text-muted-foreground">
@@ -141,7 +137,7 @@ export default function Shop() {
         </div>
       )}
 
-      {allProducts.length > 0 && hasNextPage && (
+          {allProducts.length > 0 && hasNextPage && (
         <div className="mt-10 flex flex-col items-center gap-4">
           <Button
             variant="outline"
@@ -151,15 +147,12 @@ export default function Shop() {
             className="min-w-52"
           >
             {isFetchingNextPage ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Loading Products...
-              </>
-            ) : (
-              'Load More Products'
-            )}
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading products…</>
+            ) : 'Load More Products'}
           </Button>
-          {isFetchingNextPage && <ProductGridSkeleton count={4} />}
+          <p className="text-xs text-muted-foreground" aria-live="polite">
+            {isFetchingNextPage ? 'Adding the next products to your collection…' : `${allProducts.length} products shown`}
+          </p>
         </div>
       )}
 

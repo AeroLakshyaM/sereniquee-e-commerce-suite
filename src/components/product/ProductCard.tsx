@@ -12,14 +12,41 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
+const STORAGE_IMAGE_PATH = '/storage/v1/object/public/';
+
+function getOptimizedStorageImageUrl(source: string, width: number): string | null {
+  try {
+    const url = new URL(source);
+    if (!url.pathname.includes(STORAGE_IMAGE_PATH)) return null;
+    url.pathname = url.pathname.replace(STORAGE_IMAGE_PATH, '/storage/v1/render/image/public/');
+    url.searchParams.set('width', String(width));
+    url.searchParams.set('quality', '76');
+    url.searchParams.set('format', 'webp');
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function getStorageImageSrcSet(source: string): string | undefined {
+  if (!getOptimizedStorageImageUrl(source, 320)) return undefined;
+  return [320, 480, 720, 960]
+    .map((width) => `${getOptimizedStorageImageUrl(source, width)} ${width}w`)
+    .join(', ');
+}
+
 export function ProductCard({ product, featured, onQuickView, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [failedTransformedSource, setFailedTransformedSource] = useState<string | null>(null);
   const images = product.image_urls?.length
     ? product.image_urls
     : product.image_url
       ? [product.image_url]
       : [];
+  const imageSource = images[currentImageIndex];
+  const optimizedImageSource = imageSource ? getOptimizedStorageImageUrl(imageSource, 640) : null;
+  const useOriginalImage = imageSource === failedTransformedSource;
 
   const showPreviousImage = () => {
     setCurrentImageIndex((index) => (index === 0 ? images.length - 1 : index - 1));
@@ -39,13 +66,20 @@ export function ProductCard({ product, featured, onQuickView, priority = false }
         >
           {images.length > 0 ? (
             <img
-              src={images[currentImageIndex]}
+              src={useOriginalImage ? imageSource : optimizedImageSource || imageSource}
+              srcSet={useOriginalImage || !imageSource ? undefined : getStorageImageSrcSet(imageSource)}
+              sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 25vw"
               alt={product.name}
               width={400}
               height={533}
               loading={priority ? 'eager' : 'lazy'}
               fetchPriority={priority ? 'high' : 'auto'}
               decoding="async"
+              onError={() => {
+                if (optimizedImageSource && optimizedImageSource !== imageSource && !useOriginalImage) {
+                  setFailedTransformedSource(imageSource);
+                }
+              }}
               className="h-full w-full object-cover product-image-zoom"
             />
           ) : (
