@@ -42,6 +42,9 @@ export default function OrdersManagement() {
   const [giftDetails, setGiftDetails] = useState<any | null>(null);
   const [statusHistory, setStatusHistory] = useState<Array<{ status: string; created_at: string }>>([]);
   const [bankUtrs, setBankUtrs] = useState<Record<string, string>>({});
+  const [shippingQuoteInputs, setShippingQuoteInputs] = useState<Record<string, string>>({});
+  const [shippingCourierInputs, setShippingCourierInputs] = useState<Record<string, string>>({});
+  const [shippingBankUtrs, setShippingBankUtrs] = useState<Record<string, string>>({});
   const [proofUrls, setProofUrls] = useState<Record<string, string>>({});
   const statuses = ORDER_STATUSES;
 
@@ -70,6 +73,10 @@ export default function OrdersManagement() {
     const currentOrder = orders?.find(order => order.id === orderId);
     if (currentOrder?.order_source === 'online' && currentOrder.payment_method !== 'cod' && currentOrder.payment_status !== 'paid' && !['pending', 'cancelled'].includes(newStatus)) {
       toast({ title: 'Payment still needs verification', description: 'Mark the UPI payment received before moving this order into fulfillment.', variant: 'destructive' });
+      return;
+    }
+    if (currentOrder?.order_source === 'online' && ['shipped', 'delivered'].includes(newStatus) && currentOrder.shipping_quote_status !== 'paid') {
+      toast({ title: 'Shipping payment still pending', description: 'Confirm the courier charge is received before dispatch.', variant: 'destructive' });
       return;
     }
 
@@ -146,19 +153,19 @@ export default function OrdersManagement() {
   const customerPhone = (order: any) => order.guest_phone || '';
   const displayOrderNumber = (order: any) => order.order_number || order.id.slice(0, 8).toUpperCase();
 
-  const sendOrderEmail = async (order: any, event: 'payment-reminder' | 'order-confirmation' | 'tracking') => {
+  const sendOrderEmail = async (order: any, event: 'payment-reminder' | 'order-confirmation' | 'tracking' | 'shipping-quote', quoteAmount?: number, courierName?: string) => {
     setEmailingOrderId(order.id);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const response = await fetch('/api/order-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(sessionData.session?.access_token ? { Authorization: `Bearer ${sessionData.session.access_token}` } : {}) },
-        body: JSON.stringify({ orderId: order.id, event }),
+        body: JSON.stringify({ orderId: order.id, event, quoteAmount, courierName }),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || 'Email could not be sent.');
-      toast({ title: event === 'payment-reminder' ? 'Payment reminder sent' : event === 'order-confirmation' ? 'Order confirmation sent' : 'Shipping email sent', description: `Sent to ${customerEmail(order)}.` });
-      if (event === 'payment-reminder') await queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      toast({ title: event === 'payment-reminder' ? 'Payment reminder sent' : event === 'order-confirmation' ? 'Order confirmation sent' : event === 'shipping-quote' ? 'Courier quote emailed' : 'Shipping email sent', description: `Sent to ${customerEmail(order)}.` });
+      if (event === 'payment-reminder' || event === 'shipping-quote') await queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
       return true;
     } catch (error) {
       toast({ title: 'Email could not be sent', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
@@ -608,6 +615,16 @@ export default function OrdersManagement() {
                         {order.payment_status === 'paid' && <div className="flex flex-wrap items-center gap-2"><Badge className="bg-green-100 text-green-800">Paid</Badge>{order.payment_proof_path && <Button size="sm" variant="outline" onClick={async () => { const { error } = await supabase.storage.from('upi-payment-proofs').remove([order.payment_proof_path]); if (error) toast({ title: 'Image cleanup failed', description: error.message, variant: 'destructive' }); else { await supabase.from('orders').update({ payment_proof_path: null }).eq('id', order.id); setProofUrls(current => { const next = { ...current }; delete next[order.id]; return next; }); await queryClient.invalidateQueries({ queryKey: ['admin-orders'] }); toast({ title: 'Payment proof deleted' }); } }}>Delete proof image</Button>}</div>}
                       </div>
                     </div>
+                    {order.order_source === 'online' && order.payment_status !== 'pending_payment' && order.payment_status !== 'submitted_for_verification' && order.status !== 'cancelled' && <div className="rounded-lg border border-border bg-background p-4 space-y-3">
+                      <div><h4 className="font-semibold">Courier shipping quote</h4><p className="text-sm text-muted-foreground">Status: {String(order.shipping_quote_status || 'awaiting_quote').replace(/_/g, ' ')}{order.shipping_quote_amount ? ` · ₹${Number(order.shipping_quote_amount).toFixed(2)}` : ''}</p></div>
+                      {['awaiting_quote', 'quoted', 'declined'].includes(order.shipping_quote_status || 'awaiting_quote') && <div className="flex flex-col gap-2 sm:flex-row">
+                        <Input type="number" min="1" step="0.01" placeholder="Courier quote in ₹" value={shippingQuoteInputs[order.id] ?? (order.shipping_quote_amount ? String(order.shipping_quote_amount) : '')} onChange={event => setShippingQuoteInputs(current => ({ ...current, [order.id]: event.target.value }))} />
+                        <Input placeholder="Courier partner (optional)" value={shippingCourierInputs[order.id] || ''} onChange={event => setShippingCourierInputs(current => ({ ...current, [order.id]: event.target.value }))} />
+                        <Button disabled={emailingOrderId === order.id || !Number(shippingQuoteInputs[order.id] ?? order.shipping_quote_amount)} onClick={() => void sendOrderEmail(order, 'shipping-quote', Number(shippingQuoteInputs[order.id] ?? order.shipping_quote_amount), shippingCourierInputs[order.id])}><Mail className="mr-2 h-4 w-4" />{emailingOrderId === order.id ? 'Sending…' : 'Email quote'}</Button>
+                      </div>}
+                      {order.shipping_quote_status === 'submitted_for_verification' && <div className="flex flex-col gap-2 sm:flex-row"><p className="self-center text-sm">Customer UTR: <span className="font-mono">{order.shipping_utr}</span></p><Input placeholder="Bank UTR to compare" value={shippingBankUtrs[order.id] || ''} onChange={event => setShippingBankUtrs(current => ({ ...current, [order.id]: event.target.value }))} /><Button disabled={!shippingBankUtrs[order.id]?.trim()} onClick={async () => { const { data, error } = await supabase.rpc('admin_mark_shipping_received', { p_order_id: order.id, p_bank_utr: shippingBankUtrs[order.id].trim() }); if (error || !data) toast({ title: 'Shipping payment not confirmed', description: error?.message || 'The bank UTR did not match.', variant: 'destructive' }); else { await queryClient.invalidateQueries({ queryKey: ['admin-orders'] }); toast({ title: 'Shipping payment confirmed' }); } }}><Banknote className="mr-2 h-4 w-4" />Mark shipping received</Button></div>}
+                      {order.shipping_quote_status === 'paid' && <Badge className="bg-green-100 text-green-800">Courier fee received · dispatch allowed</Badge>}
+                    </div>}
                     {/* Order Items */}
                     <div>
                       <h4 className="font-semibold mb-3 text-sm md:text-base">Order Items</h4>

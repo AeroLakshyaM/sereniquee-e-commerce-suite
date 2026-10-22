@@ -51,7 +51,7 @@ export default function Shop() {
     <div className="container-luxury py-12">
       <SeoHelmet
         title="Shop Luxury Handmade Candles - Sereniquee"
-        description="Browse our curated collection of luxury handmade soy candles. Discover unique scents crafted with natural ingredients, essential oils, and sustainable materials. Free shipping available."
+        description="Browse Sereniquee Candles’ hand-poured soy candle collection. Courier shipping is quoted after your order based on destination, parcel weight, and courier partner."
         keywords="buy handmade candles, luxury candles shop, soy wax candles, scented candles online, natural candles, eco-friendly candles, aromatherapy candles"
         url="/shop"
       />

@@ -284,7 +284,7 @@ export default function Contact() {
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="Sereniquee Candles Location - 131, Telephone Nagar, Indore"
+              title="Sereniquee Candles Location - 131, Telephone Nagar Extension, Indore"
             />
           </div>
           <div className="mt-6 text-center">

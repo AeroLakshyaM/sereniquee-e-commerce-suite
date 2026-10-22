@@ -30,6 +30,7 @@ const FAQ              = lazy(() => import("./pages/FAQ"));
 const PrivacyPolicy    = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService   = lazy(() => import("./pages/TermsOfService"));
 const ShippingReturns  = lazy(() => import("./pages/ShippingReturns"));
+const ShippingQuote    = lazy(() => import("./pages/ShippingQuote"));
 const NotFound         = lazy(() => import("./pages/NotFound"));
 const CustomOrders     = lazy(() => import("./pages/CustomOrders"));
 
@@ -206,6 +207,7 @@ const App = () => (
                       </Layout>
                     }
                   />
+                  <Route path="/shipping-quote" element={<Layout><ShippingQuote /></Layout>} />
                   <Route
                     path="/custom-orders"
                     element={

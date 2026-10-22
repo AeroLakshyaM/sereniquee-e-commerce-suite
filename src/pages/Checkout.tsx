@@ -65,14 +65,15 @@ export default function Checkout() {
     country: '',
     specialRequirements: '',
   });
-  const shippingAmount = formData.country.trim().toLowerCase() === 'india' ? 100 : 500;
+  // Courier shipping is quoted after the product order is placed.
+  const shippingAmount = 0;
   const discountAmount = appliedCoupon
     ? appliedCoupon.type === 'percentage'
       ? Math.min(totalPrice, totalPrice * appliedCoupon.value / 100)
       : Math.min(totalPrice, appliedCoupon.value)
     : 0;
   const discountedSubtotal = Math.max(0, totalPrice - discountAmount);
-  const gstAmount = (discountedSubtotal + shippingAmount) * 0.05;
+  const gstAmount = discountedSubtotal * 0.05;
   const grandTotal = discountedSubtotal + shippingAmount + gstAmount;
 
   const applyCoupon = async () => {
@@ -369,7 +370,7 @@ export default function Checkout() {
       };
       if (paymentMethod === 'cod') {
         clearCart();
-        toast({ title: 'Order placed with cash on delivery', description: `Order ${paymentDetails.orderNumber || paymentDetails.id} is confirmed. Pay when it arrives.` });
+        toast({ title: 'Order placed', description: 'Your courier shipping fee will be quoted by email and paid separately before dispatch. Product payment is due on delivery.' });
         navigate(user ? '/profile' : '/');
       } else {
         sessionStorage.setItem('pendingUpiOrder', JSON.stringify(paymentDetails));
@@ -675,14 +676,15 @@ export default function Checkout() {
 
               <div className="space-y-3">
                 <Label>Payment method</Label>
+                <p className="text-sm text-muted-foreground">The amount below covers products and tax only. We will email a courier-based shipping quote after you place the order. Shipping must be approved and paid separately before dispatch.</p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <button type="button" aria-pressed={paymentMethod === 'upi'} onClick={() => setPaymentMethod('upi')} className={`rounded-lg border p-4 text-left transition-colors ${paymentMethod === 'upi' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border hover:border-primary/50'}`}>
                     <span className="flex items-center gap-2 font-medium"><Banknote className="h-4 w-4" /> UPI payment</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">Pay by QR or UPI ID. Complete within 15 minutes.</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">Pay for products by QR or UPI ID. Shipping is quoted separately after your order.</span>
                   </button>
                   <button type="button" aria-pressed={paymentMethod === 'cod'} onClick={() => setPaymentMethod('cod')} className={`rounded-lg border p-4 text-left transition-colors ${paymentMethod === 'cod' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border hover:border-primary/50'}`}>
                     <span className="flex items-center gap-2 font-medium"><Truck className="h-4 w-4" /> Cash on delivery</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">Pay in cash when your order arrives.</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">Product amount is due on delivery; shipping is quoted and paid separately before dispatch.</span>
                   </button>
                 </div>
               </div>
@@ -745,7 +747,7 @@ export default function Checkout() {
                 {discountAmount > 0 && <div className="flex justify-between text-sm text-green-600"><span>Discount</span><span>-₹{discountAmount.toFixed(2)}</span></div>}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span>₹{shippingAmount.toFixed(2)}</span>
+                  <span>Quoted after order</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">GST (5%)</span>

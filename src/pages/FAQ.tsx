@@ -32,7 +32,7 @@ export default function FAQ() {
         },
         {
           q: "Do you use real essential oils?",
-          a: "Yes, we blend premium fragrance oils with pure essential oils to create complex, long-lasting scents that are also therapeutic and natural."
+          a: "We blend premium fragrance oils with pure essential oils to create complex, lasting scents."
         }
       ]
     },
@@ -41,15 +41,15 @@ export default function FAQ() {
       questions: [
         {
           q: "How long does shipping take?",
-          a: "Standard shipping takes 5-7 business days within India. International shipping times vary by location (10-20 business days)."
+          a: "Delivery depends on distance and courier partner. As a general estimate, same-city deliveries within Indore may take under one day, deliveries within Madhya Pradesh around 2-3 days, and interstate deliveries around 4-5 days. These are estimates, not guarantees."
         },
         {
           q: "Do you ship internationally?",
-          a: "Yes! We currently ship to select countries including Canada, UK, Australia, and most of Europe. Shipping costs and times vary by destination."
+          a: "Courier availability depends on the destination. After you place an order, we check availability and email the shipping quote. If we cannot serve the address, we will contact you to discuss next steps before dispatch."
         },
         {
           q: "What is your return policy?",
-          a: "We offer a 15-day satisfaction guarantee. If you're not completely satisfied, return your unused candle for a full refund or exchange. Please contact us for return authorization before shipping items back."
+          a: "If you have a concern with a candle within 15 days of delivery, contact us with your order number and details. We will review the circumstances and product condition with you and explain the available resolution. This is not an automatic refund or exchange. Please contact us before returning any item."
         },
         {
           q: "Can I track my order?",
@@ -103,11 +103,11 @@ export default function FAQ() {
         },
         {
           q: "What payment methods do you accept?",
-          a: "Choose UPI or cash on delivery at checkout. UPI orders must be paid and submitted for verification within 15 minutes; unpaid attempts expire so you can start a fresh order. For UPI, scan the QR code, pay the displayed amount, and submit the UTR (Transaction ID) from your UPI app. We manually verify each payment before confirming it."
+          a: "Choose UPI or cash on delivery at checkout. UPI product payments must be submitted for verification within 15 minutes. Shipping is quoted separately after the order; approve the emailed quote and pay the shipping fee by UPI before dispatch."
         },
         {
           q: "When will my UPI order be confirmed?",
-          a: "Your order remains pending while we check the UTR against our bank transaction. We will confirm it after the payment is verified. If you have trouble paying, contact sereniqueecandles@gmail.com or call +91 - 9827310636 or +91 - 8770222006."
+          a: "We manually check the product-payment UTR against our bank transaction. After verification, we email a separate courier shipping quote. Dispatch takes place after the shipping quote is approved and its UPI payment is verified. If you need help, email sereniqueecandles@gmail.com or call +91 98273 10636 or +91 87702 22006."
         } 
       ]
     },

@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { brandedEmail, escapeEmailHtml } from './_lib/brandedEmail';
 
-type Event = 'payment-reminder' | 'order-confirmation' | 'tracking';
-interface Request { method?: string; headers?: { authorization?: string }; body?: { orderId?: string; event?: Event } }
+type Event = 'payment-reminder' | 'order-confirmation' | 'tracking' | 'shipping-quote';
+interface Request { method?: string; headers?: { authorization?: string }; body?: { orderId?: string; event?: Event; quoteAmount?: number; courierName?: string } }
 interface Response { status: (code: number) => { json: (payload: unknown) => void } }
 const from = 'Sereniquee Candles <team@sereniqueecandles.com>';
 
@@ -12,7 +12,7 @@ export default async function handler(req: Request, res: Response) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const orderId = req.body?.orderId;
   const event = req.body?.event;
-  if (!orderId || !event || !['payment-reminder', 'order-confirmation', 'tracking'].includes(event)) {
+  if (!orderId || !event || !['payment-reminder', 'order-confirmation', 'tracking', 'shipping-quote'].includes(event)) {
     return res.status(400).json({ error: 'Invalid order email request.' });
   }
   const token = req.headers?.authorization?.replace(/^Bearer\s+/i, '');
@@ -28,7 +28,7 @@ export default async function handler(req: Request, res: Response) {
     if (!role) return res.status(403).json({ error: 'Administrator access required.' });
 
     const { data: order, error: orderError } = await admin.from('orders')
-      .select('id, order_number, order_source, status, payment_method, payment_status, payment_expires_at, payment_resume_token, payment_resume_token_expires_at, total_amount, tracking_number, guest_email, guest_name, user_id, shipping_address, created_at')
+      .select('id, order_number, order_source, status, payment_method, payment_status, payment_expires_at, payment_resume_token, payment_resume_token_expires_at, total_amount, subtotal_amount, gst_amount, shipping_amount, tracking_number, guest_email, guest_name, user_id, shipping_address, created_at, shipping_quote_status, shipping_quote_amount, shipping_quote_token')
       .eq('id', orderId).maybeSingle();
     if (orderError) throw orderError;
     if (!order) return res.status(404).json({ error: 'Order not found.' });
@@ -42,8 +42,30 @@ export default async function handler(req: Request, res: Response) {
     if (!customerEmail) return res.status(422).json({ error: 'The customer email address is unavailable.' });
     const orderLabel = order.order_number || 'your order';
     const customerName = escapeEmailHtml(order.guest_name || 'Customer');
-    const amount = `₹${Number(order.total_amount).toFixed(2)}`;
+    const productAmount = Number(order.subtotal_amount || 0) + Number(order.gst_amount || 0);
+    const amount = `₹${productAmount.toFixed(2)}`;
     const resend = new Resend(resendKey);
+
+    if (event === 'shipping-quote') {
+      const quoteAmount = Number(req.body?.quoteAmount);
+      const courierName = escapeEmailHtml((req.body?.courierName || '').trim().slice(0, 100));
+      if (!Number.isFinite(quoteAmount) || quoteAmount <= 0 || quoteAmount > 100000) return res.status(400).json({ error: 'Enter a valid courier quote.' });
+      if (order.order_source !== 'online' || order.payment_status !== 'paid' && order.payment_status !== 'cod_pending' || order.status === 'cancelled') {
+        return res.status(409).json({ error: 'The product payment must be complete before sending a shipping quote.' });
+      }
+      const quoteToken = randomBytes(32).toString('hex');
+      const { error: saveError } = await admin.from('orders').update({ shipping_amount: quoteAmount, total_amount: productAmount + quoteAmount, shipping_quote_amount: quoteAmount, shipping_quote_status: 'quoted', shipping_quote_token: quoteToken, shipping_utr: null })
+        .eq('id', orderId);
+      if (saveError) throw saveError;
+      const siteUrl = (process.env.SITE_URL || 'https://www.sereniqueecandles.com').replace(/\/$/, '');
+      const quoteUrl = `${siteUrl}/shipping-quote?order=${encodeURIComponent(orderId)}&token=${encodeURIComponent(quoteToken)}`;
+      const quoteEmail = await resend.emails.send({ from, to: customerEmail, subject: `Shipping quote for ${orderLabel} · Sereniquee Candles`,
+        html: brandedEmail({ title: 'Your shipping quote is ready', greeting: `Dear ${customerName},`, preheader: 'Review your courier quote and pay the shipping fee separately.',
+          content: `<p>${order.payment_method === 'cod' ? 'Your order is registered for cash on delivery.' : 'Your product payment is recorded.'} We have calculated the courier charge for your address and parcel. Review the quote below and approve it if you would like us to dispatch your order.</p><div style="padding:18px;background:#fbf8f3;border:1px solid #eee7de;border-radius:8px"><strong>Order:</strong> ${escapeEmailHtml(orderLabel)}<br><strong>Shipping fee:</strong> ₹${quoteAmount.toFixed(2)}${courierName ? `<br><strong>Courier:</strong> ${courierName}` : ''}<br><strong>Delivery estimate:</strong> Indore same-city: under 1 day; within Madhya Pradesh: around 2–3 days; interstate: around 4–5 days. Estimates depend on distance and courier partner.</div><p>After approval, pay the shipping fee by UPI and submit the UTR (Transaction ID). We will verify the payment before dispatch. This shipping fee is separate from the product amount${order.payment_method === 'cod' ? ', which remains due on delivery' : ' already paid'}.</p>`,
+          cta: { label: 'Review shipping quote', url: quoteUrl } }) });
+      if (quoteEmail.error) throw new Error(quoteEmail.error.message);
+      return res.status(200).json({ sent: true });
+    }
 
     if (event === 'payment-reminder') {
       if (order.order_source !== 'online' || order.payment_method !== 'upi' || order.payment_status !== 'pending_payment') {
@@ -94,7 +116,7 @@ export default async function handler(req: Request, res: Response) {
           title: 'Your order is confirmed',
           greeting: `Dear ${customerName},`,
           preheader: 'Your payment is confirmed and your order is being prepared.',
-          content: `<p>We have confirmed your payment and your order is now being prepared with care.</p><div style="padding:18px;background:#fbf8f3;border:1px solid #eee7de;border-radius:8px"><strong>Order:</strong> ${escapeEmailHtml(orderLabel)}<br><strong>Order date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN', { dateStyle: 'long' })}<br><strong>Payment:</strong> ${order.payment_method === 'cod' ? 'Cash on delivery · received' : 'UPI · received'}</div><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:20px 0;border-collapse:collapse"><thead><tr><th align="left" style="padding:10px;background:#fbf8f3">Item</th><th style="padding:10px;background:#fbf8f3">Qty</th><th align="right" style="padding:10px;background:#fbf8f3">Amount</th></tr></thead><tbody>${itemRows}</tbody></table><p style="text-align:right;font-size:17px"><strong>Total: ${amount}</strong></p>${order.shipping_address ? `<p><strong>Delivery address</strong><br>${escapeEmailHtml(order.shipping_address).replace(/\r?\n/g, '<br>')}</p>` : ''}${order.tracking_number ? `<p><strong>Tracking number:</strong> ${escapeEmailHtml(order.tracking_number)}</p>` : ''}`,
+          content: `<p>Your product payment has been confirmed. We will email a separate courier shipping quote based on your address and parcel. Dispatch will be arranged after you approve and pay the shipping fee.</p><div style="padding:18px;background:#fbf8f3;border:1px solid #eee7de;border-radius:8px"><strong>Order:</strong> ${escapeEmailHtml(orderLabel)}<br><strong>Order date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN', { dateStyle: 'long' })}<br><strong>Product payment:</strong> ${order.payment_method === 'cod' ? 'Cash on delivery' : 'UPI · received'}<br><strong>Shipping:</strong> Quoted separately after order</div><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:20px 0;border-collapse:collapse"><thead><tr><th align="left" style="padding:10px;background:#fbf8f3">Item</th><th style="padding:10px;background:#fbf8f3">Qty</th><th align="right" style="padding:10px;background:#fbf8f3">Amount</th></tr></thead><tbody>${itemRows}</tbody></table><p style="text-align:right;font-size:17px"><strong>Product total: ${amount}</strong></p>${order.shipping_address ? `<p><strong>Delivery address</strong><br>${escapeEmailHtml(order.shipping_address).replace(/\r?\n/g, '<br>')}</p>` : ''}${order.tracking_number ? `<p><strong>Tracking number:</strong> ${escapeEmailHtml(order.tracking_number)}</p>` : ''}`,
         }),
       });
       if (result.error) throw new Error(result.error.message);

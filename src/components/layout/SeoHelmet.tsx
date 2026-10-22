@@ -14,7 +14,7 @@ interface SeoHelmetProps {
 }
 
 const SITE_NAME = 'Sereniquee Candles';
-const BASE_URL = 'https://sereniquee.com';
+const BASE_URL = 'https://www.sereniqueecandles.com';
 const DEFAULT_DESCRIPTION = 'Luxury handmade soy candles crafted with love. Discover our collection of aromatic, eco-friendly candles that transform your home into a sanctuary of warmth and relaxation.';
 
 export function SeoHelmet({
@@ -120,11 +120,10 @@ export function SeoHelmet({
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta property="og:type" content={type} />
-      <meta property="og:locale" content="en_US" />
+      <meta property="og:locale" content="en_IN" />
 
       {/* Twitter Card Tags */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content="@sereniqueecandles" />
       <meta name="twitter:title" content={finalTitle} />
       <meta name="twitter:description" content={finalDescription} />
       <meta name="twitter:image" content={finalImage} />
@@ -132,7 +131,7 @@ export function SeoHelmet({
       {/* Additional SEO Tags */}
       <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
       <meta name="author" content={siteName} />
-      <meta name="theme-color" content="#8b5cf6" />
+      <meta name="theme-color" content="#806346" />
 
       {/* Schema.org markup for Google */}
       <script type="application/ld+json">

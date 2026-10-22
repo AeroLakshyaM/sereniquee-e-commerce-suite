@@ -171,7 +171,7 @@ export default function Auth() {
                   alt="Sereniquee Logo" 
                   className="h-16 lg:h-20 w-16 lg:w-20 object-contain opacity-90 mb-3"
                 />
-                <h1 className="font-serif text-2xl lg:text-3xl mb-1">sereniquee candles</h1>
+                <h1 className="font-serif text-2xl lg:text-3xl mb-1">Sereniquee Candles</h1>
                 <p className="text-primary-foreground/70 font-serif italic text-xs lg:text-sm">
                   Kindness Crafted, Light Shared.
                 </p>

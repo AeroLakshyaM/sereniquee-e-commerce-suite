@@ -74,7 +74,7 @@ export function Footer() {
                 alt="Sereniquee Logo" 
                 className="h-32 w-32 object-contain mb-6 opacity-90"
               />
-              <h3 className="text-2xl font-serif font-semibold mb-2">sereniquee_candles</h3>
+              <h3 className="text-2xl font-serif font-semibold mb-2">Sereniquee Candles</h3>
               <p className="text-primary-foreground/50 text-sm italic font-serif mb-4">
                 Kindness Crafted, Light Shared.
               </p>
@@ -87,7 +87,7 @@ export function Footer() {
             {/* Social Links */}
             <div className="flex gap-4">
               <a 
-                href="https://www.instagram.com/sereniquee.candles.co?utm_source=qr&igsh=MXFnNXF1b2VnendpZQ==" 
+                href="https://www.instagram.com/sereniquee.candles.co"
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="h-10 w-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors"

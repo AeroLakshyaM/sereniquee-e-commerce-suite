@@ -465,15 +465,12 @@ export default function ProductDetail() {
             <AccordionContent className="text-muted-foreground leading-relaxed space-y-3">
               <div>
                 <h4 className="font-semibold text-foreground mb-2">Shipping Information:</h4>
-                <p>Free standard shipping on all orders across India. Most orders are processed within 1-2 business 
-                days and typically arrive within 5-7 business days. Each candle is carefully packaged to ensure 
-                safe delivery to your doorstep.</p>
+                <p>Courier shipping is quoted after your order based on delivery address, parcel weight, and courier partner. Delivery estimates depend on route and courier service.</p>
               </div>
               <div>
                 <h4 className="font-semibold text-foreground mb-2">Returns & Exchanges:</h4>
                 <p>We stand behind the quality of our products. If you're not completely satisfied with your 
-                purchase, we accept returns within 30 days of delivery for a full refund or exchange. Candles 
-                must be unused and in original packaging. Contact our customer service for assistance.</p>
+                purchase, contact us within 15 days of delivery with your order number and concern. We review each case and explain available resolutions; refunds or exchanges are not automatic.</p>
               </div>
             </AccordionContent>
           </AccordionItem>

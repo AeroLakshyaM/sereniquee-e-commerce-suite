@@ -20,8 +20,6 @@ interface InvoiceLine {
   price: number;
 }
 
-const INDIA_SHIPPING = 100;
-const INTERNATIONAL_SHIPPING = 500;
 const GST_RATE = 0.05;
 const INVOICE_DRAFT_STORAGE_KEY = 'sereniquee_offline_invoice_draft';
 
@@ -31,7 +29,7 @@ interface InvoiceDraft {
   customerEmail: string;
   customerPhone: string;
   shippingAddress: string;
-  shippingOption: 'India' | 'International' | 'custom' | 'none';
+  shippingOption: 'custom' | 'none';
   customShipping: string;
   invoiceNotes: string;
   invoiceDate: string;
@@ -57,9 +55,7 @@ export default function OfflineInvoiceGenerator() {
   const [customerEmail, setCustomerEmail] = useState(initialDraft.customerEmail ?? '');
   const [customerPhone, setCustomerPhone] = useState(initialDraft.customerPhone ?? '');
   const [shippingAddress, setShippingAddress] = useState(initialDraft.shippingAddress ?? '');
-  const [shippingOption, setShippingOption] = useState<'India' | 'International' | 'custom' | 'none'>(
-    initialDraft.shippingOption ?? 'India',
-  );
+  const [shippingOption, setShippingOption] = useState<'custom' | 'none'>(initialDraft.shippingOption === 'none' ? 'none' : 'custom');
   const [customShipping, setCustomShipping] = useState(initialDraft.customShipping ?? '');
   const [invoiceNotes, setInvoiceNotes] = useState(initialDraft.invoiceNotes ?? '');
   const [invoiceDate, setInvoiceDate] = useState(
@@ -77,13 +73,9 @@ export default function OfflineInvoiceGenerator() {
   );
   const subtotal = lines.reduce((sum, line) => sum + line.quantity * line.price, 0);
   const customShippingAmount = Number(customShipping);
-  const shipping = shippingOption === 'India'
-    ? INDIA_SHIPPING
-    : shippingOption === 'International'
-      ? INTERNATIONAL_SHIPPING
-      : shippingOption === 'custom' && Number.isFinite(customShippingAmount)
-        ? Math.max(0, customShippingAmount)
-        : 0;
+  const shipping = shippingOption === 'custom' && Number.isFinite(customShippingAmount)
+    ? Math.max(0, customShippingAmount)
+    : 0;
   const gst = (subtotal + shipping) * GST_RATE;
   const total = subtotal + shipping + gst;
 
@@ -230,7 +222,7 @@ export default function OfflineInvoiceGenerator() {
       setCustomerEmail('');
       setCustomerPhone('');
       setShippingAddress('');
-      setShippingOption('India');
+      setShippingOption('custom');
       setCustomShipping('');
       setInvoiceNotes('');
       setInvoiceDate(new Date().toISOString().slice(0, 10));
@@ -278,12 +270,10 @@ export default function OfflineInvoiceGenerator() {
             </div>
             <div className="space-y-2">
               <Label>Shipping</Label>
-              <Select value={shippingOption} onValueChange={(value: 'India' | 'International' | 'custom' | 'none') => setShippingOption(value)}>
+              <Select value={shippingOption} onValueChange={(value: 'custom' | 'none') => setShippingOption(value)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="India">India (₹100 shipping)</SelectItem>
-                  <SelectItem value="International">International (₹500 shipping)</SelectItem>
-                  <SelectItem value="custom">Custom shipping fee</SelectItem>
+                  <SelectItem value="custom">Courier-quoted shipping fee</SelectItem>
                   <SelectItem value="none">No shipping fee (₹0)</SelectItem>
                 </SelectContent>
               </Select>
@@ -374,7 +364,7 @@ export default function OfflineInvoiceGenerator() {
               setCustomerEmail('');
               setCustomerPhone('');
               setShippingAddress('');
-              setShippingOption('India');
+              setShippingOption('custom');
               setCustomShipping('');
               setInvoiceNotes('');
               setInvoiceDate(new Date().toISOString().slice(0, 10));

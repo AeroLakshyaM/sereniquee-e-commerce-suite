@@ -26,7 +26,7 @@ export default async function handler(req: Request, res: Response) {
       const { data: role } = await admin.from('user_roles').select('role').eq('user_id', userResult.user.id).eq('role', 'admin').maybeSingle();
       if (!role) return res.status(403).json({ error: 'Admin access required.' });
     }
-    const { data: order, error } = await admin.from('orders').select('id, order_number, total_amount, payment_status, payment_method, utr_number, guest_email, guest_name, user_id').eq('id', orderId).maybeSingle();
+    const { data: order, error } = await admin.from('orders').select('id, order_number, total_amount, subtotal_amount, gst_amount, payment_status, payment_method, utr_number, guest_email, guest_name, user_id').eq('id', orderId).maybeSingle();
     if (error) throw error;
     if (!order || (event === 'submitted' && order.payment_status !== 'submitted_for_verification') || (event === 'received' && order.payment_status !== 'paid')) return res.status(409).json({ error: 'Order payment state does not match this notification.' });
     const flag = event === 'submitted' ? 'upi_submission_email_sent' : 'upi_received_email_sent';
@@ -46,9 +46,10 @@ export default async function handler(req: Request, res: Response) {
     const isCod = order.payment_method === 'cod';
     const subject = received ? `${isCod ? 'Cash on delivery collected' : 'Payment received'} · Order ${orderLabel}` : `UPI payment submitted · Order ${orderLabel}`;
     const greeting = `Dear ${escapeEmailHtml(customerName || 'Customer')},`;
+    const productAmount = Number(order.subtotal_amount || 0) + Number(order.gst_amount || 0);
     const content = received
-      ? `<p>${isCod ? 'Our team has recorded the cash payment collected on delivery.' : 'We have verified your UPI payment.'} Your order payment is now marked as received.</p><div style="padding:18px;background:#faf7f2;border-radius:8px;line-height:1.9"><strong>Order:</strong> ${escapeEmailHtml(orderLabel)}<br/><strong>Amount received:</strong> ₹${Number(order.total_amount).toFixed(2)}${isCod ? '' : `<br/><strong>UTR (Transaction ID):</strong> ${escapeEmailHtml(order.utr_number || '')}`}</div>`
-      : `<p>We have received your payment details and they are awaiting manual verification. Your order will be confirmed as soon as our team verifies the transaction.</p><div style="padding:18px;background:#faf7f2;border-radius:8px;line-height:1.9"><strong>Order:</strong> ${escapeEmailHtml(orderLabel)}<br/><strong>Amount:</strong> ₹${Number(order.total_amount).toFixed(2)}<br/><strong>Submitted UTR (Transaction ID):</strong> ${escapeEmailHtml(order.utr_number || '')}<br/><strong>Status:</strong> Pending verification</div>`;
+      ? `<p>${isCod ? 'Our team has recorded the cash payment collected on delivery.' : 'We have verified your UPI payment for the products.'} The courier shipping fee is quoted separately and must be approved and paid before dispatch.</p><div style="padding:18px;background:#faf7f2;border-radius:8px;line-height:1.9"><strong>Order:</strong> ${escapeEmailHtml(orderLabel)}<br/><strong>Product amount received:</strong> ₹${productAmount.toFixed(2)}${isCod ? '' : `<br/><strong>UTR (Transaction ID):</strong> ${escapeEmailHtml(order.utr_number || '')}`}</div>`
+      : `<p>We have received your product payment details and they are awaiting manual verification. After verification, we will email a courier shipping quote. Shipping is paid separately and must be verified before dispatch.</p><div style="padding:18px;background:#faf7f2;border-radius:8px;line-height:1.9"><strong>Order:</strong> ${escapeEmailHtml(orderLabel)}<br/><strong>Product amount:</strong> ₹${productAmount.toFixed(2)}<br/><strong>Submitted UTR (Transaction ID):</strong> ${escapeEmailHtml(order.utr_number || '')}<br/><strong>Status:</strong> Product payment pending verification</div>`;
     const html = brandedEmail({ title: received ? 'Payment confirmed' : 'Payment details received', greeting, content });
     const result = await resend.batch.send([
       { from: 'Sereniquee Candles <team@sereniqueecandles.com>', to: customerEmail, subject, html },

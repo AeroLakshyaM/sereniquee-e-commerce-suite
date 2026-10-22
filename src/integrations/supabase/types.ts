@@ -234,6 +234,10 @@ export type Database = {
           total_amount: number
           subtotal_amount: number
           shipping_amount: number
+          shipping_quote_amount: number | null
+          shipping_quote_status: string
+          shipping_quote_token: string | null
+          shipping_utr: string | null
           gst_amount: number
           updated_at: string | null
           user_id: string | null
@@ -265,6 +269,10 @@ export type Database = {
           total_amount: number
           subtotal_amount?: number
           shipping_amount?: number
+          shipping_quote_amount?: number | null
+          shipping_quote_status?: string
+          shipping_quote_token?: string | null
+          shipping_utr?: string | null
           gst_amount?: number
           updated_at?: string | null
           user_id?: string | null
@@ -296,6 +304,10 @@ export type Database = {
           total_amount?: number
           subtotal_amount?: number
           shipping_amount?: number
+          shipping_quote_amount?: number | null
+          shipping_quote_status?: string
+          shipping_quote_token?: string | null
+          shipping_utr?: string | null
           gst_amount?: number
           updated_at?: string | null
           user_id?: string | null
@@ -854,6 +866,10 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: boolean
       }
+      respond_shipping_quote: { Args: { p_order_id: string; p_token: string; p_approve: boolean }; Returns: boolean }
+      get_shipping_quote: { Args: { p_order_id: string; p_token: string }; Returns: Array<{ order_number: string | null; shipping_quote_amount: number; shipping_quote_status: string; payment_method: string }> }
+      submit_shipping_quote_payment: { Args: { p_order_id: string; p_token: string; p_utr: string }; Returns: boolean }
+      admin_mark_shipping_received: { Args: { p_order_id: string; p_bank_utr: string }; Returns: boolean }
       reserve_checkout_order: {
         Args: { p_order_id: string; p_guest_email?: string | null }
         Returns: boolean

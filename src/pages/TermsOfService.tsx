@@ -101,7 +101,7 @@ export default function TermsOfService() {
               <li>The price charged will be the price displayed at the time of order</li>
               <li>Prices include applicable taxes unless otherwise stated</li>
               <li>We reserve the right to correct pricing errors</li>
-              <li>Shipping charges are additional and calculated at checkout</li>
+              <li>Shipping charges are additional and quoted after the order based on destination, parcel weight, and courier partner</li>
             </ul>
 
             <h3 className="font-serif text-xl mb-3">4.3 Product Availability</h3>
@@ -133,8 +133,9 @@ export default function TermsOfService() {
 
             <h3 className="font-serif text-xl mb-3">5.2 Payment</h3>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
-              <li>UPI payment is required before we confirm and process your order</li>
-              <li>Pay using the payment method selected at checkout: UPI must be completed within 15 minutes and verified using the UTR (Transaction ID), or cash on delivery must be paid when the order arrives</li>
+              <li>For UPI, the product amount is paid before product payment confirmation; COD product amounts are due on delivery</li>
+              <li>Courier shipping is quoted separately after the order. Approve the emailed quote and pay its amount by UPI before dispatch, including for COD orders</li>
+              <li>UPI product payment must be completed within 15 minutes and verified using the UTR (Transaction ID)</li>
               <li>Submit the UTR or transaction reference from your UPI app after paying</li>
               <li>Payment is checked manually against our bank transaction before the order is marked paid</li>
               <li>We may contact you if we cannot verify the submitted transaction reference</li>
@@ -144,7 +145,7 @@ export default function TermsOfService() {
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
               <li>You may cancel orders before shipping by contacting us</li>
               <li>Once shipped, orders cannot be cancelled (see Return Policy)</li>
-              <li>Refunds for cancelled orders will be processed within 7-10 business days</li>
+              <li>If a cancellation is approved, we will confirm the refund amount and expected processing time with you</li>
               <li>Custom or personalized orders may not be eligible for cancellation</li>
             </ul>
 
@@ -181,11 +182,9 @@ export default function TermsOfService() {
               Please refer to our detailed Shipping & Returns Policy. Key points:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
-              <li>Returns must be initiated within 7 days of delivery</li>
-              <li>Products must be unused and in original condition</li>
-              <li>Custom or personalized items are not eligible for return</li>
-              <li>Refunds will be processed to the original payment method</li>
-              <li>Customers are responsible for return shipping costs unless product is defective</li>
+              <li>Contact us within 15 days of delivery if you have a concern with a candle</li>
+              <li>We review the circumstances and product condition and explain available resolutions</li>
+              <li>A refund or exchange is not automatic; contact us before returning any item</li>
             </ul>
           </section>
 

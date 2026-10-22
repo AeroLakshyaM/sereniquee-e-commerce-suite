@@ -115,7 +115,7 @@ export function CartDrawer() {
                 <span className="font-serif text-lg">₹{totalPrice.toFixed(2)}</span>
               </div>
               <p className="text-muted-foreground text-sm">
-                Shipping calculated at checkout
+                Courier shipping quoted after your order
               </p>
               <Button
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all py-6"

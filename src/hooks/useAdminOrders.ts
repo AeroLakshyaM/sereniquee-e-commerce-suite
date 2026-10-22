@@ -13,6 +13,9 @@ export interface AdminOrder {
   total_amount: number;
   subtotal_amount: number;
   shipping_amount: number;
+  shipping_quote_amount: number | null;
+  shipping_quote_status: string;
+  shipping_utr: string | null;
   gst_amount: number;
   status: string;
   payment_status: string;
@@ -112,7 +115,7 @@ export const useAdminOrders = (search = '', startDate?: string, endDate?: string
       return (orders || []).map((order) => ({
         id: order.id,
         order_number: order.order_number,
-        order_source: order.order_source,
+        order_source: order.order_source as 'online' | 'offline',
         user_id: order.user_id,
         guest_email: order.guest_email,
         guest_name: order.guest_name,
@@ -121,6 +124,9 @@ export const useAdminOrders = (search = '', startDate?: string, endDate?: string
         total_amount: Number(order.total_amount),
         subtotal_amount: Number(order.subtotal_amount ?? 0),
         shipping_amount: Number(order.shipping_amount ?? 0),
+        shipping_quote_amount: order.shipping_quote_amount == null ? null : Number(order.shipping_quote_amount),
+        shipping_quote_status: order.shipping_quote_status || 'awaiting_quote',
+        shipping_utr: order.shipping_utr || null,
         gst_amount: Number(order.gst_amount ?? 0),
         status: order.status,
         payment_status: order.payment_status,

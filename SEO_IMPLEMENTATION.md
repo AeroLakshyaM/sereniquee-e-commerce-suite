@@ -94,7 +94,7 @@ Comprehensive SEO has been implemented across all public-facing pages of the Ser
 ### ✅ **Shipping & Returns** (`/shipping-returns`)
 - **Title:** Shipping & Returns - Sereniquee Candles
 - **Description:** Learn about Sereniquee's shipping options, delivery times, and hassle-free return policy...
-- **Keywords:** shipping policy, returns policy, delivery information, free shipping
+- **Keywords:** shipping policy, returns policy, courier quote, delivery estimate
 - **Type:** website
 
 ### ✅ **404 Not Found** (`/404`)
