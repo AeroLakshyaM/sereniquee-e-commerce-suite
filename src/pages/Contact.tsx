@@ -1,5 +1,4 @@
 import { useState, FormEvent } from 'react';
-import emailjs from '@emailjs/browser';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,27 +21,20 @@ export default function Contact() {
     setIsSubmitting(true);
 
     try {
-      // Replace these with your actual EmailJS credentials
-      const serviceId = 'service_20swgy8';
-      const templateId = 'template_0njrv4g';
-      const publicKey = '5NICP9CqMEBx1a7kN';
-
-      // Add reply_to field so you can reply directly to the sender
-      const emailParams = {
-        name: formData.from_name, // Match template variable {{name}}
-        email: formData.from_email, // Add email variable for template {{email}}
-        subject: formData.subject,
-        message: formData.message,
-        reply_to: formData.from_email, // This allows you to reply directly
-        time: new Date().toLocaleString(), // Add timestamp for {{time}}
-      };
-
-      await emailjs.send(
-        serviceId,
-        templateId,
-        emailParams,
-        publicKey
-      );
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.from_name,
+          email: formData.from_email,
+          subject: formData.subject,
+          message: formData.message,
+        }),
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || 'Failed to send your message.');
+      }
 
       toast({
         title: 'Message sent!',
@@ -59,7 +51,7 @@ export default function Contact() {
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to send message. Please try again or email us directly.',
+        description: error instanceof Error ? error.message : 'Failed to send message. Please try again or email us directly.',
         variant: 'destructive',
       });
     } finally {

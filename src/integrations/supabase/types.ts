@@ -219,6 +219,8 @@ export type Database = {
           payment_status: string
           payment_method: string
           payment_expires_at: string | null
+          payment_resume_token: string | null
+          payment_resume_token_expires_at: string | null
           inventory_reserved: boolean
           coupon_use_reserved: boolean
           utr_number: string | null
@@ -248,6 +250,8 @@ export type Database = {
           payment_status?: string
           payment_method?: string
           payment_expires_at?: string | null
+          payment_resume_token?: string | null
+          payment_resume_token_expires_at?: string | null
           inventory_reserved?: boolean
           coupon_use_reserved?: boolean
           utr_number?: string | null
@@ -277,6 +281,8 @@ export type Database = {
           payment_status?: string
           payment_method?: string
           payment_expires_at?: string | null
+          payment_resume_token?: string | null
+          payment_resume_token_expires_at?: string | null
           inventory_reserved?: boolean
           coupon_use_reserved?: boolean
           utr_number?: string | null
@@ -813,6 +819,7 @@ export type Database = {
           p_utr: string
           p_guest_email?: string | null
           p_proof_path?: string | null
+          p_resume_token?: string | null
         }
         Returns: boolean
       }
@@ -824,7 +831,23 @@ export type Database = {
         Returns: boolean
       }
       expire_pending_upi_order: {
-        Args: { p_order_id: string; p_guest_email?: string | null }
+        Args: { p_order_id: string; p_guest_email?: string | null; p_resume_token?: string | null }
+        Returns: boolean
+      }
+      resume_pending_upi_order: {
+        Args: { p_order_id: string; p_resume_token: string }
+        Returns: Array<{ id: string; order_number: string | null; amount: number; customer_email: string | null; customer_name: string | null; created_at: string; payment_expires_at: string | null }>
+      }
+      get_pending_upi_order_state: {
+        Args: { p_order_id: string; p_guest_email?: string | null; p_resume_token?: string | null }
+        Returns: Array<{ payment_status: string; payment_expires_at: string | null }>
+      }
+      cancel_pending_upi_order: {
+        Args: { p_order_id: string; p_guest_email?: string | null; p_resume_token?: string | null }
+        Returns: boolean
+      }
+      admin_cancel_pending_upi_order: {
+        Args: { p_order_id: string }
         Returns: boolean
       }
       mark_cod_payment_received: {

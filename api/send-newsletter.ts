@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { brandedEmail } from './_lib/brandedEmail';
 
 interface NewsletterRequest {
   method?: string;
@@ -64,7 +65,12 @@ export default async function handler(req: NewsletterRequest, res: NewsletterRes
     if (subscriberError) throw subscriberError;
     if (!subscribers?.length) return res.status(200).json({ sent: 0, failed: 0 });
 
-    const html = `<div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 680px; margin: 0 auto;">${markdownToHtml(markdown)}</div>`;
+    const html = brandedEmail({
+      title: subject,
+      greeting: 'Dear Sereniquee community,',
+      content: markdownToHtml(markdown),
+      preheader: subject,
+    });
     const chunks: Array<typeof subscribers> = [];
     for (let index = 0; index < subscribers.length; index += 100) chunks.push(subscribers.slice(index, index + 100));
     const results = await Promise.allSettled(chunks.map(chunk => resend.batch.send(chunk.map(subscriber => ({

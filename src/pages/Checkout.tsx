@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { useCreateOrder } from '@/hooks/useOrders';
@@ -16,11 +16,12 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Banknote, CheckCircle2, ClipboardCopy, Clock3, Truck } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 const UPI_ID = import.meta.env.VITE_UPI_ID as string | undefined;
 const UPI_PAYEE_NAME = (import.meta.env.VITE_UPI_PAYEE_NAME as string | undefined) || 'Sereniquee Candles';
 const UPI_QR_IMAGE_URL = import.meta.env.VITE_UPI_QR_IMAGE_URL as string | undefined;
-type PendingUpiOrder = { id: string; orderNumber: string | null; amount: number; guestEmail: string; guestName: string; createdAt?: string };
+type PendingUpiOrder = { id: string; orderNumber: string | null; amount: number; guestEmail: string; guestName: string; createdAt?: string; expiresAt?: string; resumeToken?: string };
 
 function loadPendingUpiOrder(): PendingUpiOrder | null {
   try {
@@ -33,6 +34,7 @@ function loadPendingUpiOrder(): PendingUpiOrder | null {
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const { items, totalPrice, clearCart } = useCart();
   const { data: profile } = useProfile();
@@ -50,6 +52,8 @@ export default function Checkout() {
   const [proofImage, setProofImage] = useState<File | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cod'>('upi');
   const [upiSecondsLeft, setUpiSecondsLeft] = useState<number | null>(null);
+  const [isCancelingPayment, setIsCancelingPayment] = useState(false);
+  const [cancelPaymentOpen, setCancelPaymentOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -117,6 +121,38 @@ export default function Checkout() {
     }
   }, [profile]);
 
+  useEffect(() => {
+    const orderId = searchParams.get('resume');
+    const resumeToken = searchParams.get('token');
+    if (!orderId || !resumeToken) return;
+    let cancelled = false;
+    const resumePayment = async () => {
+      const { data, error } = await supabase.rpc('resume_pending_upi_order', { p_order_id: orderId, p_resume_token: resumeToken });
+      if (cancelled) return;
+      const order = Array.isArray(data) ? data[0] : data;
+      if (error || !order) {
+        toast({ title: 'Payment link expired', description: 'This payment attempt is no longer active. Return to checkout to start a new order.' , variant: 'destructive' });
+        navigate('/checkout', { replace: true });
+        return;
+      }
+      const payment: PendingUpiOrder = {
+        id: order.id,
+        orderNumber: order.order_number,
+        amount: Number(order.amount),
+        guestEmail: order.customer_email || '',
+        guestName: order.customer_name || 'Customer',
+        createdAt: order.created_at,
+        expiresAt: order.payment_expires_at,
+        resumeToken,
+      };
+      sessionStorage.setItem('pendingUpiOrder', JSON.stringify(payment));
+      setPendingPayment(payment);
+      navigate('/checkout', { replace: true });
+    };
+    void resumePayment();
+    return () => { cancelled = true; };
+  }, [searchParams, navigate, toast]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -125,23 +161,51 @@ export default function Checkout() {
     if (!pendingPayment) return;
     let cancelled = false;
     let lastExpiryAttempt = 0;
+    let lastStatePoll = 0;
     const refreshExpiry = async () => {
       let createdAt = pendingPayment.createdAt;
       if (!createdAt) {
-        const { data } = await supabase.from('orders').select('created_at').eq('id', pendingPayment.id).maybeSingle();
+        const { data } = await supabase.from('orders').select('created_at, payment_expires_at').eq('id', pendingPayment.id).maybeSingle();
         createdAt = data?.created_at || new Date().toISOString();
-        const updated = { ...pendingPayment, createdAt };
+        const updated = { ...pendingPayment, createdAt, expiresAt: data?.payment_expires_at || undefined };
         if (!cancelled) { sessionStorage.setItem('pendingUpiOrder', JSON.stringify(updated)); setPendingPayment(updated); }
       }
-      const expiresAt = new Date(createdAt).getTime() + 15 * 60 * 1000;
+      const expiresAt = pendingPayment.expiresAt ? new Date(pendingPayment.expiresAt).getTime() : new Date(createdAt).getTime() + 15 * 60 * 1000;
       const remaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
       if (!cancelled) setUpiSecondsLeft(remaining);
+      if (Date.now() - lastStatePoll >= 15000) {
+        lastStatePoll = Date.now();
+        const { data: stateRows } = await supabase.rpc('get_pending_upi_order_state', {
+          p_order_id: pendingPayment.id,
+          p_guest_email: user ? null : pendingPayment.guestEmail,
+          p_resume_token: pendingPayment.resumeToken || null,
+        });
+        const orderState = Array.isArray(stateRows) ? stateRows[0] : stateRows;
+        if (!cancelled && orderState && orderState.payment_status !== 'pending_payment') {
+          sessionStorage.removeItem('pendingUpiOrder');
+          setPendingPayment(null);
+          if (orderState.payment_status === 'submitted_for_verification') {
+            toast({ title: 'Payment details already submitted', description: 'Your transaction is being reviewed.' });
+            navigate(user ? '/profile' : '/');
+          } else {
+            toast({ title: 'UPI payment attempt closed', description: 'Your cart is ready. Choose a payment method to place a fresh order.' });
+          }
+          return;
+        }
+        if (!cancelled && orderState?.payment_expires_at && orderState.payment_expires_at !== pendingPayment.expiresAt) {
+          const refreshed = { ...pendingPayment, expiresAt: orderState.payment_expires_at };
+          sessionStorage.setItem('pendingUpiOrder', JSON.stringify(refreshed));
+          setPendingPayment(refreshed);
+          return;
+        }
+      }
       if (remaining === 0) {
         if (Date.now() - lastExpiryAttempt < 10000) return;
         lastExpiryAttempt = Date.now();
         const { data: expired, error } = await supabase.rpc('expire_pending_upi_order', {
           p_order_id: pendingPayment.id,
           p_guest_email: user ? null : pendingPayment.guestEmail,
+          p_resume_token: pendingPayment.resumeToken || null,
         });
         if (!error && !cancelled) {
           let isExpired = Boolean(expired);
@@ -181,6 +245,7 @@ export default function Checkout() {
         p_utr: utrNumber.trim(),
         p_guest_email: user ? null : pendingPayment.guestEmail,
         p_proof_path: uploadedProofPath,
+        p_resume_token: pendingPayment.resumeToken || null,
       });
       if (error) throw error;
       if (!submitted) throw new Error('Payment details for this order were already submitted or can no longer be changed.');
@@ -198,6 +263,26 @@ export default function Checkout() {
     } finally {
       setIsSubmittingUtr(false);
     }
+  };
+
+  const cancelUpiAttempt = async () => {
+    if (!pendingPayment) return;
+    setIsCancelingPayment(true);
+    try {
+      const { data, error } = await supabase.rpc('cancel_pending_upi_order', {
+        p_order_id: pendingPayment.id,
+        p_guest_email: user ? null : pendingPayment.guestEmail,
+        p_resume_token: pendingPayment.resumeToken || null,
+      });
+      if (error) throw error;
+      if (!data) throw new Error('This payment attempt is no longer active.');
+      sessionStorage.removeItem('pendingUpiOrder');
+      setPendingPayment(null);
+      setCancelPaymentOpen(false);
+      toast({ title: 'UPI payment cancelled', description: 'Your cart is ready. You can choose UPI again or select cash on delivery.' });
+    } catch (error) {
+      toast({ title: 'Could not cancel payment', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    } finally { setIsCancelingPayment(false); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -311,7 +396,7 @@ export default function Checkout() {
 
   if (pendingPayment) {
     const upiIntent = UPI_ID
-      ? `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(UPI_PAYEE_NAME)}&am=${pendingPayment.amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(`Order ${pendingPayment.orderNumber || pendingPayment.id}`)}`
+      ? `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(UPI_PAYEE_NAME)}&am=${pendingPayment.amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(`Sereniquee ${pendingPayment.orderNumber || 'order payment'}`)}`
       : undefined;
 
     return (
@@ -323,7 +408,7 @@ export default function Checkout() {
               <Banknote className="h-7 w-7" />
             </div>
             <h1 className="font-serif text-3xl md:text-4xl">Pay by UPI</h1>
-            <p className="mt-2 text-muted-foreground">Order {pendingPayment.orderNumber || pendingPayment.id}</p>
+            <p className="mt-2 text-muted-foreground">{pendingPayment.orderNumber ? `Order ${pendingPayment.orderNumber}` : 'Secure UPI checkout'}</p>
           </div>
 
           <div className="grid gap-8 rounded-xl border border-border bg-card p-5 shadow-soft md:grid-cols-2 md:p-8">
@@ -333,7 +418,7 @@ export default function Checkout() {
                 <p className="mt-1 font-serif text-3xl font-semibold">₹{pendingPayment.amount.toFixed(2)}</p>
               </div>
               {UPI_QR_IMAGE_URL ? (
-                <img src={UPI_QR_IMAGE_URL} alt={`UPI payment QR code for ${UPI_PAYEE_NAME}`} className="mx-auto h-80 w-64 rounded-lg border border-border bg-white p-2 object-cover object-center" />
+                <img src={UPI_QR_IMAGE_URL} alt={`UPI payment QR code for ${UPI_PAYEE_NAME}`} className="mx-auto h-auto max-h-[480px] w-full max-w-xs rounded-lg border border-border bg-white p-2 object-contain" />
               ) : (
                 <div className="mx-auto flex aspect-square w-56 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 p-5 text-sm text-muted-foreground">
                   <Banknote className="mb-3 h-8 w-8" />
@@ -377,19 +462,37 @@ export default function Checkout() {
                   <Input id="utr-number" value={utrNumber} onChange={event => setUtrNumber(event.target.value)} placeholder="Enter the reference from your UPI app" minLength={6} maxLength={64} required />
                   <p className="text-xs text-muted-foreground">Your order stays pending until we verify the payment.</p>
                 </div>
-                <div className="space-y-2">
+                {!pendingPayment.resumeToken && <div className="space-y-2">
                   <Label htmlFor="payment-proof">Payment screenshot (optional)</Label>
                   <Input id="payment-proof" type="file" accept="image/png,image/jpeg,image/webp" onChange={event => setProofImage(event.target.files?.[0] || null)} />
                   <p className="text-xs text-muted-foreground">Upload a clear screenshot showing the UTR or transaction reference. Images up to 5 MB are accepted.</p>
                   {proofImage && <p className="text-xs text-muted-foreground">Selected: {proofImage.name}</p>}
-                </div>
+                </div>}
                 <Button type="submit" className="w-full" disabled={isSubmittingUtr || (!UPI_ID && !UPI_QR_IMAGE_URL)}>
                   {isSubmittingUtr ? 'Submitting…' : 'Submit UTR for verification'}
                 </Button>
               </form>
+              <Button type="button" variant="ghost" className="w-full text-muted-foreground" onClick={() => setCancelPaymentOpen(true)} disabled={isCancelingPayment}>
+                Cancel this UPI payment
+              </Button>
+              <p className="text-center text-xs text-muted-foreground">If you have already paid, submit your UTR instead of cancelling.</p>
             </div>
           </div>
         </div>
+        <AlertDialog open={cancelPaymentOpen} onOpenChange={setCancelPaymentOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancel this UPI payment?</AlertDialogTitle>
+              <AlertDialogDescription>This closes the unpaid order and releases its reserved stock. Your cart will stay available so you can choose UPI again or select cash on delivery. If you have already paid, do not cancel—submit your UTR for review.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isCancelingPayment}>Keep payment open</AlertDialogCancel>
+              <AlertDialogAction disabled={isCancelingPayment} onClick={event => { event.preventDefault(); void cancelUpiAttempt(); }}>
+                {isCancelingPayment ? 'Cancelling…' : 'Cancel payment'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }

@@ -12,7 +12,7 @@ import { openInvoiceInNewTab } from '@/lib/invoiceGenerator';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, Download, Trash2, Send } from 'lucide-react';
+import { Search, Download, Trash2, Send, Mail } from 'lucide-react';
 
 const STATUS_COLORS = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -33,6 +33,8 @@ export default function OrdersManagement() {
   const queryClient = useQueryClient();
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [adminOrderView, setAdminOrderView] = useState<'orders' | 'payment-attempts'>('orders');
+  const [emailingOrderId, setEmailingOrderId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [trackingOrder, setTrackingOrder] = useState<any | null>(null);
   const [trackingNumber, setTrackingNumber] = useState('');
@@ -144,6 +146,26 @@ export default function OrdersManagement() {
   const customerPhone = (order: any) => order.guest_phone || '';
   const displayOrderNumber = (order: any) => order.order_number || order.id.slice(0, 8).toUpperCase();
 
+  const sendOrderEmail = async (order: any, event: 'payment-reminder' | 'order-confirmation' | 'tracking') => {
+    setEmailingOrderId(order.id);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const response = await fetch('/api/order-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(sessionData.session?.access_token ? { Authorization: `Bearer ${sessionData.session.access_token}` } : {}) },
+        body: JSON.stringify({ orderId: order.id, event }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Email could not be sent.');
+      toast({ title: event === 'payment-reminder' ? 'Payment reminder sent' : event === 'order-confirmation' ? 'Order confirmation sent' : 'Shipping email sent', description: `Sent to ${customerEmail(order)}.` });
+      if (event === 'payment-reminder') await queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      return true;
+    } catch (error) {
+      toast({ title: 'Email could not be sent', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+      return false;
+    } finally { setEmailingOrderId(null); }
+  };
+
   const sendTrackingEmail = async () => {
     if (!trackingOrder || !trackingNumber.trim()) return;
     if (trackingOrder.order_source === 'online' && trackingOrder.payment_method !== 'cod' && trackingOrder.payment_status !== 'paid') {
@@ -160,20 +182,7 @@ export default function OrdersManagement() {
     }
 
     try {
-      const email = customerEmail(trackingOrder);
-      if (email) {
-        const response = await fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: email,
-            type: 'tracking-update',
-            subject: `Your order ${displayOrderNumber(trackingOrder)} has shipped`,
-            html: `<p>Your order <strong>${displayOrderNumber(trackingOrder)}</strong> has shipped.</p><p>Tracking number: <strong>${trackingNumber.trim()}</strong></p>`,
-          }),
-        });
-        if (!response.ok) throw new Error('Tracking email could not be sent');
-      }
+      if (!await sendOrderEmail({ ...trackingOrder, status: 'shipped', tracking_number: trackingNumber.trim() }, 'tracking')) return;
       await handleStatusUpdate(trackingOrder.id, 'shipped');
       setTrackingOrder(null);
       setTrackingNumber('');
@@ -291,13 +300,19 @@ export default function OrdersManagement() {
     openInvoiceInNewTab(order);
   };
 
-  const filteredOrders = orders?.filter((order) => {
-    if (filterStatus !== 'all' && order.status !== filterStatus) return false;
+  const filteredOrdersBySearch = orders?.filter((order) => {
+    if (adminOrderView === 'orders' && filterStatus !== 'all' && order.status !== filterStatus) return false;
     const normalized = search.toLowerCase();
     if (!normalized) return true;
     return [order.id, order.order_number, customerName(order), customerEmail(order), customerPhone(order), order.shipping_address]
       .some(value => value?.toLowerCase().includes(normalized));
   });
+
+  const isTemporaryUpiAttempt = (order: any) => order.payment_method === 'upi' && ['pending_payment', 'failed'].includes(order.payment_status);
+  const paymentAttempts = filteredOrdersBySearch?.filter(order => isTemporaryUpiAttempt(order)) || [];
+  const filteredOrders = adminOrderView === 'payment-attempts'
+    ? paymentAttempts
+    : filteredOrdersBySearch?.filter(order => !isTemporaryUpiAttempt(order));
 
   const ordersByStatus = useMemo(() => statuses.reduce((acc, status) => {
     acc[status] = (filteredOrders || []).filter(order => order.status === status);
@@ -340,6 +355,14 @@ export default function OrdersManagement() {
         <Button variant="outline" onClick={exportOrders}><Download className="mr-2 h-4 w-4" /> Export CSV</Button>
       </div>
 
+      <div className="flex w-full gap-2 border-b border-border pb-3">
+        <Button variant={adminOrderView === 'orders' ? 'default' : 'outline'} onClick={() => setAdminOrderView('orders')}>Orders</Button>
+        <Button variant={adminOrderView === 'payment-attempts' ? 'default' : 'outline'} onClick={() => setAdminOrderView('payment-attempts')}>
+          Payment attempts <Badge className="ml-2" variant="secondary">{orders?.filter(order => isTemporaryUpiAttempt(order)).length || 0}</Badge>
+        </Button>
+      </div>
+
+      {adminOrderView === 'orders' ? <>
       <div className="grid gap-4 xl:grid-cols-5">
         {statuses.map(status => (
           <div key={status} className="rounded-lg border bg-muted/20 p-3">
@@ -447,6 +470,7 @@ export default function OrdersManagement() {
                       >
                         <FileText className="h-3 w-3" />
                       </Button>
+                      {order.payment_status === 'paid' && <Button variant="outline" size="sm" className="h-7 w-7 p-0" disabled={emailingOrderId === order.id || !customerEmail(order)} onClick={event => { event.stopPropagation(); void sendOrderEmail(order, 'order-confirmation'); }} title="Send order confirmation"><Mail className="h-3 w-3" /></Button>}
                       <Button
                         variant="outline"
                         size="sm"
@@ -476,7 +500,7 @@ export default function OrdersManagement() {
                     <div className="flex items-center gap-2">
                       <Package className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <p className="text-xs text-muted-foreground">Order ID</p>
+                        <p className="text-xs text-muted-foreground">Order number</p>
                         <p className="font-mono text-sm">{displayOrderNumber(order)}</p>
                       </div>
                     </div>
@@ -531,6 +555,7 @@ export default function OrdersManagement() {
                     >
                       <FileText className="h-4 w-4" />
                     </Button>
+                    {order.payment_status === 'paid' && <Button variant="outline" size="sm" disabled={emailingOrderId === order.id || !customerEmail(order)} onClick={event => { event.stopPropagation(); void sendOrderEmail(order, 'order-confirmation'); }}><Mail className="mr-2 h-4 w-4" />{emailingOrderId === order.id ? 'Sending…' : 'Email confirmation'}</Button>}
                     <Button
                       variant="outline"
                       size="sm"
@@ -734,6 +759,29 @@ export default function OrdersManagement() {
           <p className="text-muted-foreground">No orders found.</p>
         </div>
       )}
+      </> : <section className="space-y-4">
+        <div>
+          <h2 className="font-serif text-xl">Customers continuing UPI checkout</h2>
+          <p className="text-sm text-muted-foreground">These are temporary payment attempts. They become regular orders after the customer submits payment details.</p>
+        </div>
+        {paymentAttempts.length === 0 ? <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">No active UPI payment attempts.</CardContent></Card> : paymentAttempts.map(order => (
+          <Card key={order.id} className="shadow-soft"><CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between md:p-5">
+            <div className="min-w-0 space-y-1">
+              <div className="flex flex-wrap items-center gap-2"><span className="font-serif font-semibold">{order.order_number || 'Unnumbered checkout'}</span><Badge variant="outline">{order.payment_status === 'pending_payment' ? 'Awaiting payment' : 'Expired or cancelled'}</Badge></div>
+              <p className="text-sm">{customerName(order)} · {customerEmail(order)}</p>
+              <p className="text-sm font-medium">₹{order.total_amount.toFixed(2)} <span className="font-normal text-muted-foreground">· expires {order.payment_expires_at ? new Date(order.payment_expires_at).toLocaleString() : 'soon'}</span></p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {order.payment_status === 'pending_payment' && <Button size="sm" variant="outline" disabled={emailingOrderId === order.id || !customerEmail(order)} onClick={() => void sendOrderEmail(order, 'payment-reminder')}>
+                <Mail className="mr-2 h-4 w-4" />{emailingOrderId === order.id ? 'Sending…' : 'Email payment link'}
+              </Button>}
+              {order.payment_status === 'pending_payment' && <Button size="sm" variant="ghost" className="text-destructive" onClick={async () => { const { data, error } = await supabase.rpc('admin_cancel_pending_upi_order', { p_order_id: order.id }); if (error || !data) toast({ title: 'Could not cancel payment attempt', description: error?.message || 'This attempt is no longer active.', variant: 'destructive' }); else { await queryClient.invalidateQueries({ queryKey: ['admin-orders'] }); await queryClient.invalidateQueries({ queryKey: ['analytics'] }); toast({ title: 'Payment attempt cancelled' }); } }}>
+                Cancel attempt
+              </Button>}
+            </div>
+          </CardContent></Card>
+        ))}
+      </section>}
 
       <Sheet open={!!selectedOrder} onOpenChange={open => !open && setSelectedOrder(null)}>
         <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
