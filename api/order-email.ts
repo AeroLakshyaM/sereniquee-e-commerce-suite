@@ -19,7 +19,10 @@ export default async function handler(req: Request, res: Response) {
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const resendKey = process.env.RESEND_API_KEY;
-  if (!token || !supabaseUrl || !serviceKey || !resendKey) return res.status(401).json({ error: 'Admin authorization or email service is unavailable.' });
+  if (!token) return res.status(401).json({ error: 'Please sign in again as an administrator.' });
+  if (!supabaseUrl || !serviceKey || !resendKey) {
+    return res.status(503).json({ error: 'The order email service is not configured. Check VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and RESEND_API_KEY in the deployment environment.' });
+  }
   const admin = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   try {
     const { data: authData, error: authError } = await admin.auth.getUser(token);
@@ -30,7 +33,14 @@ export default async function handler(req: Request, res: Response) {
     const { data: order, error: orderError } = await admin.from('orders')
       .select('id, order_number, order_source, status, payment_method, payment_status, payment_expires_at, payment_resume_token, payment_resume_token_expires_at, total_amount, subtotal_amount, gst_amount, shipping_amount, tracking_number, guest_email, guest_name, user_id, shipping_address, created_at, shipping_quote_status, shipping_quote_amount, shipping_quote_token')
       .eq('id', orderId).maybeSingle();
-    if (orderError) throw orderError;
+    if (orderError) {
+      // The shipping workflow columns are introduced by the Phase 1 migration.
+      // Give deployers a useful action instead of the generic 500 from PostgREST.
+      if (event === 'shipping-quote' && (/shipping_quote_(status|amount|token)/i.test(orderError.message) || orderError.code === '42703' || orderError.code === 'PGRST204')) {
+        return res.status(503).json({ error: 'The shipping quote database migration has not been applied yet. Apply 20261023010000_add_shipping_quote_flow.sql in Supabase, then retry.' });
+      }
+      throw orderError;
+    }
     if (!order) return res.status(404).json({ error: 'Order not found.' });
 
     let customerEmail = order.guest_email;
@@ -56,7 +66,12 @@ export default async function handler(req: Request, res: Response) {
       const quoteToken = randomBytes(32).toString('hex');
       const { error: saveError } = await admin.from('orders').update({ shipping_amount: quoteAmount, total_amount: productAmount + quoteAmount, shipping_quote_amount: quoteAmount, shipping_quote_status: 'quoted', shipping_quote_token: quoteToken, shipping_utr: null })
         .eq('id', orderId);
-      if (saveError) throw saveError;
+      if (saveError) {
+        if (/shipping_quote_(status|amount|token|utr)/i.test(saveError.message) || saveError.code === '42703' || saveError.code === 'PGRST204') {
+          return res.status(503).json({ error: 'The shipping quote database migration has not been applied yet. Apply 20261023010000_add_shipping_quote_flow.sql in Supabase, then retry.' });
+        }
+        throw saveError;
+      }
       const siteUrl = (process.env.SITE_URL || 'https://www.sereniqueecandles.com').replace(/\/$/, '');
       const quoteUrl = `${siteUrl}/shipping-quote?order=${encodeURIComponent(orderId)}&token=${encodeURIComponent(quoteToken)}`;
       const quoteEmail = await resend.emails.send({ from, to: customerEmail, subject: `Shipping quote for ${orderLabel} · Sereniquee Candles`,
