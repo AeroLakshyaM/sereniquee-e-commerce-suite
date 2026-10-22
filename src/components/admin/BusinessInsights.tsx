@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateBusinessInsights } from '@/lib/geminiAI';
 import { useProducts } from '@/hooks/useProducts';
 import { useAdminOrders } from '@/hooks/useAdminOrders';
 import { Button } from '@/components/ui/button';
@@ -7,157 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Lightbulb, TrendingUp, AlertCircle, CheckCircle, Sparkles, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-const EXPERT_PERSONA = `You are Priya Sharma, a highly experienced candle business consultant with 15 years of expertise in:
-- Premium luxury candle manufacturing and artisan craftsmanship
-- E-commerce and online retail strategies specifically for handcrafted products
-- Digital marketing, social media, and brand positioning for luxury lifestyle brands
-- Customer psychology and buying behavior in the home fragrance industry
-- Pricing strategies, inventory management, and product portfolio optimization
-- Seasonal trends, scent psychology, and market demand analysis
-- Sustainable and eco-friendly business practices in candle making
-- Gift market trends and corporate gifting opportunities
-
-Your background:
-- Started as a candle maker in 2008, grew business to multi-crore annual revenue
-- Helped 50+ candle brands optimize their product lines and marketing
-- Expert in natural soy wax, essential oils, and sustainable candle materials
-- Deep understanding of Indian market preferences and international trends
-- Specializes in helping family-run businesses scale effectively
-
-Your communication style:
-- Warm, encouraging, and supportive (like a mentor)
-- Simple, easy-to-understand Hinglish language (mix of Hindi and English)
-- Short bullet points, NO long paragraphs
-- Naturally mix Hindi and English words (like: "Aapke products ka pricing achha hai")
-- Practical and actionable advice
-- Honest but always positive and solution-focused
-- Use emojis to make it friendly and easy to read`;
-
-const ANALYSIS_PROMPT = `${EXPERT_PERSONA}
-
-You are analyzing the Sereniquee Candles e-commerce business. Here's the current state:
-
-**BUSINESS DATA:**
-{business_data}
-
-**PRODUCT CATALOG:**
-{product_list}
-
-**RECENT ORDERS:**
-{orders_summary}
-
-**IMPORTANT INSTRUCTIONS:**
-- Write in HINGLISH (Hindi-English mix) like Indians naturally speak
-- Use SHORT bullet points, NOT long paragraphs
-- Mix Hindi and English naturally like: "Aapki products ki photography improve karni hogi"
-- Use emojis to make it friendly: ✅ 📈 💡 ⚠️ 🎯
-- Keep each point to 1-2 lines maximum
-- Be encouraging and positive
-
-**YOUR TASK:**
-Provide business insights in SIMPLE HINGLISH BULLET POINTS. Structure your response EXACTLY like this:
-
-## Business Health (व्यापार की सेहत)
-
-Achhi Baatein ✅:
-• [hinglish bullet point with emoji]
-• [hinglish bullet point with emoji]
-
-Dhyaan Dena Hai ⚠️:
-• [hinglish bullet point with emoji]
-• [hinglish bullet point with emoji]
-
-## Product Analysis (हर प्रोडक्ट का विश्लेषण)
-
-For each product:
-**Product Name:**
-✅ Kya Achha Hai:
-• [short hinglish point]
-• [short hinglish point]
-
-⚠️ Kya Sudharna Hai:
-• [short hinglish point]
-• [short hinglish point]
-
-💰 Price Kaise Hai: [Is it theek/zyada/kam and why in hinglish]
-
-## Marketing Tips (मार्केटिंग के टिप्स)
-
-Photos Ki Quality 📸:
-• [simple hinglish tip with emoji]
-• [simple hinglish tip with emoji]
-
-Social Media Par Kya Karein:
-• [simple hinglish tip with emoji]
-• [simple hinglish tip with emoji]
-
-Festival Ideas (त्यौहारों के लिए):
-• [simple hinglish tip with emoji]
-
-## Is Hafte Karna Hai (THIS WEEK)
-
-Priority 1️⃣:
-• [action in hinglish]
-• Kyun: [simple reason in hinglish]
-• Time: [how long]
-
-Priority 2️⃣:
-• [action in hinglish]
-• Kyun: [simple reason in hinglish]
-• Time: [how long]
-
-[Continue for 5-7 priorities]
-
-## Naye Maukey (GROWTH IDEAS)
-
-💡 Naye Product Ideas:
-• [simple hinglish suggestion based on existing products]
-• [simple hinglish suggestion]
-
-🎁 Gift Packages Banayein:
-• [bundle idea in hinglish]: ₹[price]
-• [bundle idea in hinglish]: ₹[price]
-
-## Customer Ko Khush Karein 😊
-
-Packaging Kaise Ho:
-• [simple hinglish tip]
-
-Sale Ke Baad Kya Karein:
-• [simple hinglish tip]
-
-Loyalty Program:
-• [simple hinglish tip]
-
-## Paise Bachayein Aur Kamayein 💰
-
-Pricing Tips:
-• [simple hinglish suggestion]
-
-📦 Bundle Offers:
-• [specific bundle in hinglish]: Bechein ₹[X] mein, Profit ₹[Y]
-• [specific bundle in hinglish]: Bechein ₹[X] mein, Profit ₹[Y]
-
-Cost Kam Karne Ke Tarike:
-• [simple hinglish tip]
-
-REMEMBER: Write in NATURAL HINGLISH like Indians speak. Mix Hindi-English freely. Keep it SHORT, SIMPLE, FRIENDLY. Use bullet points and emojis. Make it easy to read quickly!`;
-
-const GEMINI_MODEL = 'gemini-2.5-flash';
-const GEMINI_MAX_RETRIES = 3;
-
-function isTemporaryGeminiError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return /\[(?:503|429)\b/.test(message) || /\b(?:503|429)\b/.test(message);
-}
-
-function getGeminiErrorDescription(error: unknown): string {
-  if (isTemporaryGeminiError(error)) {
-    return 'Google AI is temporarily busy. Your data is safe; please try again in a moment.';
-  }
-  return 'Failed to generate insights. Please check your AI configuration and try again.';
-}
 
 export default function BusinessInsights() {
   const { data: productsData } = useProducts();
@@ -175,8 +24,6 @@ export default function BusinessInsights() {
     return saved ? new Date(saved) : null;
   });
   const [activeSection, setActiveSection] = useState('overview');
-
-  const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
   const generateInsights = async () => {
     if (!products || products.length === 0) {
@@ -234,38 +81,7 @@ Total Revenue: ₹${orders.reduce((sum, o) => sum + o.total_amount, 0).toFixed(2
 Average Order Value: ₹${(orders.reduce((sum, o) => sum + o.total_amount, 0) / orders.length).toFixed(2)}
       ` : 'No orders yet - This is a new store starting its journey!';
 
-      const prompt = ANALYSIS_PROMPT
-        .replace('{business_data}', businessData)
-        .replace('{product_list}', productList)
-        .replace('{orders_summary}', ordersData);
-
-      const model = genAI.getGenerativeModel({
-        model: GEMINI_MODEL,
-        generationConfig: {
-          temperature: 0.9,
-          topP: 0.95,
-          topK: 40,
-          maxOutputTokens: 8192, // Maximum detailed response
-        },
-      });
-      let result;
-      for (let attempt = 0; attempt <= GEMINI_MAX_RETRIES; attempt += 1) {
-        try {
-          result = await model.generateContent(prompt);
-          break;
-        } catch (error) {
-          if (!isTemporaryGeminiError(error) || attempt === GEMINI_MAX_RETRIES) {
-            throw error;
-          }
-          const delayMs = 1000 * 2 ** attempt;
-          await new Promise(resolve => window.setTimeout(resolve, delayMs));
-        }
-      }
-      if (!result) {
-        throw new Error('Gemini did not return a response.');
-      }
-      const response = await result.response;
-      const text = response.text();
+      const text = await generateBusinessInsights({ businessData, productList, ordersSummary: ordersData });
 
       setInsights(text);
       setLastUpdated(new Date());
@@ -280,8 +96,8 @@ Average Order Value: ₹${(orders.reduce((sum, o) => sum + o.total_amount, 0) / 
     } catch (error) {
       console.error('Error generating insights:', error);
       toast({
-        title: isTemporaryGeminiError(error) ? 'AI service temporarily busy' : 'Error generating insights',
-        description: getGeminiErrorDescription(error),
+        title: 'Error generating insights',
+        description: error instanceof Error ? error.message : 'Please check the AI service settings and try again.',
         variant: 'destructive',
       });
     } finally {

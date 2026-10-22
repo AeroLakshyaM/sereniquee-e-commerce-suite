@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
+import { reportClientError } from '@/lib/errorReporting';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tag, UserCircle, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -252,7 +253,7 @@ export default function Checkout() {
       if (!submitted) throw new Error('Payment details for this order were already submitted or can no longer be changed.');
 
       try { await fetch('/api/notify-upi-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: pendingPayment.id, event: 'submitted' }) }); }
-      catch (emailError) { console.error('Payment submission email could not be sent:', emailError); }
+      catch (emailError) { reportClientError('payment_email_failure', emailError); }
 
       clearCart();
       sessionStorage.removeItem('pendingUpiOrder');
@@ -378,7 +379,7 @@ export default function Checkout() {
       }
       return;
     } catch (error) {
-      console.error('Order error:', error);
+      reportClientError('checkout_failure', error);
       toast({
         title: 'Order failed',
         description: 'Something went wrong. Please try again.',

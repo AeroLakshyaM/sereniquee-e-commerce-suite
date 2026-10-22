@@ -2,9 +2,11 @@ import { randomBytes } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { brandedEmail, escapeEmailHtml } from './_lib/brandedEmail.js';
+import { reportApiError } from './_lib/reportError.js';
+import { consumeRateLimit } from './_lib/rateLimit.js';
 
 type Event = 'payment-reminder' | 'order-confirmation' | 'tracking' | 'shipping-quote';
-interface Request { method?: string; headers?: { authorization?: string }; body?: { orderId?: string; event?: Event; quoteAmount?: number; courierName?: string } }
+interface Request { method?: string; headers?: Record<string, string | string[] | undefined>; body?: { orderId?: string; event?: Event; quoteAmount?: number; courierName?: string } }
 interface Response { status: (code: number) => { json: (payload: unknown) => void } }
 const from = 'Sereniquee Candles <team@sereniqueecandles.com>';
 
@@ -15,7 +17,8 @@ export default async function handler(req: Request, res: Response) {
   if (!orderId || !event || !['payment-reminder', 'order-confirmation', 'tracking', 'shipping-quote'].includes(event)) {
     return res.status(400).json({ error: 'Invalid order email request.' });
   }
-  const token = req.headers?.authorization?.replace(/^Bearer\s+/i, '');
+  const authorization = req.headers?.authorization;
+  const token = (Array.isArray(authorization) ? authorization[0] : authorization)?.replace(/^Bearer\s+/i, '');
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const resendKey = process.env.RESEND_API_KEY;
@@ -29,6 +32,9 @@ export default async function handler(req: Request, res: Response) {
     if (authError || !authData.user) return res.status(401).json({ error: 'Please sign in as an administrator.' });
     const { data: role } = await admin.from('user_roles').select('role').eq('user_id', authData.user.id).eq('role', 'admin').maybeSingle();
     if (!role) return res.status(403).json({ error: 'Administrator access required.' });
+    if (!await consumeRateLimit(req, 'admin:order-email', 30, 3600, `admin:${authData.user.id}`)) {
+      return res.status(429).json({ error: 'Order email limit reached. Please wait before sending more messages.' });
+    }
 
     const { data: order, error: orderError } = await admin.from('orders')
       .select('id, order_number, order_source, status, payment_method, payment_status, payment_expires_at, payment_resume_token, payment_resume_token_expires_at, total_amount, subtotal_amount, gst_amount, shipping_amount, tracking_number, guest_email, guest_name, user_id, shipping_address, created_at, shipping_quote_status, shipping_quote_amount, shipping_quote_token')
@@ -58,7 +64,7 @@ export default async function handler(req: Request, res: Response) {
 
     if (event === 'shipping-quote') {
       const quoteAmount = Number(req.body?.quoteAmount);
-      const courierName = escapeEmailHtml((req.body?.courierName || '').trim().slice(0, 100));
+      const courierName = escapeEmailHtml((typeof req.body?.courierName === 'string' ? req.body.courierName : '').trim().slice(0, 100));
       if (!Number.isFinite(quoteAmount) || quoteAmount <= 0 || quoteAmount > 100000) return res.status(400).json({ error: 'Enter a valid courier quote.' });
       if (order.order_source !== 'online' || order.payment_status !== 'paid' && order.payment_status !== 'cod_pending' || order.status === 'cancelled') {
         return res.status(409).json({ error: 'The product payment must be complete before sending a shipping quote.' });
@@ -150,6 +156,7 @@ export default async function handler(req: Request, res: Response) {
     if (trackingResult.error) throw new Error(trackingResult.error.message);
     return res.status(200).json({ sent: true });
   } catch (error) {
-    return res.status(500).json({ error: error instanceof Error ? error.message : 'Unable to send this email.' });
+    const incidentId = reportApiError('order_email_failed', error);
+    return res.status(500).json({ error: 'We could not complete this order email. Check the deployment logs and retry.', incidentId });
   }
 }

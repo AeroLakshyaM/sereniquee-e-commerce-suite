@@ -1,70 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { sendChatMessage } from '@/lib/geminiAI';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
 }
-
-const SYSTEM_PROMPT = `You are Sereniquee's AI assistant, representing a premium luxury candle brand. Here's what you need to know:
-
-**About Sereniquee Candles:**
-- Premium handcrafted luxury candles made with 100% natural soy wax
-- Each candle is artisan-crafted with attention to detail
-- We offer a range of exquisite scents including lavender, vanilla, sandalwood, citrus, rose, and more
-- Our candles feature cotton wicks for clean burning
-- Eco-friendly and sustainable materials
-- Perfect for creating ambiance, relaxation, meditation, or as luxury gifts
-- Available in various sizes and decorative containers
-- All products are hand-poured in small batches to ensure quality
-
-**Product Variants:**
-- Multiple sizes available (small, medium, large)
-- Different scent profiles (floral, woody, citrus, herbal)
-- Various color options
-- Wick types (single, double, wooden)
-- Custom engraving available on select products
-- Gift wrapping and premium packaging options available
-
-**Business Values:**
-- Quality craftsmanship over mass production
-- Natural and sustainable ingredients
-- Creating moments of tranquility and peace
-- Supporting local artisans
-- Eco-conscious packaging
-- Customer satisfaction is our priority
-
-**Gift Services:**
-- Beautiful gift wrapping (+₹50)
-- Custom gift messages and greeting cards (+₹30)
-- Premium gift boxes (+₹100)
-- Direct shipping to recipients
-- Hide price options available
-
-**Customer Experience:**
-- Easy online shopping
-- Secure payment options
-- Fast shipping across India
-- WhatsApp support available
-- Wishlist and favorites for future purchases
-- Product reviews and ratings from verified customers
-
-**Your Role:**
-- Be warm, friendly, and knowledgeable
-- Help customers find the perfect candle for their needs
-- Answer questions about products, ingredients, and care
-- Provide gift suggestions and recommendations
-- Assist with order inquiries
-- Share candle care tips (trim wick to 1/4", burn for 2-4 hours, etc.)
-- Be concise but informative
-- If you don't know something specific, offer to connect them with customer support
-
-Keep responses conversational, helpful, and aligned with the premium, luxurious brand image. Use emojis sparingly and appropriately. Always be polite and professional.`;
 
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -80,8 +25,6 @@ export function ChatBot() {
   const [isHovered, setIsHovered] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -109,18 +52,11 @@ export function ChatBot() {
     setIsLoading(true);
 
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-      
-      // Build conversation history for context
-      const conversationHistory = messages
-        .map((msg) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
-        .join('\n');
-
-      const prompt = `${SYSTEM_PROMPT}\n\nConversation History:\n${conversationHistory}\n\nUser: ${userMessage.content}\n\nAssistant:`;
-
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const chatHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [
+        ...messages.map(({ role, content }) => ({ role: role as 'user' | 'assistant', content })),
+        { role: 'user', content: userMessage.content },
+      ].slice(-12);
+      const text = await sendChatMessage(chatHistory);
 
       const assistantMessage: Message = {
         role: 'assistant',

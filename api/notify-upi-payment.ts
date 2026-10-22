@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { brandedEmail, escapeEmailHtml } from './_lib/brandedEmail.js';
+import { reportApiError } from './_lib/reportError.js';
 
 interface Request { method?: string; headers?: { authorization?: string }; body?: { orderId?: string; event?: 'submitted' | 'received' } }
 interface Response { status: (code: number) => { json: (payload: unknown) => void } }
@@ -59,6 +60,7 @@ export default async function handler(req: Request, res: Response) {
     return res.status(200).json({ sent: true });
   } catch (error) {
     await admin.from('orders').update({ [event === 'submitted' ? 'upi_submission_email_sent' : 'upi_received_email_sent']: false }).eq('id', orderId);
-    return res.status(500).json({ error: error instanceof Error ? error.message : 'Unable to send payment email.' });
+    const incidentId = reportApiError('payment_notification_email_failed', error);
+    return res.status(500).json({ error: 'Payment state was saved, but its email notification failed. Check deployment logs and retry.', incidentId });
   }
 }

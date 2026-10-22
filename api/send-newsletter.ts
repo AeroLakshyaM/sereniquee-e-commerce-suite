@@ -1,10 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { brandedEmail } from './_lib/brandedEmail.js';
+import { consumeRateLimit } from './_lib/rateLimit.js';
+import { reportApiError } from './_lib/reportError.js';
 
 interface NewsletterRequest {
   method?: string;
-  headers?: { authorization?: string };
+  headers?: Record<string, string | string[] | undefined>;
   body?: { subject?: string; markdown?: string };
 }
 
@@ -29,10 +31,11 @@ function markdownToHtml(markdown: string): string {
 export default async function handler(req: NewsletterRequest, res: NewsletterResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const token = req.headers?.authorization?.replace(/^Bearer\s+/i, '');
-  const subject = req.body?.subject?.trim();
-  const markdown = req.body?.markdown?.trim();
-  if (!token || !subject || !markdown) return res.status(400).json({ error: 'Missing authorization, subject, or message.' });
+  const authorization = req.headers?.authorization;
+  const token = (Array.isArray(authorization) ? authorization[0] : authorization)?.replace(/^Bearer\s+/i, '');
+  const subject = typeof req.body?.subject === 'string' ? req.body.subject.trim() : '';
+  const markdown = typeof req.body?.markdown === 'string' ? req.body.markdown.trim() : '';
+  if (!token || !subject || subject.length > 160 || !markdown || markdown.length > 30000) return res.status(400).json({ error: 'Provide a subject under 160 characters and message under 30,000 characters.' });
 
   try {
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -57,6 +60,9 @@ export default async function handler(req: NewsletterRequest, res: NewsletterRes
       .eq('role', 'admin')
       .maybeSingle();
     if (roleError || !role) return res.status(403).json({ error: 'Admin access required.' });
+    if (!await consumeRateLimit(req, 'admin:newsletter-broadcast', 3, 21600, `admin:${userData.user.id}`)) {
+      return res.status(429).json({ error: 'Newsletter send limit reached. Please wait before sending another campaign.' });
+    }
 
     const { data: subscribers, error: subscriberError } = await supabaseAdmin
       .from('newsletter_subscribers')
@@ -85,7 +91,7 @@ export default async function handler(req: NewsletterRequest, res: NewsletterRes
     const failed = subscribers.length - sent;
     return res.status(failed ? 207 : 200).json({ sent, failed });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unable to send newsletter.';
-    return res.status(500).json({ error: message });
+    const incidentId = reportApiError('newsletter_broadcast_failed', error);
+    return res.status(500).json({ error: 'Newsletter could not be sent. Check deployment logs before retrying.', incidentId });
   }
 }

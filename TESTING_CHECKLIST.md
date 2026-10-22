@@ -3,9 +3,9 @@
 ## Before Showing to Mom
 
 ### 1. Environment Setup
-- [ ] Verify `.env` file contains `VITE_GEMINI_API_KEY`
-- [ ] Restart dev server after adding API key
-- [ ] Test API key is working (check browser console for errors)
+- [ ] Configure `GEMINI_API_KEY` in server deployment settings (never use a `VITE_` prefix)
+- [ ] Apply the Phase 6 rate-limit/security migration
+- [ ] Verify AI calls go through `/api/ai-content` and no Gemini key appears in the browser bundle
 
 ### 2. Basic Functionality Tests
 
@@ -112,7 +112,7 @@
 - [ ] Should show error toast: "Generation failed. Please try again."
 
 #### Test 16: Invalid API Key
-- [ ] Temporarily set wrong API key in `.env`
+- [ ] Verify the server returns a safe error when `GEMINI_API_KEY` is unavailable
 - [ ] Restart server
 - [ ] Try to generate
 - [ ] Check browser console for error message
@@ -185,7 +185,7 @@
 ### Issue: "Generation failed"
 **Solutions:**
 1. Check internet connection
-2. Verify API key in `.env` file
+2. Verify `GEMINI_API_KEY` in server deployment settings
 3. Restart dev server
 4. Check browser console for detailed error
 5. Try a simpler topic
