@@ -255,7 +255,7 @@ export default function Profile() {
                           </span>
                           {order.payment_status && (
                             <p className="mt-1 text-xs capitalize text-muted-foreground">
-                              Payment: {order.payment_status.replace(/_/g, ' ')}
+                              Payment: {order.payment_method === 'cod' ? 'cash on delivery · ' : ''}{order.payment_status.replace(/_/g, ' ')}
                             </p>
                           )}
                         </div>

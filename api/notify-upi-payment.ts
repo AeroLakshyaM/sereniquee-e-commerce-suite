@@ -30,7 +30,7 @@ export default async function handler(req: Request, res: Response) {
       const { data: role } = await admin.from('user_roles').select('role').eq('user_id', userResult.user.id).eq('role', 'admin').maybeSingle();
       if (!role) return res.status(403).json({ error: 'Admin access required.' });
     }
-    const { data: order, error } = await admin.from('orders').select('id, order_number, total_amount, payment_status, utr_number, guest_email, guest_name, user_id').eq('id', orderId).maybeSingle();
+    const { data: order, error } = await admin.from('orders').select('id, order_number, total_amount, payment_status, payment_method, utr_number, guest_email, guest_name, user_id').eq('id', orderId).maybeSingle();
     if (error) throw error;
     if (!order || (event === 'submitted' && order.payment_status !== 'submitted_for_verification') || (event === 'received' && order.payment_status !== 'paid')) return res.status(409).json({ error: 'Order payment state does not match this notification.' });
     const flag = event === 'submitted' ? 'upi_submission_email_sent' : 'upi_received_email_sent';
@@ -45,15 +45,16 @@ export default async function handler(req: Request, res: Response) {
     if (!customerEmail) { await admin.from('orders').update({ [flag]: false }).eq('id', orderId); return res.status(422).json({ error: 'Customer email is not available.' }); }
     const orderLabel = order.order_number || order.id.slice(0, 8).toUpperCase();
     const received = event === 'received';
-    const subject = received ? `Payment received · Order ${orderLabel}` : `UPI payment submitted · Order ${orderLabel}`;
+    const isCod = order.payment_method === 'cod';
+    const subject = received ? `${isCod ? 'Cash on delivery collected' : 'Payment received'} · Order ${orderLabel}` : `UPI payment submitted · Order ${orderLabel}`;
     const greeting = received ? `Dear ${escapeHtml(order.guest_name || 'Customer')},` : `Dear ${escapeHtml(order.guest_name || 'Customer')},`;
     const content = received
-      ? `<p style="line-height:1.65">We have verified your UPI payment and marked your order as confirmed. Our team will now prepare your order.</p><div style="padding:18px;background:#faf7f2;border-radius:8px;line-height:1.9"><strong>Order:</strong> ${escapeHtml(orderLabel)}<br/><strong>Amount received:</strong> ₹${Number(order.total_amount).toFixed(2)}<br/><strong>UTR:</strong> ${escapeHtml(order.utr_number || '')}</div>`
+      ? `<p style="line-height:1.65">${isCod ? 'Our team has recorded the cash payment collected on delivery.' : 'We have verified your UPI payment.'} Your order payment is now marked as received.</p><div style="padding:18px;background:#faf7f2;border-radius:8px;line-height:1.9"><strong>Order:</strong> ${escapeHtml(orderLabel)}<br/><strong>Amount received:</strong> ₹${Number(order.total_amount).toFixed(2)}${isCod ? '' : `<br/><strong>UTR (Transaction ID):</strong> ${escapeHtml(order.utr_number || '')}`}</div>`
       : `<p style="line-height:1.65">We have received your payment details and they are awaiting manual verification. Your order will be confirmed as soon as our team verifies the transaction.</p><div style="padding:18px;background:#faf7f2;border-radius:8px;line-height:1.9"><strong>Order:</strong> ${escapeHtml(orderLabel)}<br/><strong>Amount:</strong> ₹${Number(order.total_amount).toFixed(2)}<br/><strong>Submitted UTR:</strong> ${escapeHtml(order.utr_number || '')}<br/><strong>Status:</strong> Pending verification</div>`;
     const html = emailHtml(received ? 'Payment confirmed' : 'Payment details received', greeting, content);
     const result = await resend.batch.send([
       { from: 'Sereniquee Candles <team@sereniqueecandles.com>', to: customerEmail, subject, html },
-      ...internalRecipients.map(to => ({ from: 'Sereniquee Candles <team@sereniqueecandles.com>', to, subject: `${received ? '[Payment received]' : '[Payment submitted]'} ${orderLabel}`, html: emailHtml(received ? 'Payment received' : 'UPI payment submitted for review', 'Dear Sereniquee Candles team,', `${content}<p style="line-height:1.65">Customer: ${escapeHtml(order.guest_name || customerEmail)}</p><p>Please review the payment in the admin dashboard.</p>`) })),
+      ...internalRecipients.map(to => ({ from: 'Sereniquee Candles <team@sereniqueecandles.com>', to, subject: `${received ? (isCod ? '[COD collected]' : '[Payment received]') : '[Payment submitted]'} ${orderLabel}`, html: emailHtml(received ? (isCod ? 'Cash collected on delivery' : 'Payment received') : 'UPI payment submitted for review', 'Dear Sereniquee Candles team,', `${content}<p style="line-height:1.65">Customer: ${escapeHtml(order.guest_name || customerEmail)}</p><p>Please review the order in the admin dashboard.</p>`) })),
     ]);
     if (result.error) throw new Error(result.error.message);
     return res.status(200).json({ sent: true });

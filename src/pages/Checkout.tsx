@@ -15,12 +15,12 @@ import { Tag, UserCircle, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Banknote, CheckCircle2, ClipboardCopy } from 'lucide-react';
+import { Banknote, CheckCircle2, ClipboardCopy, Clock3, Truck } from 'lucide-react';
 
 const UPI_ID = import.meta.env.VITE_UPI_ID as string | undefined;
 const UPI_PAYEE_NAME = (import.meta.env.VITE_UPI_PAYEE_NAME as string | undefined) || 'Sereniquee Candles';
 const UPI_QR_IMAGE_URL = import.meta.env.VITE_UPI_QR_IMAGE_URL as string | undefined;
-type PendingUpiOrder = { id: string; orderNumber: string | null; amount: number; guestEmail: string; guestName: string };
+type PendingUpiOrder = { id: string; orderNumber: string | null; amount: number; guestEmail: string; guestName: string; createdAt?: string };
 
 function loadPendingUpiOrder(): PendingUpiOrder | null {
   try {
@@ -48,6 +48,8 @@ export default function Checkout() {
   const [utrNumber, setUtrNumber] = useState('');
   const [isSubmittingUtr, setIsSubmittingUtr] = useState(false);
   const [proofImage, setProofImage] = useState<File | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cod'>('upi');
+  const [upiSecondsLeft, setUpiSecondsLeft] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -118,6 +120,47 @@ export default function Checkout() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  useEffect(() => {
+    if (!pendingPayment) return;
+    let cancelled = false;
+    let lastExpiryAttempt = 0;
+    const refreshExpiry = async () => {
+      let createdAt = pendingPayment.createdAt;
+      if (!createdAt) {
+        const { data } = await supabase.from('orders').select('created_at').eq('id', pendingPayment.id).maybeSingle();
+        createdAt = data?.created_at || new Date().toISOString();
+        const updated = { ...pendingPayment, createdAt };
+        if (!cancelled) { sessionStorage.setItem('pendingUpiOrder', JSON.stringify(updated)); setPendingPayment(updated); }
+      }
+      const expiresAt = new Date(createdAt).getTime() + 15 * 60 * 1000;
+      const remaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+      if (!cancelled) setUpiSecondsLeft(remaining);
+      if (remaining === 0) {
+        if (Date.now() - lastExpiryAttempt < 10000) return;
+        lastExpiryAttempt = Date.now();
+        const { data: expired, error } = await supabase.rpc('expire_pending_upi_order', {
+          p_order_id: pendingPayment.id,
+          p_guest_email: user ? null : pendingPayment.guestEmail,
+        });
+        if (!error && !cancelled) {
+          let isExpired = Boolean(expired);
+          if (!isExpired) {
+            const { data: currentOrder } = await supabase.from('orders').select('payment_status').eq('id', pendingPayment.id).maybeSingle();
+            isExpired = currentOrder?.payment_status === 'failed';
+          }
+          if (!isExpired) return;
+          sessionStorage.removeItem('pendingUpiOrder');
+          setPendingPayment(null);
+          setPaymentMethod('upi');
+          toast({ title: 'UPI payment session expired', description: 'Your unpaid order was closed. Choose UPI or cash on delivery to place a fresh order.' });
+        }
+      }
+    };
+    void refreshExpiry();
+    const timer = window.setInterval(() => void refreshExpiry(), 1000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [pendingPayment, user, toast]);
 
   const submitUtr = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -214,6 +257,7 @@ export default function Checkout() {
         gstAmount,
         discountAmount,
         discountCodeId: appliedCoupon?.id,
+        paymentMethod,
         specialRequirements: formData.specialRequirements || null,
         ...(checkoutMode === 'guest' && !user ? {
           guestInfo: {
@@ -224,22 +268,11 @@ export default function Checkout() {
         } : {})
       });
 
-      const stockUpdates = await Promise.all(
-        items.map(item =>
-          supabase.rpc('decrement_stock', {
-            product_id: item.product.id,
-            qty: item.quantity,
-          })
-        )
-      );
-
-      const stockUpdateError = stockUpdates.find(result => result.error)?.error;
-      if (stockUpdateError) throw stockUpdateError;
-
-      if (appliedCoupon) {
-        const { error: couponIncrementError } = await supabase.rpc('increment_coupon_uses', { code_id: appliedCoupon.id });
-        if (couponIncrementError) throw couponIncrementError;
-      }
+      const { error: reservationError } = await supabase.rpc('reserve_checkout_order', {
+        p_order_id: createdOrder.id,
+        p_guest_email: user ? null : formData.email,
+      });
+      if (reservationError) throw reservationError;
 
       const paymentDetails: PendingUpiOrder = {
         id: createdOrder.id,
@@ -247,9 +280,16 @@ export default function Checkout() {
         amount: grandTotal,
         guestEmail: formData.email,
         guestName: formData.fullName,
+        createdAt: new Date().toISOString(),
       };
-      sessionStorage.setItem('pendingUpiOrder', JSON.stringify(paymentDetails));
-      setPendingPayment(paymentDetails);
+      if (paymentMethod === 'cod') {
+        clearCart();
+        toast({ title: 'Order placed with cash on delivery', description: `Order ${paymentDetails.orderNumber || paymentDetails.id} is confirmed. Pay when it arrives.` });
+        navigate(user ? '/profile' : '/');
+      } else {
+        sessionStorage.setItem('pendingUpiOrder', JSON.stringify(paymentDetails));
+        setPendingPayment(paymentDetails);
+      }
       return;
     } catch (error) {
       console.error('Order error:', error);
@@ -302,7 +342,7 @@ export default function Checkout() {
               )}
               {UPI_ID && (
                 <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Pay to {UPI_PAYEE_NAME}</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Pay to {UPI_PAYEE_NAME}</p>
                   <div className="flex items-center justify-center gap-2">
                     <span className="font-medium">{UPI_ID}</span>
                     <Button type="button" variant="ghost" size="icon" aria-label="Copy UPI ID" onClick={() => void navigator.clipboard?.writeText(UPI_ID)}>
@@ -315,6 +355,11 @@ export default function Checkout() {
             </div>
 
             <div className="space-y-5">
+              {upiSecondsLeft !== null && <Alert variant={upiSecondsLeft <= 60 ? 'destructive' : 'default'}>
+                <Clock3 className="h-4 w-4" />
+                <AlertTitle>{upiSecondsLeft > 0 ? 'Complete this UPI payment within 15 minutes' : 'Closing expired UPI order…'}</AlertTitle>
+                <AlertDescription>{upiSecondsLeft > 0 ? `Time remaining: ${Math.floor(upiSecondsLeft / 60).toString().padStart(2, '0')}:${(upiSecondsLeft % 60).toString().padStart(2, '0')}. If it expires, you can place a fresh order using UPI or cash on delivery.` : 'Your unpaid order is being closed so you can choose a payment method again.'}</AlertDescription>
+              </Alert>}
               <Alert>
                 <CheckCircle2 className="h-4 w-4" />
                 <AlertTitle>Manual payment verification</AlertTitle>
@@ -328,7 +373,7 @@ export default function Checkout() {
               )}
               <form onSubmit={submitUtr} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="utr-number">UPI UTR / transaction reference</Label>
+                  <Label htmlFor="utr-number">UPI UTR (Transaction ID)</Label>
                   <Input id="utr-number" value={utrNumber} onChange={event => setUtrNumber(event.target.value)} placeholder="Enter the reference from your UPI app" minLength={6} maxLength={64} required />
                   <p className="text-xs text-muted-foreground">Your order stays pending until we verify the payment.</p>
                 </div>
@@ -525,14 +570,28 @@ export default function Checkout() {
                 </p>
               </div>
 
+              <div className="space-y-3">
+                <Label>Payment method</Label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <button type="button" aria-pressed={paymentMethod === 'upi'} onClick={() => setPaymentMethod('upi')} className={`rounded-lg border p-4 text-left transition-colors ${paymentMethod === 'upi' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border hover:border-primary/50'}`}>
+                    <span className="flex items-center gap-2 font-medium"><Banknote className="h-4 w-4" /> UPI payment</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">Pay by QR or UPI ID. Complete within 15 minutes.</span>
+                  </button>
+                  <button type="button" aria-pressed={paymentMethod === 'cod'} onClick={() => setPaymentMethod('cod')} className={`rounded-lg border p-4 text-left transition-colors ${paymentMethod === 'cod' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border hover:border-primary/50'}`}>
+                    <span className="flex items-center gap-2 font-medium"><Truck className="h-4 w-4" /> Cash on delivery</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">Pay in cash when your order arrives.</span>
+                  </button>
+                </div>
+              </div>
+
               <Button
                 type="submit"
-                disabled={createOrder.isPending || !UPI_ID || !UPI_QR_IMAGE_URL}
+                disabled={createOrder.isPending || (paymentMethod === 'upi' && (!UPI_ID || !UPI_QR_IMAGE_URL))}
                 className="w-full bg-primary text-primary-foreground py-6 hover:bg-primary/90 active:scale-[0.98] transition-all"
               >
-                {createOrder.isPending ? 'Processing...' : !UPI_ID || !UPI_QR_IMAGE_URL ? 'UPI payment setup required' : `Continue to UPI payment · ₹${grandTotal.toFixed(2)}`}
+                {createOrder.isPending ? 'Processing...' : paymentMethod === 'cod' ? `Place order with COD · ₹${grandTotal.toFixed(2)}` : !UPI_ID || !UPI_QR_IMAGE_URL ? 'UPI payment setup required' : `Continue to UPI payment · ₹${grandTotal.toFixed(2)}`}
               </Button>
-              {(!UPI_ID || !UPI_QR_IMAGE_URL) && <p className="text-xs text-muted-foreground">UPI checkout will be available after the store payment ID and QR code are configured.</p>}
+              {paymentMethod === 'upi' && (!UPI_ID || !UPI_QR_IMAGE_URL) && <p className="text-xs text-muted-foreground">UPI checkout will be available after the store payment ID and QR code are configured.</p>}
             </form>
           </div>
 

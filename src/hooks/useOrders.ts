@@ -54,6 +54,7 @@ interface CreateOrderParams {
   };
   discountAmount?: number;
   discountCodeId?: string;
+  paymentMethod?: 'upi' | 'cod';
 }
 
 export function useCreateOrder() {
@@ -61,7 +62,7 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ items, shippingAddress, shippingAmount, gstAmount, specialRequirements, guestInfo, discountAmount = 0, discountCodeId }: CreateOrderParams) => {
+    mutationFn: async ({ items, shippingAddress, shippingAmount, gstAmount, specialRequirements, guestInfo, discountAmount = 0, discountCodeId, paymentMethod = 'upi' }: CreateOrderParams) => {
       // Guest checkout or authenticated user
       const isGuest = !user && guestInfo;
       const orderId = crypto.randomUUID();
@@ -87,7 +88,8 @@ export function useCreateOrder() {
         shipping_address: shippingAddress,
         special_requirements: specialRequirements,
         status: 'pending',
-        payment_status: 'pending_payment',
+        payment_status: paymentMethod === 'cod' ? 'cod_pending' : 'pending_payment',
+        payment_method: paymentMethod,
         discount_code_id: discountCodeId || null,
       };
 

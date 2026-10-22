@@ -217,6 +217,10 @@ export type Database = {
           order_source: string
           discount_code_id: string | null
           payment_status: string
+          payment_method: string
+          payment_expires_at: string | null
+          inventory_reserved: boolean
+          coupon_use_reserved: boolean
           utr_number: string | null
           payment_proof_path: string | null
           upi_submission_email_sent: boolean
@@ -242,6 +246,10 @@ export type Database = {
           order_source?: string
           discount_code_id?: string | null
           payment_status?: string
+          payment_method?: string
+          payment_expires_at?: string | null
+          inventory_reserved?: boolean
+          coupon_use_reserved?: boolean
           utr_number?: string | null
           payment_proof_path?: string | null
           upi_submission_email_sent?: boolean
@@ -267,6 +275,10 @@ export type Database = {
           order_source?: string
           discount_code_id?: string | null
           payment_status?: string
+          payment_method?: string
+          payment_expires_at?: string | null
+          inventory_reserved?: boolean
+          coupon_use_reserved?: boolean
           utr_number?: string | null
           payment_proof_path?: string | null
           upi_submission_email_sent?: boolean
@@ -809,6 +821,18 @@ export type Database = {
           p_order_id: string
           p_bank_utr: string
         }
+        Returns: boolean
+      }
+      expire_pending_upi_order: {
+        Args: { p_order_id: string; p_guest_email?: string | null }
+        Returns: boolean
+      }
+      mark_cod_payment_received: {
+        Args: { p_order_id: string }
+        Returns: boolean
+      }
+      reserve_checkout_order: {
+        Args: { p_order_id: string; p_guest_email?: string | null }
         Returns: boolean
       }
       has_purchased_product: {

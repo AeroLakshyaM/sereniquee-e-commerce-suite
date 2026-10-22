@@ -16,6 +16,8 @@ export interface AdminOrder {
   gst_amount: number;
   status: string;
   payment_status: string;
+  payment_method: string;
+  payment_expires_at: string | null;
   utr_number: string | null;
   payment_proof_path: string | null;
   shipping_address: string | null;
@@ -122,6 +124,8 @@ export const useAdminOrders = (search = '', startDate?: string, endDate?: string
         gst_amount: Number(order.gst_amount ?? 0),
         status: order.status,
         payment_status: order.payment_status,
+        payment_method: order.payment_method,
+        payment_expires_at: order.payment_expires_at,
         utr_number: order.utr_number,
         payment_proof_path: order.payment_proof_path,
         shipping_address: order.shipping_address,

@@ -103,7 +103,7 @@ export default function FAQ() {
         },
         {
           q: "What payment methods do you accept?",
-          a: "We currently accept UPI payments. Scan the QR code at checkout, pay the displayed amount, and submit the UTR or transaction reference from your UPI app. We manually verify each payment before confirming the order."
+          a: "Choose UPI or cash on delivery at checkout. UPI orders must be paid and submitted for verification within 15 minutes; unpaid attempts expire so you can start a fresh order. For UPI, scan the QR code, pay the displayed amount, and submit the UTR (Transaction ID) from your UPI app. We manually verify each payment before confirming it."
         },
         {
           q: "When will my UPI order be confirmed?",

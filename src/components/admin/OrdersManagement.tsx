@@ -66,7 +66,7 @@ export default function OrdersManagement() {
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     const currentOrder = orders?.find(order => order.id === orderId);
-    if (currentOrder?.order_source === 'online' && currentOrder.payment_status !== 'paid' && !['pending', 'cancelled'].includes(newStatus)) {
+    if (currentOrder?.order_source === 'online' && currentOrder.payment_method !== 'cod' && currentOrder.payment_status !== 'paid' && !['pending', 'cancelled'].includes(newStatus)) {
       toast({ title: 'Payment still needs verification', description: 'Mark the UPI payment received before moving this order into fulfillment.', variant: 'destructive' });
       return;
     }
@@ -146,7 +146,7 @@ export default function OrdersManagement() {
 
   const sendTrackingEmail = async () => {
     if (!trackingOrder || !trackingNumber.trim()) return;
-    if (trackingOrder.order_source === 'online' && trackingOrder.payment_status !== 'paid') {
+    if (trackingOrder.order_source === 'online' && trackingOrder.payment_method !== 'cod' && trackingOrder.payment_status !== 'paid') {
       toast({ title: 'Payment still needs verification', description: 'Verify the UPI payment before shipping this order.', variant: 'destructive' });
       return;
     }
@@ -560,7 +560,7 @@ export default function OrdersManagement() {
                     <div className="rounded-lg border border-border bg-background p-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <h4 className="font-semibold text-sm md:text-base">UPI payment</h4>
+                          <h4 className="font-semibold text-sm md:text-base">{order.order_source === 'offline' ? 'Offline payment' : order.payment_method === 'cod' ? 'Cash on delivery' : 'UPI payment'}</h4>
                           <p className="mt-1 text-sm text-muted-foreground">
                             Status: <span className="font-medium text-foreground">{(order.payment_status || 'pending_payment').replace(/_/g, ' ')}</span>
                           </p>
@@ -579,6 +579,7 @@ export default function OrdersManagement() {
                           </Button>
                           </div>
                         )}
+                        {order.payment_status === 'cod_pending' && <div className="flex flex-col gap-2 sm:w-auto"><Badge className="w-fit bg-amber-100 text-amber-900">Cash due on delivery</Badge><Button size="sm" variant="outline" onClick={async () => { const { data, error } = await supabase.rpc('mark_cod_payment_received', { p_order_id: order.id }); if (error || !data) toast({ title: 'Could not record cash payment', description: error?.message || 'This order may already be updated.', variant: 'destructive' }); else { const { data: session } = await supabase.auth.getSession(); void fetch('/api/notify-upi-payment', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(session.session?.access_token ? { Authorization: `Bearer ${session.session.access_token}` } : {}) }, body: JSON.stringify({ orderId: order.id, event: 'received' }) }); await queryClient.invalidateQueries({ queryKey: ['admin-orders'] }); await queryClient.invalidateQueries({ queryKey: ['orders'] }); toast({ title: 'Cash payment recorded' }); } }}><Banknote className="mr-2 h-4 w-4" /> Mark Cash Received</Button></div>}
                         {order.payment_status === 'paid' && <div className="flex flex-wrap items-center gap-2"><Badge className="bg-green-100 text-green-800">Paid</Badge>{order.payment_proof_path && <Button size="sm" variant="outline" onClick={async () => { const { error } = await supabase.storage.from('upi-payment-proofs').remove([order.payment_proof_path]); if (error) toast({ title: 'Image cleanup failed', description: error.message, variant: 'destructive' }); else { await supabase.from('orders').update({ payment_proof_path: null }).eq('id', order.id); setProofUrls(current => { const next = { ...current }; delete next[order.id]; return next; }); await queryClient.invalidateQueries({ queryKey: ['admin-orders'] }); toast({ title: 'Payment proof deleted' }); } }}>Delete proof image</Button>}</div>}
                       </div>
                     </div>

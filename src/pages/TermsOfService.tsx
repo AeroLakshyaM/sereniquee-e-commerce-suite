@@ -134,7 +134,7 @@ export default function TermsOfService() {
             <h3 className="font-serif text-xl mb-3">5.2 Payment</h3>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
               <li>UPI payment is required before we confirm and process your order</li>
-              <li>Pay the exact amount shown at checkout using the displayed UPI QR code or UPI ID</li>
+              <li>Pay using the payment method selected at checkout: UPI must be completed within 15 minutes and verified using the UTR (Transaction ID), or cash on delivery must be paid when the order arrives</li>
               <li>Submit the UTR or transaction reference from your UPI app after paying</li>
               <li>Payment is checked manually against our bank transaction before the order is marked paid</li>
               <li>We may contact you if we cannot verify the submitted transaction reference</li>
