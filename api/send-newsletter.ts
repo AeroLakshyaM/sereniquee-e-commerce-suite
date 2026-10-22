@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
-import { brandedEmail } from './_lib/brandedEmail';
+import { brandedEmail } from './_lib/brandedEmail.js';
 
 interface NewsletterRequest {
   method?: string;

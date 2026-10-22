@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { brandedEmail } from './_lib/brandedEmail';
+import { brandedEmail } from './_lib/brandedEmail.js';
 
 interface EmailRequest {
   method?: string;

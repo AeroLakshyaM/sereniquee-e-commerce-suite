@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
-import { brandedEmail, escapeEmailHtml } from './_lib/brandedEmail';
+import { brandedEmail, escapeEmailHtml } from './_lib/brandedEmail.js';
 
 interface Request { method?: string; headers?: { authorization?: string }; body?: { orderId?: string; event?: 'submitted' | 'received' } }
 interface Response { status: (code: number) => { json: (payload: unknown) => void } }

@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { brandedEmail, escapeEmailHtml } from './_lib/brandedEmail';
+import { brandedEmail, escapeEmailHtml } from './_lib/brandedEmail.js';
 
 interface ContactRequest {
   method?: string;

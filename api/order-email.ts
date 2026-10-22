@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
-import { brandedEmail, escapeEmailHtml } from './_lib/brandedEmail';
+import { brandedEmail, escapeEmailHtml } from './_lib/brandedEmail.js';
 
 type Event = 'payment-reminder' | 'order-confirmation' | 'tracking' | 'shipping-quote';
 interface Request { method?: string; headers?: { authorization?: string }; body?: { orderId?: string; event?: Event; quoteAmount?: number; courierName?: string } }
