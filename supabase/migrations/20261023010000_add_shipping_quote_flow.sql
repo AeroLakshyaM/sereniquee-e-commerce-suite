@@ -10,8 +10,22 @@ ALTER TABLE public.orders ADD CONSTRAINT orders_shipping_quote_status_check
 UPDATE public.seo_settings SET canonical_base_url='https://www.sereniqueecandles.com'
 WHERE canonical_base_url IS NULL OR canonical_base_url='https://sereniquee.com';
 -- Existing paid shipping amounts predate the quote workflow; don't block their fulfillment.
-UPDATE public.orders SET shipping_quote_status='paid'
-WHERE created_at < transaction_timestamp();
+-- This backfill must only run before the protection trigger is installed. On a
+-- manual re-run, the existing trigger would correctly reject this direct write,
+-- and newer orders must keep their current quote status.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger
+    WHERE tgrelid = 'public.orders'::regclass
+      AND tgname = 'protect_shipping_quote_fields_trigger'
+      AND NOT tgisinternal
+  ) THEN
+    UPDATE public.orders SET shipping_quote_status='paid'
+    WHERE created_at < transaction_timestamp();
+  END IF;
+END;
+$$;
 
 CREATE OR REPLACE FUNCTION public.protect_shipping_quote_fields()
 RETURNS TRIGGER LANGUAGE plpgsql SET search_path=public AS $$
