@@ -14,6 +14,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tag, UserCircle, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Banknote, CheckCircle2, ClipboardCopy } from 'lucide-react';
+
+const UPI_ID = import.meta.env.VITE_UPI_ID as string | undefined;
+const UPI_PAYEE_NAME = (import.meta.env.VITE_UPI_PAYEE_NAME as string | undefined) || 'Sereniquee Candles';
+const UPI_QR_IMAGE_URL = import.meta.env.VITE_UPI_QR_IMAGE_URL as string | undefined;
+type PendingUpiOrder = { id: string; orderNumber: string | null; amount: number; guestEmail: string; guestName: string };
+
+function loadPendingUpiOrder(): PendingUpiOrder | null {
+  try {
+    const saved = sessionStorage.getItem('pendingUpiOrder');
+    return saved ? JSON.parse(saved) as PendingUpiOrder : null;
+  } catch {
+    return null;
+  }
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character] || character);
+}
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -28,6 +48,9 @@ export default function Checkout() {
   const [appliedCoupon, setAppliedCoupon] = useState<{ id: string; code: string; type: 'percentage' | 'fixed'; value: number } | null>(null);
   const [couponError, setCouponError] = useState('');
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [pendingPayment, setPendingPayment] = useState<PendingUpiOrder | null>(loadPendingUpiOrder);
+  const [utrNumber, setUtrNumber] = useState('');
+  const [isSubmittingUtr, setIsSubmittingUtr] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -97,6 +120,49 @@ export default function Checkout() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const submitUtr = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!pendingPayment || !utrNumber.trim()) return;
+    setIsSubmittingUtr(true);
+    try {
+      const { data: submitted, error } = await supabase.rpc('submit_upi_payment_utr', {
+        p_order_id: pendingPayment.id,
+        p_utr: utrNumber.trim(),
+        p_guest_email: user ? null : pendingPayment.guestEmail,
+      });
+      if (error) throw error;
+      if (!submitted) throw new Error('Payment details for this order were already submitted or can no longer be changed.');
+
+      const email = user?.email || pendingPayment.guestEmail;
+      if (email) {
+        try {
+          const emailResponse = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: email,
+              type: 'order-confirmation',
+              subject: `Payment submitted for order ${pendingPayment.orderNumber || pendingPayment.id}`,
+              html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:24px;color:#333"><h1 style="font-family:Georgia,serif">Payment details received</h1><p>Hi ${escapeHtml(pendingPayment.guestName)},</p><p>We received your UPI transaction reference for order <strong>${escapeHtml(pendingPayment.orderNumber || pendingPayment.id)}</strong>.</p><p>Our team will check the transaction and confirm your order after the payment is verified. Your UTR: <strong>${escapeHtml(utrNumber.trim())}</strong></p><p>Warm regards,<br/>The Sereniquee Team</p></div>`,
+            }),
+          });
+          if (!emailResponse.ok) console.error('Payment submission email request failed:', emailResponse.status);
+        } catch (emailError) {
+          console.error('Payment submission email could not be sent:', emailError);
+        }
+      }
+
+      clearCart();
+      sessionStorage.removeItem('pendingUpiOrder');
+      toast({ title: 'Payment submitted for verification', description: 'We will confirm your order after checking the UPI transaction.' });
+      navigate(user ? '/profile' : '/');
+    } catch (error) {
+      toast({ title: 'Could not submit UTR', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    } finally {
+      setIsSubmittingUtr(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -183,74 +249,16 @@ export default function Checkout() {
         if (couponIncrementError) throw couponIncrementError;
       }
 
-      // Send the email confirmation via our secure Serverless Function
-      try {
-        const confirmEmail = user ? user.email : formData.email;
-        const emailResponse = await fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: confirmEmail,
-            type: 'order-confirmation',
-            subject: 'Order Confirmation - Sereniquee Candles',
-            html: `
-              <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                  <img src="https://www.sereniqueecandles.com/footer-logo.png" alt="Sereniquee Candles" style="max-height: 80px; margin-bottom: 15px;" />
-                  <h1 style="color: #2c2c2c; margin-bottom: 5px; font-family: serif;">Sereniquee Candles</h1>
-                  <p style="color: #666; font-size: 16px; margin-top: 0;">Order Confirmation</p>
-                </div>
-
-                <p style="color: #444; font-size: 16px;">Hi <strong>${formData.fullName}</strong>,</p>
-                <p style="color: #444; font-size: 16px;">Thank you for your purchase! We've received your order and are preparing it for shipment.</p>
-                <p style="color: #444; font-size: 14px;">Order reference: <strong>${createdOrder.id}</strong></p>
-
-                <div style="background-color: #fcfcfc; padding: 15px 20px; border-radius: 6px; margin: 25px 0;">
-                  <h3 style="color: #333; margin-top: 0; font-family: serif;">Order Summary</h3>
-                  <hr style="border: none; border-top: 1px solid #ddd; margin-bottom: 15px;" />
-                  <div style="margin-bottom: 15px;">
-                    ${items.map(item => `
-                      <div style="margin-bottom: 10px; color: #555; text-align: left;">
-                        <span>• ${item.product.name} (x${item.quantity})</span>
-                        <span style="float: right; color: #333; font-weight: 500;">₹${(item.product.price * item.quantity).toFixed(2)}</span>
-                      </div>
-                    `).join('')}
-                  </div>
-                  <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;" />
-                  <div style="font-size: 18px; text-align: left;">
-                    <strong style="color: #333;">Total Amount:</strong>
-                    <strong style="float: right; color: #000;">₹${grandTotal.toFixed(2)}</strong>
-                  </div>
-                </div>
-
-                <p style="color: #444; font-size: 16px;">We will notify you when your items are shipped.</p>
-                <p style="color: #444; font-size: 16px; margin-top: 30px;">Warm regards,<br/><strong>The Sereniquee Team</strong></p>
-              </div>
-            `
-          })
-        });
-
-        if (!emailResponse.ok) {
-          const errorText = await emailResponse.text();
-          console.error('Order confirmation email request failed:', emailResponse.status, errorText);
-        }
-      } catch (emailError) {
-        console.error('Failed to send confirmation email:', emailError);
-      }
-
-      clearCart();
-      toast({
-        title: 'Order placed!',
-        description: checkoutMode === 'guest'
-          ? `Order confirmation has been sent to ${formData.email}`
-          : 'Thank you for your order. You will receive a confirmation email shortly.',
-      });
-
-      if (user) {
-        navigate('/profile');
-      } else {
-        navigate('/');
-      }
+      const paymentDetails: PendingUpiOrder = {
+        id: createdOrder.id,
+        orderNumber: createdOrder.order_number || null,
+        amount: grandTotal,
+        guestEmail: formData.email,
+        guestName: formData.fullName,
+      };
+      sessionStorage.setItem('pendingUpiOrder', JSON.stringify(paymentDetails));
+      setPendingPayment(paymentDetails);
+      return;
     } catch (error) {
       console.error('Order error:', error);
       toast({
@@ -269,6 +277,80 @@ export default function Checkout() {
     );
   }
 
+  if (pendingPayment) {
+    const upiIntent = UPI_ID
+      ? `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(UPI_PAYEE_NAME)}&am=${pendingPayment.amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(`Order ${pendingPayment.orderNumber || pendingPayment.id}`)}`
+      : undefined;
+
+    return (
+      <div className="container-luxury py-12">
+        <SeoHelmet title="Pay by UPI - Sereniquee" description="Pay by UPI and submit your transaction reference for manual verification." url="/checkout" />
+        <div className="mx-auto max-w-3xl">
+          <div className="mb-8 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Banknote className="h-7 w-7" />
+            </div>
+            <h1 className="font-serif text-3xl md:text-4xl">Pay by UPI</h1>
+            <p className="mt-2 text-muted-foreground">Order {pendingPayment.orderNumber || pendingPayment.id}</p>
+          </div>
+
+          <div className="grid gap-8 rounded-xl border border-border bg-card p-5 shadow-soft md:grid-cols-2 md:p-8">
+            <div className="space-y-5 text-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Please pay this exact amount</p>
+                <p className="mt-1 font-serif text-3xl font-semibold">₹{pendingPayment.amount.toFixed(2)}</p>
+              </div>
+              {UPI_QR_IMAGE_URL ? (
+                <img src={UPI_QR_IMAGE_URL} alt={`UPI payment QR code for ${UPI_PAYEE_NAME}`} className="mx-auto h-80 w-64 rounded-lg border border-border bg-white p-2 object-cover object-center" />
+              ) : (
+                <div className="mx-auto flex aspect-square w-56 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 p-5 text-sm text-muted-foreground">
+                  <Banknote className="mb-3 h-8 w-8" />
+                  UPI QR code will appear here once payment details are configured.
+                </div>
+              )}
+              {UPI_ID && (
+                <div className="space-y-2">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Pay to {UPI_PAYEE_NAME}</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="font-medium">{UPI_ID}</span>
+                    <Button type="button" variant="ghost" size="icon" aria-label="Copy UPI ID" onClick={() => void navigator.clipboard?.writeText(UPI_ID)}>
+                      <ClipboardCopy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {upiIntent && <a href={upiIntent} className="inline-flex text-sm font-medium text-primary underline underline-offset-4">Open UPI app</a>}
+            </div>
+
+            <div className="space-y-5">
+              <Alert>
+                <CheckCircle2 className="h-4 w-4" />
+                <AlertTitle>Manual payment verification</AlertTitle>
+                <AlertDescription>After paying, enter the UTR or transaction reference shown by your UPI app. We will verify it against the bank transaction before confirming your order.</AlertDescription>
+              </Alert>
+              {!UPI_QR_IMAGE_URL && !UPI_ID && (
+                <Alert variant="destructive">
+                  <AlertTitle>UPI details are not configured yet</AlertTitle>
+                  <AlertDescription>The store owner needs to add the UPI ID and QR image before customers can pay.</AlertDescription>
+                </Alert>
+              )}
+              <form onSubmit={submitUtr} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="utr-number">UPI UTR / transaction reference</Label>
+                  <Input id="utr-number" value={utrNumber} onChange={event => setUtrNumber(event.target.value)} placeholder="Enter the reference from your UPI app" minLength={6} maxLength={64} required />
+                  <p className="text-xs text-muted-foreground">Your order stays pending until we verify the payment.</p>
+                </div>
+                <Button type="submit" className="w-full" disabled={isSubmittingUtr || (!UPI_ID && !UPI_QR_IMAGE_URL)}>
+                  {isSubmittingUtr ? 'Submitting…' : 'Submit UTR for verification'}
+                </Button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <div className="container-luxury py-12 text-center">
@@ -283,8 +365,8 @@ export default function Checkout() {
     <div className="container-luxury py-12">
       <SeoHelmet
         title="Checkout - Complete Your Order - Sereniquee"
-        description="Complete your purchase of luxury handmade candles. Secure checkout with multiple payment options and fast shipping. Review your order details."
-        keywords="checkout, buy candles, secure payment, complete order, candle purchase"
+        description="Complete your candle order with UPI. Submit your transaction reference for manual payment verification."
+        keywords="checkout, buy candles, UPI payment, payment verification, candle purchase"
         url="/checkout"
       />
       <h1 className="font-serif text-3xl md:text-4xl text-center mb-8">Checkout</h1>
@@ -447,11 +529,12 @@ export default function Checkout() {
 
               <Button
                 type="submit"
-                disabled={createOrder.isPending}
+                disabled={createOrder.isPending || !UPI_ID || !UPI_QR_IMAGE_URL}
                 className="w-full bg-primary text-primary-foreground py-6 hover:bg-primary/90 active:scale-[0.98] transition-all"
               >
-                {createOrder.isPending ? 'Processing...' : `Place Order ₹${grandTotal.toFixed(2)}`}
+                {createOrder.isPending ? 'Processing...' : !UPI_ID || !UPI_QR_IMAGE_URL ? 'UPI payment setup required' : `Continue to UPI payment · ₹${grandTotal.toFixed(2)}`}
               </Button>
+              {(!UPI_ID || !UPI_QR_IMAGE_URL) && <p className="text-xs text-muted-foreground">UPI checkout will be available after the store payment ID and QR code are configured.</p>}
             </form>
           </div>
 

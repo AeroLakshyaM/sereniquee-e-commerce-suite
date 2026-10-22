@@ -103,11 +103,11 @@ export default function FAQ() {
         },
         {
           q: "What payment methods do you accept?",
-          a: "We accept all major credit cards (Visa, Mastercard, American Express), and all UPI Methods like Google Pay, PhonePe etc. through our secure payment processor."
+          a: "We currently accept UPI payments. Scan the QR code at checkout, pay the displayed amount, and submit the UTR or transaction reference from your UPI app. We manually verify each payment before confirming the order."
         },
         {
-          q: "What if the payment method didn't work via the payment processor?",
-          a: "We understand that payments methods are network and time dependent but our payment processor ensures that all of the payments process securely, if in an event it happens that payment doesn't process we urge you to contact us immediately at sereniqueecandles@gmail.com or Call us at +91 - 9827310636 or + 91 - 8770222006 ."
+          q: "When will my UPI order be confirmed?",
+          a: "Your order remains pending while we check the UTR against our bank transaction. We will confirm it after the payment is verified. If you have trouble paying, contact sereniqueecandles@gmail.com or call +91 - 9827310636 or +91 - 8770222006."
         } 
       ]
     },

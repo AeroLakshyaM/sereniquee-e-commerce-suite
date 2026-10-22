@@ -253,6 +253,11 @@ export default function Profile() {
                           >
                             {order.status}
                           </span>
+                          {order.payment_status && (
+                            <p className="mt-1 text-xs capitalize text-muted-foreground">
+                              Payment: {order.payment_status.replace(/_/g, ' ')}
+                            </p>
+                          )}
                         </div>
                         <Button variant="ghost" size="sm">
                           <Eye className="h-4 w-4" />

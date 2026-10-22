@@ -117,6 +117,11 @@ export default function OrderDetailModal({ orderId, onClose }: OrderDetailModalP
             <Badge className={`${STATUS_COLORS[orderDetails.status as keyof typeof STATUS_COLORS]} text-sm px-4 py-2`}>
               {orderDetails.status.toUpperCase()}
             </Badge>
+            {orderDetails.payment_status && (
+              <p className="mt-2 text-sm capitalize text-muted-foreground">
+                Payment: {orderDetails.payment_status.replace(/_/g, ' ')}
+              </p>
+            )}
           </div>
 
           {/* Progress Tracker */}

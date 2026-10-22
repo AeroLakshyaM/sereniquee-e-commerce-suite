@@ -15,6 +15,8 @@ export interface AdminOrder {
   shipping_amount: number;
   gst_amount: number;
   status: string;
+  payment_status: string;
+  utr_number: string | null;
   shipping_address: string | null;
   special_requirements: string | null;
   created_at: string;
@@ -118,6 +120,8 @@ export const useAdminOrders = (search = '', startDate?: string, endDate?: string
         shipping_amount: Number(order.shipping_amount ?? 0),
         gst_amount: Number(order.gst_amount ?? 0),
         status: order.status,
+        payment_status: order.payment_status,
+        utr_number: order.utr_number,
         shipping_address: order.shipping_address,
         special_requirements: order.special_requirements,
         created_at: order.created_at,

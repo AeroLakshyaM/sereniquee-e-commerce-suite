@@ -37,8 +37,8 @@ export default function PrivacyPolicy() {
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
               <li><strong>Identity Data:</strong> Full name, username or similar identifier, date of birth</li>
               <li><strong>Contact Data:</strong> Email address, telephone number, billing and shipping addresses</li>
-              <li><strong>Financial Data:</strong> Payment card details, bank account information (processed securely through our payment processors)</li>
-              <li><strong>Transaction Data:</strong> Details about payments to and from you, products you have purchased</li>
+              <li><strong>Payment Reference:</strong> The UPI UTR or transaction reference you submit so we can manually verify your payment</li>
+              <li><strong>Transaction Data:</strong> Order details, payment status, and products you have purchased</li>
               <li><strong>Technical Data:</strong> IP address, browser type, time zone setting, browser plug-in types and versions, operating system</li>
               <li><strong>Profile Data:</strong> Username, password, purchases, order history, preferences, feedback, survey responses</li>
               <li><strong>Usage Data:</strong> Information about how you use our website, products, and services</li>
@@ -49,7 +49,7 @@ export default function PrivacyPolicy() {
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
               <li><strong>Direct Interactions:</strong> You provide information when you register, place an order, subscribe to newsletters, request information, or contact us</li>
               <li><strong>Automated Technologies:</strong> We use cookies, server logs, and similar technologies to collect technical and usage data</li>
-              <li><strong>Third Parties:</strong> We may receive information from analytics providers, payment processors, and delivery services</li>
+              <li><strong>Third Parties:</strong> We may receive information from analytics providers and delivery services</li>
             </ul>
           </section>
 
@@ -89,7 +89,7 @@ export default function PrivacyPolicy() {
               We may share your personal information with:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
-              <li><strong>Service Providers:</strong> Payment processors (Stripe, PayPal), shipping companies, email service providers, and hosting services</li>
+              <li><strong>Service Providers:</strong> Shipping companies, email service providers, analytics providers, and hosting services</li>
               <li><strong>Business Partners:</strong> Third parties who help us operate our business and serve you</li>
               <li><strong>Legal Authorities:</strong> Government agencies, law enforcement, or other third parties when required by law</li>
               <li><strong>Business Transfers:</strong> In connection with any merger, sale, or acquisition of all or part of our business</li>
@@ -110,7 +110,7 @@ export default function PrivacyPolicy() {
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
               <li>SSL/TLS encryption for data transmission</li>
-              <li>Secure payment processing through PCI-DSS compliant providers</li>
+              <li>Payment transaction references are visible only to authorized store administrators for manual verification</li>
               <li>Regular security assessments and updates</li>
               <li>Access controls and authentication measures</li>
               <li>Employee training on data protection</li>

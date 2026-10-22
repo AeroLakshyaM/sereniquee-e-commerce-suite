@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { Package, User, Calendar, DollarSign, MapPin, ChevronDown, ChevronUp, Printer, CheckCircle, Clock, Truck, FileText } from 'lucide-react';
+import { Package, User, Calendar, DollarSign, MapPin, ChevronDown, ChevronUp, Printer, CheckCircle, Clock, Truck, FileText, Banknote } from 'lucide-react';
 import { openInvoiceInNewTab } from '@/lib/invoiceGenerator';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -22,6 +22,7 @@ const STATUS_COLORS = {
   cancelled: 'bg-red-100 text-red-800',
 };
 const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+const escapeHtml = (value: string) => value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character] || character);
 
 export default function OrdersManagement() {
   const [search, setSearch] = useState('');
@@ -62,6 +63,12 @@ export default function OrdersManagement() {
   };
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+    const currentOrder = orders?.find(order => order.id === orderId);
+    if (currentOrder?.order_source === 'online' && currentOrder.payment_status !== 'paid' && !['pending', 'cancelled'].includes(newStatus)) {
+      toast({ title: 'Payment still needs verification', description: 'Mark the UPI payment received before moving this order into fulfillment.', variant: 'destructive' });
+      return;
+    }
+
     const { data: updatedOrder, error } = await supabase
       .from('orders')
       .update({ status: newStatus })
@@ -98,6 +105,39 @@ export default function OrdersManagement() {
     }
   };
 
+  const markPaymentReceived = async (order: any) => {
+    const { data, error } = await supabase.rpc('mark_manual_upi_payment_received', { p_order_id: order.id });
+    if (error || !data) {
+      toast({ title: 'Payment not marked received', description: error?.message || 'This payment may already be updated.', variant: 'destructive' });
+      return;
+    }
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] }),
+      queryClient.invalidateQueries({ queryKey: ['orders'] }),
+      queryClient.invalidateQueries({ queryKey: ['analytics'] }),
+    ]);
+    const email = customerEmail(order);
+    if (email) {
+      const orderNumber = displayOrderNumber(order);
+      try {
+        const response = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: email,
+            type: 'payment-confirmed',
+            subject: `Payment received for order ${orderNumber}`,
+            html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:24px;color:#333"><h1 style="font-family:Georgia,serif">Payment confirmed</h1><p>Hi ${escapeHtml(customerName(order))},</p><p>We verified your UPI payment for order <strong>${escapeHtml(orderNumber)}</strong>. Your order is now being prepared.</p><p>Amount received: <strong>₹${Number(order.total_amount).toFixed(2)}</strong></p><p>Warm regards,<br/>The Sereniquee Team</p></div>`,
+          }),
+        });
+        if (!response.ok) console.error('Payment confirmation email request failed:', response.status);
+      } catch (emailError) {
+        console.error('Payment confirmation email could not be sent:', emailError);
+      }
+    }
+    toast({ title: 'Payment confirmed', description: 'The order is now marked as paid and processing.' });
+  };
+
   const customerName = (order: any) => order.guest_name || order.user?.full_name || order.user?.email?.split('@')[0] || 'Guest customer';
   const customerEmail = (order: any) => order.guest_email || order.user?.email || '';
   const customerPhone = (order: any) => order.guest_phone || '';
@@ -105,6 +145,10 @@ export default function OrdersManagement() {
 
   const sendTrackingEmail = async () => {
     if (!trackingOrder || !trackingNumber.trim()) return;
+    if (trackingOrder.order_source === 'online' && trackingOrder.payment_status !== 'paid') {
+      toast({ title: 'Payment still needs verification', description: 'Verify the UPI payment before shipping this order.', variant: 'destructive' });
+      return;
+    }
     const { error } = await supabase
       .from('orders')
       .update({ status: 'shipped', tracking_number: trackingNumber.trim() })
@@ -365,6 +409,7 @@ export default function OrdersManagement() {
                     <Badge className={`text-xs ${STATUS_COLORS[order.status as keyof typeof STATUS_COLORS]}`}>
                       {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                     </Badge>
+                    {order.payment_status === 'submitted_for_verification' && <Badge className="bg-amber-100 text-amber-900">Verify UPI</Badge>}
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-sm">
@@ -470,6 +515,7 @@ export default function OrdersManagement() {
                     <Badge className={STATUS_COLORS[order.status as keyof typeof STATUS_COLORS]}>
                       {order.status.toUpperCase()}
                     </Badge>
+                    {order.payment_status === 'submitted_for_verification' && <Badge className="bg-amber-100 text-amber-900">Verify UPI</Badge>}
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -510,6 +556,23 @@ export default function OrdersManagement() {
               {expandedOrders.has(order.id) && (
                 <div className="border-t border-border p-4 md:p-6 bg-muted/20">
                   <div className="grid grid-cols-1 gap-4 md:gap-6">
+                    <div className="rounded-lg border border-border bg-background p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h4 className="font-semibold text-sm md:text-base">UPI payment</h4>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            Status: <span className="font-medium text-foreground">{(order.payment_status || 'pending_payment').replace(/_/g, ' ')}</span>
+                          </p>
+                          {order.utr_number && <p className="mt-1 text-sm">UTR: <span className="font-mono font-medium">{order.utr_number}</span></p>}
+                        </div>
+                        {order.payment_status === 'submitted_for_verification' && (
+                          <Button size="sm" onClick={() => void markPaymentReceived(order)}>
+                            <Banknote className="mr-2 h-4 w-4" /> Mark Payment Received
+                          </Button>
+                        )}
+                        {order.payment_status === 'paid' && <Badge className="bg-green-100 text-green-800">Paid</Badge>}
+                      </div>
+                    </div>
                     {/* Order Items */}
                     <div>
                       <h4 className="font-semibold mb-3 text-sm md:text-base">Order Items</h4>

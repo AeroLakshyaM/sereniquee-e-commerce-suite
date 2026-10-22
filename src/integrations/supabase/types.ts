@@ -216,6 +216,8 @@ export type Database = {
           order_number: string | null
           order_source: string
           discount_code_id: string | null
+          payment_status: string
+          utr_number: string | null
           shipping_address: string | null
           special_requirements: string | null
           status: string | null
@@ -236,6 +238,8 @@ export type Database = {
           order_number?: string | null
           order_source?: string
           discount_code_id?: string | null
+          payment_status?: string
+          utr_number?: string | null
           shipping_address?: string | null
           special_requirements?: string | null
           status?: string | null
@@ -256,6 +260,8 @@ export type Database = {
           order_number?: string | null
           order_source?: string
           discount_code_id?: string | null
+          payment_status?: string
+          utr_number?: string | null
           shipping_address?: string | null
           special_requirements?: string | null
           status?: string | null
@@ -779,6 +785,20 @@ export type Database = {
           qty: number
         }
         Returns: undefined
+      }
+      submit_upi_payment_utr: {
+        Args: {
+          p_order_id: string
+          p_utr: string
+          p_guest_email?: string | null
+        }
+        Returns: boolean
+      }
+      mark_manual_upi_payment_received: {
+        Args: {
+          p_order_id: string
+        }
+        Returns: boolean
       }
       has_purchased_product: {
         Args: {

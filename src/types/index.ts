@@ -39,6 +39,8 @@ export interface Order {
   shipping_amount?: number;
   gst_amount?: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  payment_status?: 'pending_payment' | 'submitted_for_verification' | 'paid' | 'failed';
+  utr_number?: string | null;
   tracking_number?: string | null;
   shipping_address: string | null;
   special_requirements: string | null;

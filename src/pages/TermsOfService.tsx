@@ -133,12 +133,11 @@ export default function TermsOfService() {
 
             <h3 className="font-serif text-xl mb-3">5.2 Payment</h3>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
-              <li>Payment is required at the time of order placement</li>
-              <li>We accept credit cards, debit cards, UPI, and other payment methods as displayed</li>
-              <li>All payments are processed securely through third-party payment processors</li>
-              <li>You authorize us to charge your payment method for the total amount</li>
-              <li>You represent that you are authorized to use the payment method provided</li>
-              <li>If payment fails, we may cancel your order</li>
+              <li>UPI payment is required before we confirm and process your order</li>
+              <li>Pay the exact amount shown at checkout using the displayed UPI QR code or UPI ID</li>
+              <li>Submit the UTR or transaction reference from your UPI app after paying</li>
+              <li>Payment is checked manually against our bank transaction before the order is marked paid</li>
+              <li>We may contact you if we cannot verify the submitted transaction reference</li>
             </ul>
 
             <h3 className="font-serif text-xl mb-3">5.3 Order Cancellation by You</h3>

@@ -87,6 +87,7 @@ export function useCreateOrder() {
         shipping_address: shippingAddress,
         special_requirements: specialRequirements,
         status: 'pending',
+        payment_status: 'pending_payment',
         discount_code_id: discountCodeId || null,
       };
 
