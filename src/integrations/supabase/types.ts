@@ -215,13 +215,7 @@ export type Database = {
           id: string
           order_number: string | null
           order_source: string
-          payment_status: string
-          payment_provider: string | null
-          payment_request_id: string | null
-          payment_id: string | null
-          payment_url: string | null
           discount_code_id: string | null
-          payment_confirmation_email_sent: boolean
           shipping_address: string | null
           special_requirements: string | null
           status: string | null
@@ -241,13 +235,7 @@ export type Database = {
           id?: string
           order_number?: string | null
           order_source?: string
-          payment_status?: string
-          payment_provider?: string | null
-          payment_request_id?: string | null
-          payment_id?: string | null
-          payment_url?: string | null
           discount_code_id?: string | null
-          payment_confirmation_email_sent?: boolean
           shipping_address?: string | null
           special_requirements?: string | null
           status?: string | null
@@ -267,13 +255,7 @@ export type Database = {
           id?: string
           order_number?: string | null
           order_source?: string
-          payment_status?: string
-          payment_provider?: string | null
-          payment_request_id?: string | null
-          payment_id?: string | null
-          payment_url?: string | null
           discount_code_id?: string | null
-          payment_confirmation_email_sent?: boolean
           shipping_address?: string | null
           special_requirements?: string | null
           status?: string | null

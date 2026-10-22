@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
@@ -15,36 +15,6 @@ import { Tag, UserCircle, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
-type InstamojoResponse = { payment_id?: string; payment_request_id?: string };
-type InstamojoApi = {
-  open: (paymentUrl: string) => void;
-  configure: (options: { handlers: {
-    onSuccess: (response: InstamojoResponse) => void;
-    onFailure: () => void;
-    onClose: () => void;
-  } }) => void;
-};
-
-declare global {
-  interface Window { Instamojo?: InstamojoApi }
-}
-
-function loadInstamojoCheckout(): Promise<InstamojoApi> {
-  if (window.Instamojo) return Promise.resolve(window.Instamojo);
-  return new Promise((resolve, reject) => {
-    let script = document.querySelector<HTMLScriptElement>('script[data-instamojo-checkout]');
-    if (!script) {
-      script = document.createElement('script');
-      script.src = 'https://js.instamojo.com/v1/checkout.js';
-      script.dataset.instamojoCheckout = 'true';
-      script.async = true;
-      document.head.appendChild(script);
-    }
-    script.addEventListener('load', () => window.Instamojo ? resolve(window.Instamojo) : reject(new Error('Instamojo checkout did not load.')), { once: true });
-    script.addEventListener('error', () => reject(new Error('Unable to load Instamojo checkout.')), { once: true });
-  });
-}
-
 export default function Checkout() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -58,8 +28,6 @@ export default function Checkout() {
   const [appliedCoupon, setAppliedCoupon] = useState<{ id: string; code: string; type: 'percentage' | 'fixed'; value: number } | null>(null);
   const [couponError, setCouponError] = useState('');
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
-  const [isStartingPayment, setIsStartingPayment] = useState(false);
-  const [pendingPaymentOrderId, setPendingPaymentOrderId] = useState<string | null>(() => sessionStorage.getItem('pendingInstamojoOrderId'));
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -127,51 +95,6 @@ export default function Checkout() {
     }
   }, [profile]);
 
-  useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
-    const orderId = query.get('order_id');
-    const paymentId = query.get('payment_id');
-    const paymentRequestId = query.get('payment_request_id');
-    if (!orderId || !paymentId || !paymentRequestId) return;
-
-    void fetch('/api/verify-instamojo-payment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId, paymentId, paymentRequestId }),
-    }).then(async response => {
-      const result = await response.json() as { paid?: boolean; error?: string };
-      if (!response.ok) throw new Error(result.error || 'Unable to verify this payment.');
-      if (!result.paid) {
-        toast({ title: 'Payment is still processing', description: 'We will update your order as soon as Instamojo confirms the payment.' });
-        return;
-      }
-      clearCart();
-      sessionStorage.removeItem('pendingInstamojoOrderId');
-      setPendingPaymentOrderId(null);
-      toast({ title: 'Payment confirmed', description: 'Thank you. Your paid order is being prepared.' });
-      navigate(user ? '/profile' : '/');
-    }).catch(error => {
-      toast({ title: 'Payment verification pending', description: error instanceof Error ? error.message : 'Please wait while we confirm your payment.' });
-    });
-  }, [clearCart, navigate, toast, user]);
-
-  const verifyPayment = async (orderId: string, paymentId: string, paymentRequestId: string) => {
-    const response = await fetch('/api/verify-instamojo-payment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId, paymentId, paymentRequestId }),
-    });
-    const result = await response.json() as { paid?: boolean; error?: string };
-    if (!response.ok) throw new Error(result.error || 'Unable to verify this payment.');
-    if (!result.paid) return false;
-    clearCart();
-    sessionStorage.removeItem('pendingInstamojoOrderId');
-    setPendingPaymentOrderId(null);
-    toast({ title: 'Payment confirmed', description: 'Thank you. Your paid order is being prepared.' });
-    navigate(user ? '/profile' : '/');
-    return true;
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -226,9 +149,7 @@ export default function Checkout() {
         });
       }
 
-      const createdOrder = pendingPaymentOrderId
-        ? { id: pendingPaymentOrderId }
-        : await createOrder.mutateAsync({
+      const createdOrder = await createOrder.mutateAsync({
         items,
         shippingAddress,
         shippingAmount,
@@ -244,43 +165,99 @@ export default function Checkout() {
           }
         } : {})
       });
-      setPendingPaymentOrderId(createdOrder.id);
-      sessionStorage.setItem('pendingInstamojoOrderId', createdOrder.id);
-      setIsStartingPayment(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      const paymentResponse = await fetch('/api/create-instamojo-payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
-        body: JSON.stringify({ orderId: createdOrder.id, guestEmail: formData.email, guestPhone: formData.phone }),
-      });
-      const paymentResult = await paymentResponse.json() as { paymentUrl?: string; error?: string };
-      if (!paymentResponse.ok || !paymentResult.paymentUrl) throw new Error(paymentResult.error || 'Could not create an Instamojo payment link.');
 
-      const instamojo = await loadInstamojoCheckout();
-      instamojo.configure({ handlers: {
-        onSuccess: response => {
-          if (response.payment_id && response.payment_request_id) {
-            void verifyPayment(createdOrder.id, response.payment_id, response.payment_request_id).catch(error => {
-              toast({ title: 'Payment verification pending', description: error instanceof Error ? error.message : 'We are waiting for Instamojo to confirm your payment.' });
-            });
-          }
-        },
-        onFailure: () => toast({ title: 'Payment not completed', description: 'Your order is saved as unpaid. You can try again from checkout.' }),
-        onClose: () => toast({ title: 'Checkout closed', description: 'Your order is saved. Complete payment to confirm it.' }),
-      } });
-      instamojo.open(paymentResult.paymentUrl);
+      const stockUpdates = await Promise.all(
+        items.map(item =>
+          supabase.rpc('decrement_stock', {
+            product_id: item.product.id,
+            qty: item.quantity,
+          })
+        )
+      );
+
+      const stockUpdateError = stockUpdates.find(result => result.error)?.error;
+      if (stockUpdateError) throw stockUpdateError;
+
+      if (appliedCoupon) {
+        const { error: couponIncrementError } = await supabase.rpc('increment_coupon_uses', { code_id: appliedCoupon.id });
+        if (couponIncrementError) throw couponIncrementError;
+      }
+
+      // Send the email confirmation via our secure Serverless Function
+      try {
+        const confirmEmail = user ? user.email : formData.email;
+        const emailResponse = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: confirmEmail,
+            type: 'order-confirmation',
+            subject: 'Order Confirmation - Sereniquee Candles',
+            html: `
+              <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                  <img src="https://www.sereniqueecandles.com/footer-logo.png" alt="Sereniquee Candles" style="max-height: 80px; margin-bottom: 15px;" />
+                  <h1 style="color: #2c2c2c; margin-bottom: 5px; font-family: serif;">Sereniquee Candles</h1>
+                  <p style="color: #666; font-size: 16px; margin-top: 0;">Order Confirmation</p>
+                </div>
+
+                <p style="color: #444; font-size: 16px;">Hi <strong>${formData.fullName}</strong>,</p>
+                <p style="color: #444; font-size: 16px;">Thank you for your purchase! We've received your order and are preparing it for shipment.</p>
+                <p style="color: #444; font-size: 14px;">Order reference: <strong>${createdOrder.id}</strong></p>
+
+                <div style="background-color: #fcfcfc; padding: 15px 20px; border-radius: 6px; margin: 25px 0;">
+                  <h3 style="color: #333; margin-top: 0; font-family: serif;">Order Summary</h3>
+                  <hr style="border: none; border-top: 1px solid #ddd; margin-bottom: 15px;" />
+                  <div style="margin-bottom: 15px;">
+                    ${items.map(item => `
+                      <div style="margin-bottom: 10px; color: #555; text-align: left;">
+                        <span>• ${item.product.name} (x${item.quantity})</span>
+                        <span style="float: right; color: #333; font-weight: 500;">₹${(item.product.price * item.quantity).toFixed(2)}</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                  <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;" />
+                  <div style="font-size: 18px; text-align: left;">
+                    <strong style="color: #333;">Total Amount:</strong>
+                    <strong style="float: right; color: #000;">₹${grandTotal.toFixed(2)}</strong>
+                  </div>
+                </div>
+
+                <p style="color: #444; font-size: 16px;">We will notify you when your items are shipped.</p>
+                <p style="color: #444; font-size: 16px; margin-top: 30px;">Warm regards,<br/><strong>The Sereniquee Team</strong></p>
+              </div>
+            `
+          })
+        });
+
+        if (!emailResponse.ok) {
+          const errorText = await emailResponse.text();
+          console.error('Order confirmation email request failed:', emailResponse.status, errorText);
+        }
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError);
+      }
+
+      clearCart();
+      toast({
+        title: 'Order placed!',
+        description: checkoutMode === 'guest'
+          ? `Order confirmation has been sent to ${formData.email}`
+          : 'Thank you for your order. You will receive a confirmation email shortly.',
+      });
+
+      if (user) {
+        navigate('/profile');
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       console.error('Order error:', error);
       toast({
-        title: 'Unable to start payment',
-        description: error instanceof Error ? error.message : 'Please try again.',
+        title: 'Order failed',
+        description: 'Something went wrong. Please try again.',
         variant: 'destructive',
       });
-    } finally {
-      setIsStartingPayment(false);
     }
   };
 
@@ -334,8 +311,8 @@ export default function Checkout() {
                   Sign In or Create Account
                 </Button>
               </Link>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => setCheckoutMode('guest')}
                 className="w-full"
               >
@@ -470,10 +447,10 @@ export default function Checkout() {
 
               <Button
                 type="submit"
-                disabled={createOrder.isPending || isStartingPayment}
+                disabled={createOrder.isPending}
                 className="w-full bg-primary text-primary-foreground py-6 hover:bg-primary/90 active:scale-[0.98] transition-all"
               >
-                {createOrder.isPending || isStartingPayment ? 'Preparing secure payment...' : `Pay ₹${grandTotal.toFixed(2)} with Instamojo`}
+                {createOrder.isPending ? 'Processing...' : `Place Order ₹${grandTotal.toFixed(2)}`}
               </Button>
             </form>
           </div>
