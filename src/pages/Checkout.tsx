@@ -31,10 +31,6 @@ function loadPendingUpiOrder(): PendingUpiOrder | null {
   }
 }
 
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character] || character);
-}
-
 export default function Checkout() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -51,6 +47,7 @@ export default function Checkout() {
   const [pendingPayment, setPendingPayment] = useState<PendingUpiOrder | null>(loadPendingUpiOrder);
   const [utrNumber, setUtrNumber] = useState('');
   const [isSubmittingUtr, setIsSubmittingUtr] = useState(false);
+  const [proofImage, setProofImage] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -126,39 +123,34 @@ export default function Checkout() {
     event.preventDefault();
     if (!pendingPayment || !utrNumber.trim()) return;
     setIsSubmittingUtr(true);
+    let uploadedProofPath: string | null = null;
     try {
+      if (proofImage && (!proofImage.type.startsWith('image/') || proofImage.size > 5 * 1024 * 1024)) {
+        throw new Error('Choose an image under 5 MB.');
+      }
+      if (proofImage) {
+        uploadedProofPath = `${pendingPayment.id}/${crypto.randomUUID()}-${proofImage.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const { error: uploadError } = await supabase.storage.from('upi-payment-proofs').upload(uploadedProofPath, proofImage, { contentType: proofImage.type, upsert: false });
+        if (uploadError) throw uploadError;
+      }
       const { data: submitted, error } = await supabase.rpc('submit_upi_payment_utr', {
         p_order_id: pendingPayment.id,
         p_utr: utrNumber.trim(),
         p_guest_email: user ? null : pendingPayment.guestEmail,
+        p_proof_path: uploadedProofPath,
       });
       if (error) throw error;
       if (!submitted) throw new Error('Payment details for this order were already submitted or can no longer be changed.');
 
-      const email = user?.email || pendingPayment.guestEmail;
-      if (email) {
-        try {
-          const emailResponse = await fetch('/api/send-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              to: email,
-              type: 'order-confirmation',
-              subject: `Payment submitted for order ${pendingPayment.orderNumber || pendingPayment.id}`,
-              html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:24px;color:#333"><h1 style="font-family:Georgia,serif">Payment details received</h1><p>Hi ${escapeHtml(pendingPayment.guestName)},</p><p>We received your UPI transaction reference for order <strong>${escapeHtml(pendingPayment.orderNumber || pendingPayment.id)}</strong>.</p><p>Our team will check the transaction and confirm your order after the payment is verified. Your UTR: <strong>${escapeHtml(utrNumber.trim())}</strong></p><p>Warm regards,<br/>The Sereniquee Team</p></div>`,
-            }),
-          });
-          if (!emailResponse.ok) console.error('Payment submission email request failed:', emailResponse.status);
-        } catch (emailError) {
-          console.error('Payment submission email could not be sent:', emailError);
-        }
-      }
+      try { await fetch('/api/notify-upi-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: pendingPayment.id, event: 'submitted' }) }); }
+      catch (emailError) { console.error('Payment submission email could not be sent:', emailError); }
 
       clearCart();
       sessionStorage.removeItem('pendingUpiOrder');
       toast({ title: 'Payment submitted for verification', description: 'We will confirm your order after checking the UPI transaction.' });
       navigate(user ? '/profile' : '/');
     } catch (error) {
+      if (uploadedProofPath) await supabase.storage.from('upi-payment-proofs').remove([uploadedProofPath]);
       toast({ title: 'Could not submit UTR', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
     } finally {
       setIsSubmittingUtr(false);
@@ -339,6 +331,12 @@ export default function Checkout() {
                   <Label htmlFor="utr-number">UPI UTR / transaction reference</Label>
                   <Input id="utr-number" value={utrNumber} onChange={event => setUtrNumber(event.target.value)} placeholder="Enter the reference from your UPI app" minLength={6} maxLength={64} required />
                   <p className="text-xs text-muted-foreground">Your order stays pending until we verify the payment.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="payment-proof">Payment screenshot (optional)</Label>
+                  <Input id="payment-proof" type="file" accept="image/png,image/jpeg,image/webp" onChange={event => setProofImage(event.target.files?.[0] || null)} />
+                  <p className="text-xs text-muted-foreground">Upload a clear screenshot showing the UTR or transaction reference. Images up to 5 MB are accepted.</p>
+                  {proofImage && <p className="text-xs text-muted-foreground">Selected: {proofImage.name}</p>}
                 </div>
                 <Button type="submit" className="w-full" disabled={isSubmittingUtr || (!UPI_ID && !UPI_QR_IMAGE_URL)}>
                   {isSubmittingUtr ? 'Submitting…' : 'Submit UTR for verification'}

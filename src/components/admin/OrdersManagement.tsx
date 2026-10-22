@@ -39,6 +39,8 @@ export default function OrdersManagement() {
   const [deleteOrder, setDeleteOrder] = useState<any | null>(null);
   const [giftDetails, setGiftDetails] = useState<any | null>(null);
   const [statusHistory, setStatusHistory] = useState<Array<{ status: string; created_at: string }>>([]);
+  const [bankUtrs, setBankUtrs] = useState<Record<string, string>>({});
+  const [proofUrls, setProofUrls] = useState<Record<string, string>>({});
   const statuses = ORDER_STATUSES;
 
   useEffect(() => {
@@ -106,7 +108,12 @@ export default function OrdersManagement() {
   };
 
   const markPaymentReceived = async (order: any) => {
-    const { data, error } = await supabase.rpc('mark_manual_upi_payment_received', { p_order_id: order.id });
+    const bankUtr = (bankUtrs[order.id] || '').trim();
+    if (!bankUtr || bankUtr.toUpperCase() !== (order.utr_number || '').trim().toUpperCase()) {
+      toast({ title: 'UTR does not match', description: 'Enter the UTR shown in your bank transaction history before marking the payment received.', variant: 'destructive' });
+      return;
+    }
+    const { data, error } = await supabase.rpc('mark_manual_upi_payment_received', { p_order_id: order.id, p_bank_utr: bankUtr });
     if (error || !data) {
       toast({ title: 'Payment not marked received', description: error?.message || 'This payment may already be updated.', variant: 'destructive' });
       return;
@@ -116,25 +123,19 @@ export default function OrdersManagement() {
       queryClient.invalidateQueries({ queryKey: ['orders'] }),
       queryClient.invalidateQueries({ queryKey: ['analytics'] }),
     ]);
-    const email = customerEmail(order);
-    if (email) {
-      const orderNumber = displayOrderNumber(order);
-      try {
-        const response = await fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: email,
-            type: 'payment-confirmed',
-            subject: `Payment received for order ${orderNumber}`,
-            html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:24px;color:#333"><h1 style="font-family:Georgia,serif">Payment confirmed</h1><p>Hi ${escapeHtml(customerName(order))},</p><p>We verified your UPI payment for order <strong>${escapeHtml(orderNumber)}</strong>. Your order is now being prepared.</p><p>Amount received: <strong>₹${Number(order.total_amount).toFixed(2)}</strong></p><p>Warm regards,<br/>The Sereniquee Team</p></div>`,
-          }),
-        });
-        if (!response.ok) console.error('Payment confirmation email request failed:', response.status);
-      } catch (emailError) {
-        console.error('Payment confirmation email could not be sent:', emailError);
+    if (order.payment_proof_path) {
+      const { error: removeError } = await supabase.storage.from('upi-payment-proofs').remove([order.payment_proof_path]);
+      if (!removeError) {
+        await supabase.from('orders').update({ payment_proof_path: null }).eq('id', order.id);
+        await queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
       }
+      else toast({ title: 'Payment confirmed; image cleanup needs retry', description: removeError.message, variant: 'destructive' });
     }
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const response = await fetch('/api/notify-upi-payment', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(sessionData.session?.access_token ? { Authorization: `Bearer ${sessionData.session.access_token}` } : {}) }, body: JSON.stringify({ orderId: order.id, event: 'received' }) });
+      if (!response.ok) console.error('Payment confirmation email request failed:', response.status);
+    } catch (emailError) { console.error('Payment confirmation email could not be sent:', emailError); }
     toast({ title: 'Payment confirmed', description: 'The order is now marked as paid and processing.' });
   };
 
@@ -563,14 +564,22 @@ export default function OrdersManagement() {
                           <p className="mt-1 text-sm text-muted-foreground">
                             Status: <span className="font-medium text-foreground">{(order.payment_status || 'pending_payment').replace(/_/g, ' ')}</span>
                           </p>
-                          {order.utr_number && <p className="mt-1 text-sm">UTR: <span className="font-mono font-medium">{order.utr_number}</span></p>}
+                          {order.utr_number && <p className="mt-1 text-sm">Customer UTR: <span className="font-mono font-medium">{order.utr_number}</span></p>}
+                          {order.payment_proof_path && <div className="mt-2 space-y-2">
+                            <Button size="sm" variant="outline" onClick={async () => { const { data, error } = await supabase.storage.from('upi-payment-proofs').createSignedUrl(order.payment_proof_path, 300); if (error) toast({ title: 'Could not open payment proof', description: error.message, variant: 'destructive' }); else setProofUrls(current => ({ ...current, [order.id]: data.signedUrl })); }}>View payment screenshot</Button>
+                            {proofUrls[order.id] && <a href={proofUrls[order.id]} target="_blank" rel="noreferrer"><img src={proofUrls[order.id]} alt="Customer payment proof" className="max-h-72 rounded-md border object-contain" /></a>}
+                          </div>}
                         </div>
                         {order.payment_status === 'submitted_for_verification' && (
-                          <Button size="sm" onClick={() => void markPaymentReceived(order)}>
+                          <div className="flex w-full flex-col gap-2 sm:w-auto">
+                          <Input aria-label="UTR received in bank" placeholder="Enter bank UTR to compare" value={bankUtrs[order.id] || ''} onChange={event => setBankUtrs(current => ({ ...current, [order.id]: event.target.value }))} />
+                          <p className="text-xs text-muted-foreground">Compare against the bank transaction before confirming.</p>
+                          <Button size="sm" disabled={!bankUtrs[order.id]?.trim()} onClick={() => void markPaymentReceived(order)}>
                             <Banknote className="mr-2 h-4 w-4" /> Mark Payment Received
                           </Button>
+                          </div>
                         )}
-                        {order.payment_status === 'paid' && <Badge className="bg-green-100 text-green-800">Paid</Badge>}
+                        {order.payment_status === 'paid' && <div className="flex flex-wrap items-center gap-2"><Badge className="bg-green-100 text-green-800">Paid</Badge>{order.payment_proof_path && <Button size="sm" variant="outline" onClick={async () => { const { error } = await supabase.storage.from('upi-payment-proofs').remove([order.payment_proof_path]); if (error) toast({ title: 'Image cleanup failed', description: error.message, variant: 'destructive' }); else { await supabase.from('orders').update({ payment_proof_path: null }).eq('id', order.id); setProofUrls(current => { const next = { ...current }; delete next[order.id]; return next; }); await queryClient.invalidateQueries({ queryKey: ['admin-orders'] }); toast({ title: 'Payment proof deleted' }); } }}>Delete proof image</Button>}</div>}
                       </div>
                     </div>
                     {/* Order Items */}

@@ -218,6 +218,9 @@ export type Database = {
           discount_code_id: string | null
           payment_status: string
           utr_number: string | null
+          payment_proof_path: string | null
+          upi_submission_email_sent: boolean
+          upi_received_email_sent: boolean
           shipping_address: string | null
           special_requirements: string | null
           status: string | null
@@ -240,6 +243,9 @@ export type Database = {
           discount_code_id?: string | null
           payment_status?: string
           utr_number?: string | null
+          payment_proof_path?: string | null
+          upi_submission_email_sent?: boolean
+          upi_received_email_sent?: boolean
           shipping_address?: string | null
           special_requirements?: string | null
           status?: string | null
@@ -262,6 +268,9 @@ export type Database = {
           discount_code_id?: string | null
           payment_status?: string
           utr_number?: string | null
+          payment_proof_path?: string | null
+          upi_submission_email_sent?: boolean
+          upi_received_email_sent?: boolean
           shipping_address?: string | null
           special_requirements?: string | null
           status?: string | null
@@ -791,12 +800,14 @@ export type Database = {
           p_order_id: string
           p_utr: string
           p_guest_email?: string | null
+          p_proof_path?: string | null
         }
         Returns: boolean
       }
       mark_manual_upi_payment_received: {
         Args: {
           p_order_id: string
+          p_bank_utr: string
         }
         Returns: boolean
       }

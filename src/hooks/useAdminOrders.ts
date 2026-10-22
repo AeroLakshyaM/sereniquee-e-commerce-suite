@@ -17,6 +17,7 @@ export interface AdminOrder {
   status: string;
   payment_status: string;
   utr_number: string | null;
+  payment_proof_path: string | null;
   shipping_address: string | null;
   special_requirements: string | null;
   created_at: string;
@@ -122,6 +123,7 @@ export const useAdminOrders = (search = '', startDate?: string, endDate?: string
         status: order.status,
         payment_status: order.payment_status,
         utr_number: order.utr_number,
+        payment_proof_path: order.payment_proof_path,
         shipping_address: order.shipping_address,
         special_requirements: order.special_requirements,
         created_at: order.created_at,
