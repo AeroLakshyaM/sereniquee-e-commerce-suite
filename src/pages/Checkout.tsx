@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
@@ -55,6 +55,8 @@ export default function Checkout() {
   const [upiSecondsLeft, setUpiSecondsLeft] = useState<number | null>(null);
   const [isCancelingPayment, setIsCancelingPayment] = useState(false);
   const [cancelPaymentOpen, setCancelPaymentOpen] = useState(false);
+  const checkoutKeyStorage = useRef<string | null>(null);
+  const checkoutKeyMemory = useRef<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -66,6 +68,12 @@ export default function Checkout() {
     country: '',
     specialRequirements: '',
   });
+  const clearCheckoutAttemptKey = () => {
+    if (!checkoutKeyStorage.current) return;
+    delete checkoutKeyMemory.current[checkoutKeyStorage.current];
+    try { sessionStorage.removeItem(checkoutKeyStorage.current); } catch { /* Session storage may be unavailable. */ }
+    checkoutKeyStorage.current = null;
+  };
   // Courier shipping is quoted after the product order is placed.
   const shippingAmount = 0;
   const discountAmount = appliedCoupon
@@ -302,30 +310,6 @@ export default function Checkout() {
     const shippingAddress = `${formData.fullName}\n${formData.address}\n${formData.city}, ${formData.postalCode}\n${formData.country}\n${formData.phone}`;
 
     try {
-      const stockCheck = await Promise.all(
-        items.map(item =>
-          supabase
-            .from('products')
-            .select('stock_quantity, name')
-            .eq('id', item.product.id)
-            .single()
-        )
-      );
-
-      for (const [index, result] of stockCheck.entries()) {
-        if (result.error) throw result.error;
-
-        const currentStock = result.data.stock_quantity ?? 0;
-        if (items[index].quantity > currentStock) {
-          toast({
-            title: 'Insufficient stock',
-            description: `Sorry, only ${currentStock} of ${result.data.name} are available. Please update your cart.`,
-            variant: 'destructive',
-          });
-          return;
-        }
-      }
-
       if (user) {
         await updateProfile.mutateAsync({
           full_name: formData.fullName,
@@ -337,52 +321,63 @@ export default function Checkout() {
         });
       }
 
+      const checkoutIdentity = user?.id || formData.email.trim().toLowerCase() || 'guest';
+      const storageKey = `sereniquee-checkout-attempt:${checkoutIdentity}`;
+      checkoutKeyStorage.current = storageKey;
+      let idempotencyKey: string;
+      try {
+        idempotencyKey = sessionStorage.getItem(storageKey) || checkoutKeyMemory.current[storageKey] || crypto.randomUUID();
+        sessionStorage.setItem(storageKey, idempotencyKey);
+      } catch {
+        idempotencyKey = checkoutKeyMemory.current[storageKey] || crypto.randomUUID();
+      }
+      checkoutKeyMemory.current[storageKey] = idempotencyKey;
+
       const createdOrder = await createOrder.mutateAsync({
-        items,
+        items: items.map(item => ({ productId: item.product.id, quantity: item.quantity })),
+        idempotencyKey,
+        customerName: formData.fullName,
+        customerEmail: formData.email,
+        customerPhone: formData.phone,
         shippingAddress,
-        shippingAmount,
-        gstAmount,
-        discountAmount,
-        discountCodeId: appliedCoupon?.id,
+        couponCode: appliedCoupon?.code,
         paymentMethod,
         specialRequirements: formData.specialRequirements || null,
-        ...(checkoutMode === 'guest' && !user ? {
-          guestInfo: {
-            email: formData.email,
-            name: formData.fullName,
-            phone: formData.phone,
-          }
-        } : {})
       });
-
-      const { error: reservationError } = await supabase.rpc('reserve_checkout_order', {
-        p_order_id: createdOrder.id,
-        p_guest_email: user ? null : formData.email,
-      });
-      if (reservationError) throw reservationError;
 
       const paymentDetails: PendingUpiOrder = {
         id: createdOrder.id,
-        orderNumber: createdOrder.order_number || null,
-        amount: grandTotal,
+        orderNumber: createdOrder.order_number,
+        amount: Number(createdOrder.total_amount),
         guestEmail: formData.email,
         guestName: formData.fullName,
         createdAt: new Date().toISOString(),
+        expiresAt: createdOrder.payment_expires_at || undefined,
       };
+      if (Math.abs(paymentDetails.amount - grandTotal) >= 0.01) {
+        toast({ title: 'Order total updated', description: `The verified total is ₹${paymentDetails.amount.toFixed(2)} based on current prices and coupon availability.` });
+      }
       if (paymentMethod === 'cod') {
         clearCart();
-        toast({ title: 'Order placed', description: 'Your courier shipping fee will be quoted by email and paid separately before dispatch. Product payment is due on delivery.' });
+        clearCheckoutAttemptKey();
+        toast({ title: 'Order placed', description: `Order total ₹${paymentDetails.amount.toFixed(2)}. Your courier shipping fee will be quoted by email and paid separately before dispatch.` });
         navigate(user ? '/profile' : '/');
       } else {
-        sessionStorage.setItem('pendingUpiOrder', JSON.stringify(paymentDetails));
+        try { sessionStorage.setItem('pendingUpiOrder', JSON.stringify(paymentDetails)); } catch { /* The active payment remains available in this page. */ }
         setPendingPayment(paymentDetails);
+        clearCheckoutAttemptKey();
       }
       return;
     } catch (error) {
       reportClientError('checkout_failure', error);
+      const message = error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+      if (message.toLowerCase().includes('coupon')) {
+        setAppliedCoupon(null);
+        setCouponError(message);
+      }
       toast({
         title: 'Order failed',
-        description: 'Something went wrong. Please try again.',
+        description: message,
         variant: 'destructive',
       });
     }
@@ -758,6 +753,7 @@ export default function Checkout() {
                   <span>Total</span>
                   <span className="font-serif text-lg">₹{grandTotal.toFixed(2)}</span>
                 </div>
+                <p className="text-xs text-muted-foreground">We verify current prices, stock, and coupon availability when you place the order.</p>
               </div>
             </div>
           </div>

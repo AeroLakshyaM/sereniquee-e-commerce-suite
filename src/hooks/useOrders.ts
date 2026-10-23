@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Order, OrderItem, CartItem } from '@/types';
+import { Order, OrderItem } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Database } from '@/integrations/supabase/types';
 
 export function useOrders() {
   const { user } = useAuth();
@@ -42,18 +41,14 @@ export function useOrderItems(orderId: string) {
 }
 
 interface CreateOrderParams {
-  items: CartItem[];
+  items: Array<{ productId: string; quantity: number }>;
+  idempotencyKey: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
   shippingAddress: string;
-  shippingAmount: number;
-  gstAmount: number;
   specialRequirements?: string | null;
-  guestInfo?: {
-    email: string;
-    name: string;
-    phone: string;
-  };
-  discountAmount?: number;
-  discountCodeId?: string;
+  couponCode?: string | null;
   paymentMethod?: 'upi' | 'cod';
 }
 
@@ -62,71 +57,26 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ items, shippingAddress, shippingAmount, gstAmount, specialRequirements, guestInfo, discountAmount = 0, discountCodeId, paymentMethod = 'upi' }: CreateOrderParams) => {
-      // Guest checkout or authenticated user
-      const isGuest = !user && guestInfo;
-      const orderId = crypto.randomUUID();
-      const customerName = guestInfo?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'customer';
-      const customerCode = customerName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase() || 'CUSTOMER';
-      const orderNumber = `SC-${customerCode}-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
-      
-      const subtotalAmount = items.reduce(
-        (sum, item) => sum + item.product.price * item.quantity,
-        0
-      );
-      const discountedSubtotal = Math.max(0, subtotalAmount - discountAmount);
-      const totalAmount = discountedSubtotal + shippingAmount + gstAmount;
-      
-      // Prepare order data
-      const orderData: Database['public']['Tables']['orders']['Insert'] = {
-        id: orderId,
-        order_number: orderNumber,
-        total_amount: totalAmount,
-        subtotal_amount: discountedSubtotal,
-        shipping_amount: shippingAmount,
-        gst_amount: gstAmount,
-        shipping_address: shippingAddress,
-        special_requirements: specialRequirements,
-        status: 'pending',
-        payment_status: paymentMethod === 'cod' ? 'cod_pending' : 'pending_payment',
-        payment_method: paymentMethod,
-        discount_code_id: discountCodeId || null,
-      };
-
-      // Add user_id for authenticated users or guest info for guest checkout
-      if (user) {
-        orderData.user_id = user.id;
-      } else if (isGuest && guestInfo) {
-        orderData.user_id = null;
-        orderData.guest_email = guestInfo.email;
-        orderData.guest_name = guestInfo.name;
-        orderData.guest_phone = guestInfo.phone;
-      } else {
-        throw new Error('Must be logged in or provide guest information');
+    mutationFn: async ({ items, idempotencyKey, customerName, customerEmail, customerPhone, shippingAddress, specialRequirements, couponCode, paymentMethod = 'upi' }: CreateOrderParams) => {
+      if (!user && (!customerName.trim() || !customerEmail.trim())) {
+        throw new Error('Enter your name and email to continue as a guest.');
       }
-      
-      // Create the order
-      const { error: orderError } = await supabase
-        .from('orders')
-        .insert(orderData);
-      
-      if (orderError) throw orderError;
-      
-      // Create order items
-      const orderItems = items.map(item => ({
-        order_id: orderId,
-        product_id: item.product.id,
-        quantity: item.quantity,
-        price_at_time: item.product.price,
-      }));
-      
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-      
-      if (itemsError) throw itemsError;
-      
-      return { id: orderId, ...orderData };
+      const { data, error } = await supabase.rpc('create_checkout_order', {
+        p_idempotency_key: idempotencyKey,
+        p_items: items.map(item => ({ product_id: item.productId, quantity: item.quantity })),
+        p_customer_name: customerName,
+        p_customer_email: customerEmail,
+        p_customer_phone: customerPhone || null,
+        p_shipping_address: shippingAddress,
+        p_special_requirements: specialRequirements || null,
+        p_coupon_code: couponCode || null,
+        p_payment_method: paymentMethod,
+      });
+
+      if (error) throw error;
+      const order = Array.isArray(data) ? data[0] : data;
+      if (!order) throw new Error('The order could not be confirmed. Please retry checkout.');
+      return order;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });

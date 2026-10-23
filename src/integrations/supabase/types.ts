@@ -223,6 +223,7 @@ export type Database = {
           payment_resume_token_expires_at: string | null
           inventory_reserved: boolean
           coupon_use_reserved: boolean
+          checkout_idempotency_key: string | null
           utr_number: string | null
           payment_proof_path: string | null
           upi_submission_email_sent: boolean
@@ -258,6 +259,7 @@ export type Database = {
           payment_resume_token_expires_at?: string | null
           inventory_reserved?: boolean
           coupon_use_reserved?: boolean
+          checkout_idempotency_key?: string | null
           utr_number?: string | null
           payment_proof_path?: string | null
           upi_submission_email_sent?: boolean
@@ -293,6 +295,7 @@ export type Database = {
           payment_resume_token_expires_at?: string | null
           inventory_reserved?: boolean
           coupon_use_reserved?: boolean
+          checkout_idempotency_key?: string | null
           utr_number?: string | null
           payment_proof_path?: string | null
           upi_submission_email_sent?: boolean
@@ -812,6 +815,29 @@ export type Database = {
       }
     }
     Functions: {
+      create_checkout_order: {
+        Args: {
+          p_idempotency_key: string
+          p_items: Json
+          p_customer_name: string
+          p_customer_email: string
+          p_customer_phone: string | null
+          p_shipping_address: string
+          p_special_requirements?: string | null
+          p_coupon_code?: string | null
+          p_payment_method?: string
+        }
+        Returns: Array<{
+          id: string
+          order_number: string
+          total_amount: number
+          subtotal_amount: number
+          shipping_amount: number
+          gst_amount: number
+          payment_status: string
+          payment_expires_at: string | null
+        }>
+      }
       admin_delete_pending_order: {
         Args: { p_order_id: string }
         Returns: boolean
