@@ -15,8 +15,14 @@ export function MobileStoreFooter() {
   return (
     <footer className="border-t border-[#173b38]/10 bg-[#f3eee5] px-5 pb-7 pt-8 text-[#173b38] sm:px-8 sm:pt-10">
       <div className="mx-auto max-w-3xl">
-        <Link to={homePath} className="font-serif text-lg font-semibold tracking-[0.14em]">SERENIQUEE</Link>
-        <p className="mt-2 max-w-sm text-sm leading-6 text-[#173b38]/70">Handcrafted candles for thoughtful moments and cosy spaces.</p>
+        <Link to={homePath} className="inline-flex items-center gap-3" aria-label="sereniquee_candles mobile store home">
+          <img src="/footer-logo.png" alt="Sereniquee Candles logo" width="52" height="52" loading="lazy" decoding="async" className="h-[52px] w-[52px] rounded-full object-contain" />
+          <span>
+            <span className="block font-serif text-base font-extrabold tracking-wide">sereniquee_candles</span>
+            <span className="mt-0.5 block text-[11px] tracking-wide text-[#173b38]/60">Kindness Crafted, Light Shared.</span>
+          </span>
+        </Link>
+        <p className="mt-3 max-w-sm text-sm leading-6 text-[#173b38]/70">Handcrafted candles for thoughtful moments and cosy spaces.</p>
 
         <div className="mt-6 grid grid-cols-2 gap-3">
           <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#173b38]/15 bg-white/60 px-3 text-sm font-medium transition-colors hover:bg-white">
