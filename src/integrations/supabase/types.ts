@@ -812,6 +812,25 @@ export type Database = {
       }
     }
     Functions: {
+      admin_delete_pending_order: {
+        Args: { p_order_id: string }
+        Returns: boolean
+      }
+      admin_update_pending_order: {
+        Args: {
+          p_order_id: string
+          p_guest_name: string
+          p_guest_email: string
+          p_guest_phone: string | null
+          p_shipping_address: string
+          p_special_requirements: string | null
+          p_shipping_amount: number
+          p_gst_amount: number
+          p_discount_amount: number
+          p_items: Json
+        }
+        Returns: boolean
+      }
       increment_coupon_uses: {
         Args: {
           code_id: string

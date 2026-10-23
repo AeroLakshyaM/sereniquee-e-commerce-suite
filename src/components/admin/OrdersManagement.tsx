@@ -11,7 +11,7 @@ import { Package, User, Calendar, DollarSign, MapPin, ChevronDown, ChevronUp, Pr
 import { openInvoiceInNewTab } from '@/lib/invoiceGenerator';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Search, Download, Trash2, Send, Mail } from 'lucide-react';
 
 const STATUS_COLORS = {
@@ -39,6 +39,10 @@ export default function OrdersManagement() {
   const [trackingOrder, setTrackingOrder] = useState<any | null>(null);
   const [trackingNumber, setTrackingNumber] = useState('');
   const [deleteOrder, setDeleteOrder] = useState<any | null>(null);
+  const [editingOrder, setEditingOrder] = useState<any | null>(null);
+  const [editDraft, setEditDraft] = useState<any | null>(null);
+  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
+  const [savingOrder, setSavingOrder] = useState(false);
   const [giftDetails, setGiftDetails] = useState<any | null>(null);
   const [statusHistory, setStatusHistory] = useState<Array<{ status: string; created_at: string }>>([]);
   const [bankUtrs, setBankUtrs] = useState<Record<string, string>>({});
@@ -201,25 +205,83 @@ export default function OrdersManagement() {
 
   const deleteSelectedOrder = async () => {
     if (!deleteOrder) return;
-    const { data: deletedOrders, error } = await supabase
-      .from('orders')
-      .delete()
-      .eq('id', deleteOrder.id)
-      .select('id');
-    if (error) {
-      toast({ title: 'Delete failed', description: error.message, variant: 'destructive' });
-    } else if (!deletedOrders || deletedOrders.length === 0) {
-      toast({
-        title: 'Delete failed',
-        description: 'The order was not deleted. Confirm that your account has administrator permissions.',
-        variant: 'destructive',
-      });
+    const pendingUpi = deleteOrder.payment_method === 'upi' && ['pending_payment', 'submitted_for_verification'].includes(deleteOrder.payment_status);
+    const proofPath = deleteOrder.payment_proof_path;
+    const { data: deleted, error } = pendingUpi
+      ? await supabase.rpc('admin_delete_pending_order', { p_order_id: deleteOrder.id })
+      : await supabase.from('orders').delete().eq('id', deleteOrder.id).select('id').then(result => ({ data: (result.data?.length || 0) > 0, error: result.error }));
+    if (error || !deleted) {
+      toast({ title: 'Delete failed', description: error?.message || 'This order is no longer eligible for deletion.', variant: 'destructive' });
     } else {
+      if (proofPath) await supabase.storage.from('upi-payment-proofs').remove([proofPath]);
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
       setSelectedOrder(current => current?.id === deleteOrder.id ? null : current);
       toast({ title: 'Order deleted' });
     }
     setDeleteOrder(null);
+  };
+
+  const beginEditOrder = async (order: any) => {
+    const { data: products, error } = await supabase.from('products').select('id, name, price, stock_quantity').order('name');
+    if (error) {
+      toast({ title: 'Products could not be loaded', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setAvailableProducts(products || []);
+    setEditingOrder(order);
+    setEditDraft({
+      guest_name: order.guest_name || order.user?.full_name || '',
+      guest_email: order.guest_email || order.user?.email || '',
+      guest_phone: order.guest_phone || '',
+      shipping_address: order.shipping_address || '',
+      special_requirements: order.special_requirements || '',
+      shipping_amount: String(order.shipping_amount || 0),
+      gst_amount: String(order.gst_amount || 0),
+      discount_amount: String(Math.max(0, order.subtotal_amount + order.shipping_amount + order.gst_amount - order.total_amount).toFixed(2)),
+      items: order.order_items.map((item: any) => ({ product_id: item.product_id || '', quantity: String(item.quantity), price_at_time: String(item.price_at_time) })),
+    });
+  };
+
+  const saveEditedOrder = async () => {
+    if (!editingOrder || !editDraft) return;
+    const items = editDraft.items.map((item: any) => ({ product_id: item.product_id, quantity: Number(item.quantity), price_at_time: Number(item.price_at_time) }));
+    const amounts = [Number(editDraft.shipping_amount), Number(editDraft.gst_amount), Number(editDraft.discount_amount)];
+    if (!editDraft.guest_name.trim() || !editDraft.guest_email.trim() || !editDraft.shipping_address.trim()
+      || amounts.some(amount => !Number.isFinite(amount) || amount < 0)
+      || !items.length || items.some((item: any) => !item.product_id || !Number.isInteger(item.quantity) || item.quantity < 1 || !Number.isFinite(item.price_at_time) || item.price_at_time < 0)) {
+      toast({ title: 'Check the order details', description: 'Add a customer name, email, delivery address, and valid product quantities and prices.', variant: 'destructive' });
+      return;
+    }
+    setSavingOrder(true);
+    const oldProofPath = editingOrder.payment_proof_path;
+    const { data, error } = await supabase.rpc('admin_update_pending_order', {
+      p_order_id: editingOrder.id,
+      p_guest_name: editDraft.guest_name.trim(),
+      p_guest_email: editDraft.guest_email.trim(),
+      p_guest_phone: editDraft.guest_phone.trim() || null,
+      p_shipping_address: editDraft.shipping_address.trim(),
+      p_special_requirements: editDraft.special_requirements.trim() || null,
+      p_shipping_amount: Number(editDraft.shipping_amount),
+      p_gst_amount: Number(editDraft.gst_amount),
+      p_discount_amount: Number(editDraft.discount_amount),
+      p_items: items,
+    });
+    setSavingOrder(false);
+    if (error || !data) {
+      toast({ title: 'Order could not be saved', description: error?.message || 'This order is no longer eligible for editing.', variant: 'destructive' });
+      return;
+    }
+    if (oldProofPath) await supabase.storage.from('upi-payment-proofs').remove([oldProofPath]);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] }),
+      queryClient.invalidateQueries({ queryKey: ['orders'] }),
+      queryClient.invalidateQueries({ queryKey: ['analytics'] }),
+    ]);
+    setEditingOrder(null);
+    setEditDraft(null);
+    toast({ title: 'Pending order updated', description: 'The customer will need to submit payment again for the updated total.' });
   };
 
   const exportOrders = () => {
@@ -758,6 +820,9 @@ export default function OrdersManagement() {
                         </p>
                       </div>
                       <div className="flex gap-2 pt-2">
+                        {['pending_payment', 'submitted_for_verification'].includes(order.payment_status) && order.payment_method === 'upi' && <Button variant="outline" size="sm" onClick={() => void beginEditOrder(order)}>
+                          <FileText className="mr-2 h-4 w-4" /> Edit pending order
+                        </Button>}
                         <Button variant="destructive" size="sm" onClick={() => setDeleteOrder(order)}>
                           <Trash2 className="mr-2 h-4 w-4" /> Delete Order
                         </Button>
@@ -840,6 +905,42 @@ export default function OrdersManagement() {
           <DialogHeader><DialogTitle>Mark as shipped</DialogTitle></DialogHeader>
           <Input value={trackingNumber} onChange={event => setTrackingNumber(event.target.value)} placeholder="Tracking number" />
           <DialogFooter><Button onClick={() => void sendTrackingEmail()} disabled={!trackingNumber.trim()}><Send className="mr-2 h-4 w-4" /> Save and email customer</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editingOrder} onOpenChange={open => { if (!open && !savingOrder) { setEditingOrder(null); setEditDraft(null); } }}>
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit pending order {editingOrder && displayOrderNumber(editingOrder)}</DialogTitle>
+            <DialogDescription>Update customer details, delivery information, items, and the amount due. Saving clears any submitted UPI proof so the customer can pay the revised total.</DialogDescription>
+          </DialogHeader>
+          {editDraft && <div className="space-y-5">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="space-y-1 text-sm">Customer name<Input value={editDraft.guest_name} onChange={event => setEditDraft((draft: any) => ({ ...draft, guest_name: event.target.value }))} /></label>
+              <label className="space-y-1 text-sm">Email<Input type="email" value={editDraft.guest_email} onChange={event => setEditDraft((draft: any) => ({ ...draft, guest_email: event.target.value }))} /></label>
+              <label className="space-y-1 text-sm">Phone<Input value={editDraft.guest_phone} onChange={event => setEditDraft((draft: any) => ({ ...draft, guest_phone: event.target.value }))} /></label>
+              <label className="space-y-1 text-sm sm:col-span-2">Delivery address<Input value={editDraft.shipping_address} onChange={event => setEditDraft((draft: any) => ({ ...draft, shipping_address: event.target.value }))} /></label>
+              <label className="space-y-1 text-sm sm:col-span-2">Special requirements<Input value={editDraft.special_requirements} onChange={event => setEditDraft((draft: any) => ({ ...draft, special_requirements: event.target.value }))} /></label>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between"><h3 className="font-semibold">Items</h3><Button type="button" variant="outline" size="sm" onClick={() => setEditDraft((draft: any) => ({ ...draft, items: [...draft.items, { product_id: '', quantity: '1', price_at_time: '' }] }))}>Add item</Button></div>
+              {editDraft.items.map((item: any, index: number) => <div key={`${index}-${item.product_id}`} className="grid gap-2 rounded-md border p-3 sm:grid-cols-[minmax(0,1fr)_90px_120px_auto]">
+                <Select value={item.product_id} onValueChange={value => { const product = availableProducts.find(candidate => candidate.id === value); setEditDraft((draft: any) => ({ ...draft, items: draft.items.map((line: any, lineIndex: number) => lineIndex === index ? { ...line, product_id: value, price_at_time: String(product?.price ?? '') } : line) })); }}>
+                  <SelectTrigger><SelectValue placeholder="Choose product" /></SelectTrigger><SelectContent>{availableProducts.map(product => <SelectItem key={product.id} value={product.id}>{product.name} · ₹{Number(product.price).toFixed(2)}</SelectItem>)}</SelectContent>
+                </Select>
+                <Input aria-label="Quantity" type="number" min="1" step="1" value={item.quantity} onChange={event => setEditDraft((draft: any) => ({ ...draft, items: draft.items.map((line: any, lineIndex: number) => lineIndex === index ? { ...line, quantity: event.target.value } : line) }))} />
+                <Input aria-label="Unit price" type="number" min="0" step="0.01" value={item.price_at_time} onChange={event => setEditDraft((draft: any) => ({ ...draft, items: draft.items.map((line: any, lineIndex: number) => lineIndex === index ? { ...line, price_at_time: event.target.value } : line) }))} />
+                <Button type="button" variant="ghost" size="sm" className="text-destructive" disabled={editDraft.items.length === 1} onClick={() => setEditDraft((draft: any) => ({ ...draft, items: draft.items.filter((_: any, lineIndex: number) => lineIndex !== index) }))}>Remove</Button>
+              </div>)}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className="space-y-1 text-sm">Shipping ₹<Input type="number" min="0" step="0.01" value={editDraft.shipping_amount} onChange={event => setEditDraft((draft: any) => ({ ...draft, shipping_amount: event.target.value }))} /></label>
+              <label className="space-y-1 text-sm">GST ₹<Input type="number" min="0" step="0.01" value={editDraft.gst_amount} onChange={event => setEditDraft((draft: any) => ({ ...draft, gst_amount: event.target.value }))} /></label>
+              <label className="space-y-1 text-sm">Discount ₹<Input type="number" min="0" step="0.01" value={editDraft.discount_amount} onChange={event => setEditDraft((draft: any) => ({ ...draft, discount_amount: event.target.value }))} /></label>
+            </div>
+            <p className="text-right font-semibold">New total: ₹{(editDraft.items.reduce((sum: number, item: any) => sum + (Number(item.quantity) || 0) * (Number(item.price_at_time) || 0), 0) + (Number(editDraft.shipping_amount) || 0) + (Number(editDraft.gst_amount) || 0) - (Number(editDraft.discount_amount) || 0)).toFixed(2)}</p>
+          </div>}
+          <DialogFooter><Button variant="outline" disabled={savingOrder} onClick={() => { setEditingOrder(null); setEditDraft(null); }}>Cancel</Button><Button disabled={savingOrder || !editDraft} onClick={() => void saveEditedOrder()}>{savingOrder ? 'Saving…' : 'Save order'}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 

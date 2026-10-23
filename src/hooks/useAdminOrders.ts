@@ -33,6 +33,7 @@ export interface AdminOrder {
   } | null;
   order_items: Array<{
     id: string;
+    product_id: string | null;
     quantity: number;
     price_at_time: number;
     product: {
@@ -144,6 +145,7 @@ export const useAdminOrders = (search = '', startDate?: string, endDate?: string
         } : null,
         order_items: (itemsByOrder[order.id] || []).map((item) => ({
           id: item.id,
+          product_id: item.product_id,
           quantity: item.quantity,
           price_at_time: Number(item.price_at_time),
           product: productMap[item.product_id] ? {
