@@ -28,6 +28,27 @@
   }
 }
 
+/* Brand the third-party concierge only while the standalone mobile store is active. */
+body.mobile-store-mode {
+  --chat--color-primary: #173b38;
+  --chat--color-primary-shade-50: #12302e;
+  --chat--color-primary-shade-100: #0f2826;
+  --chat--color-secondary: #fbf8f3;
+  --chat--color-dark: #173b38;
+}
+
+@media (max-width: 767px) {
+  body.mobile-store-mode #n8n-chat {
+    --chat--window--width: calc(100vw - 24px);
+    --chat--window--height: min(68dvh, 560px);
+    --chat--window--bottom: calc(76px + env(safe-area-inset-bottom));
+    --chat--window--right: 12px;
+    --chat--toggle--size: 58px;
+    --chat--toggle--bottom: calc(76px + env(safe-area-inset-bottom));
+    --chat--toggle--right: 16px;
+  }
+}
+
 /* Sereniquee Candles - Premium Old Money Aesthetic */
 
 @layer base {

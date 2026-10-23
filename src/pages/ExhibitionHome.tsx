@@ -1,17 +1,42 @@
-import { Link } from 'react-router-dom';
-import { ArrowDown, ArrowRight, MessageCircle, Sparkles } from 'lucide-react';
+import { FormEvent, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowDown, ArrowRight, MessageCircle, Search, Share2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
 import { useProducts } from '@/hooks/useProducts';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { ProductGridSkeleton } from '@/components/product/ProductCardSkeleton';
 import { useStorefrontPath } from '@/contexts/StorefrontContext';
+import { useToast } from '@/hooks/use-toast';
 
 /** A lightweight, phone-first landing page for visitors arriving from the exhibition QR. */
 export default function ExhibitionHome() {
   const { data, isLoading } = useProducts(undefined, undefined, { listing: true });
   const products = data?.pages.flatMap((page) => page.products) ?? [];
   const shopPath = useStorefrontPath('/shop');
+  const [search, setSearch] = useState('');
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = search.trim();
+    if (query) navigate(`${shopPath}?search=${encodeURIComponent(query)}`);
+  };
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/mobile-store/`;
+    try {
+      if (navigator.share) await navigator.share({ title: 'SERENIQUEE Candles', text: 'Explore the SERENIQUEE candle collection.', url });
+      else {
+        await navigator.clipboard.writeText(url);
+        toast({ title: 'Store link copied', description: 'Share it with someone who loves a cosy space.' });
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== 'AbortError') toast({ title: 'Could not share the link', description: 'Please try again.', variant: 'destructive' });
+    }
+  };
 
   return (
     <div className="overflow-x-clip">
@@ -73,6 +98,14 @@ export default function ExhibitionHome() {
             </Link>
           </div>
 
+          <form onSubmit={handleSearch} role="search" className="mb-7 flex gap-2 sm:mb-9">
+            <div className="relative min-w-0 flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search candles or scents" aria-label="Search candles or scents" className="h-12 rounded-xl bg-card pl-10 text-base" />
+            </div>
+            <Button type="submit" className="h-12 rounded-xl bg-[#173b38] px-5 text-white hover:bg-[#24514d]">Search</Button>
+          </form>
+
           {isLoading ? <ProductGridSkeleton count={4} /> : products.length ? <ProductGrid products={products.slice(0, 8)} /> : (
             <div className="rounded-2xl border border-border bg-card px-5 py-12 text-center text-sm text-muted-foreground">Our collection is being refreshed. Please ask us at the stall.</div>
           )}
@@ -87,7 +120,10 @@ export default function ExhibitionHome() {
         <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#6d7168]">A little something made by hand</p>
         <h2 className="mx-auto mt-3 max-w-lg font-serif text-2xl font-medium leading-snug text-[#173b38] sm:text-3xl">Choose your favourite. We’ll help with the rest.</h2>
         <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">Add a candle to your bag to send us an order request, or chat with us if you have a question.</p>
-        <Link to={shopPath} className="mt-5 inline-flex"><Button className="h-12 bg-[#173b38] px-6 text-white hover:bg-[#24514d]">Browse all candles <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
+        <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
+          <Link to={shopPath}><Button className="h-12 w-full bg-[#173b38] px-6 text-white hover:bg-[#24514d] sm:w-auto">Browse all candles <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
+          <Button type="button" variant="outline" onClick={() => void handleShare()} className="h-12 w-full border-[#173b38]/20 bg-white/50 text-[#173b38] hover:bg-white sm:w-auto"><Share2 className="mr-2 h-4 w-4" />Share this collection</Button>
+        </div>
       </section>
     </div>
   );

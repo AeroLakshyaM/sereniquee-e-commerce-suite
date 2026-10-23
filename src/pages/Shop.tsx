@@ -5,19 +5,22 @@ import { ProductGrid } from '@/components/product/ProductGrid';
 import { ProductGridSkeleton } from '@/components/product/ProductCardSkeleton';
 import { ProductQuickView } from '@/components/product/ProductQuickView';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Link, useSearchParams } from 'react-router-dom';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
 import { Product } from '@/types';
-import { ArrowRight, Loader2, Sparkles } from 'lucide-react';
-import { useStorefrontPath } from '@/contexts/StorefrontContext';
+import { ArrowRight, Loader2, Search, Sparkles } from 'lucide-react';
+import { useStorefrontBasePath, useStorefrontPath } from '@/contexts/StorefrontContext';
 
 export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchParams, setSearchParams] = useSearchParams();
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const basePath = useStorefrontBasePath();
+  const searchQuery = searchParams.get('search') || '';
+  const [mobileSearch, setMobileSearch] = useState(searchQuery);
   const customOrdersPath = useStorefrontPath('/custom-orders');
   const shopPath = useStorefrontPath('/shop');
-  const searchQuery = searchParams.get('search') || '';
   const categoryFromUrl = searchParams.get('category');
   
   const {
@@ -91,6 +94,26 @@ export default function Shop() {
           </div>
         )}
       </div>
+
+      {basePath && (
+        <form
+          role="search"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const next = new URLSearchParams(searchParams);
+            if (mobileSearch.trim()) next.set('search', mobileSearch.trim());
+            else next.delete('search');
+            setSearchParams(next);
+          }}
+          className="mx-auto mb-7 flex max-w-xl gap-2"
+        >
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={mobileSearch} onChange={(event) => setMobileSearch(event.target.value)} placeholder="Search candles or scents" aria-label="Search candles or scents" className="h-12 rounded-xl pl-10 text-base" />
+          </div>
+          <Button type="submit" className="h-12 rounded-xl">Search</Button>
+        </form>
+      )}
 
       {/* Category Filter */}
       <div className="flex flex-wrap justify-center gap-3 mb-12">

@@ -4,6 +4,7 @@ import { CartDrawer } from '@/components/cart/CartDrawer';
 import { useCart } from '@/contexts/CartContext';
 import { StorefrontBasePathProvider, useStorefrontPath } from '@/contexts/StorefrontContext';
 import { MobileActionBar } from './MobileActionBar';
+import { MobileChatDock } from './MobileChatDock';
 
 function MobileStoreFrame() {
   const { totalItems, setIsCartOpen } = useCart();
@@ -25,6 +26,7 @@ function MobileStoreFrame() {
       </main>
       <CartDrawer />
       <MobileActionBar />
+      <MobileChatDock />
     </div>
   );
 }
