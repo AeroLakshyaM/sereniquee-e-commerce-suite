@@ -9,6 +9,7 @@ import { ProductGrid } from '@/components/product/ProductGrid';
 import { ProductGridSkeleton } from '@/components/product/ProductCardSkeleton';
 import { useStorefrontPath } from '@/contexts/StorefrontContext';
 import { useToast } from '@/hooks/use-toast';
+import { StoreContactSection } from '@/components/mobile-store/StoreContactSection';
 
 /** A lightweight, phone-first landing page for visitors arriving from the exhibition QR. */
 export default function ExhibitionHome() {
@@ -125,6 +126,7 @@ export default function ExhibitionHome() {
           <Button type="button" variant="outline" onClick={() => void handleShare()} className="h-12 w-full border-[#173b38]/20 bg-white/50 text-[#173b38] hover:bg-white sm:w-auto"><Share2 className="mr-2 h-4 w-4" />Share this collection</Button>
         </div>
       </section>
+      <StoreContactSection />
     </div>
   );
 }

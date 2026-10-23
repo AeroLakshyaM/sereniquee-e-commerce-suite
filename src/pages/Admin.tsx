@@ -49,6 +49,7 @@ import {
   Warehouse,
   TicketPercent,
   Mail,
+  ContactRound,
 } from 'lucide-react';
 import { Product } from '@/types';
 import { slugify } from '@/lib/utils';
@@ -71,6 +72,7 @@ const ReviewsManagement = lazy(() => import('@/components/admin/ReviewsManagemen
 const InventoryManager = lazy(() => import('@/components/admin/InventoryManager'));
 const CouponsManager = lazy(() => import('@/components/admin/CouponsManager'));
 const NewsletterManager = lazy(() => import('@/components/admin/NewsletterManager'));
+const StoreContactsManager = lazy(() => import('@/components/admin/StoreContactsManager'));
 
 // Tab definitions — a single source of truth for the admin nav
 const TABS = [
@@ -90,6 +92,7 @@ const TABS = [
   { value: 'inventory',     label: 'Inventory',     icon: Warehouse,     className: '' },
   { value: 'coupons',       label: 'Coupons',       icon: TicketPercent, className: '' },
   { value: 'newsletter',    label: 'Newsletter',    icon: Mail,          className: '' },
+  { value: 'store-contacts',label: 'Store Contacts',icon: ContactRound,  className: 'bg-gradient-to-r from-rose-600/10 to-orange-600/10' },
 ] as const;
 
 type TabValue = (typeof TABS)[number]['value'];
@@ -111,6 +114,7 @@ const TAB_DESCRIPTIONS: Record<TabValue, string> = {
   inventory: 'Monitor stock levels and prepare for restocking.',
   coupons: 'Create offers and monitor coupon usage.',
   newsletter: 'Manage subscribers and prepare email campaigns.',
+  'store-contacts': 'Review exhibition contacts, follow up, and manage consent-aware exports.',
 };
 
 export default function Admin() {
@@ -693,6 +697,10 @@ export default function Admin() {
 
         <TabsContent value="newsletter" className="space-y-6">
           <NewsletterManager />
+        </TabsContent>
+
+        <TabsContent value="store-contacts" className="space-y-6">
+          <StoreContactsManager />
         </TabsContent>
         </Suspense>
       </Tabs>

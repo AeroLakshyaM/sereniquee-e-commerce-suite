@@ -29,6 +29,7 @@ export function MobileStoreFooter() {
 
         <div className="mt-6 flex flex-wrap gap-x-5 gap-y-3 text-xs text-[#173b38]/70">
           <Link to={shopPath} className="min-h-8 py-2">Browse collection</Link>
+          <a href={`${homePath}#stay-in-touch`} className="min-h-8 py-2">Stay in touch</a>
           <Link to={faqPath} className="min-h-8 py-2">FAQs</Link>
           <Link to={shippingPath} className="min-h-8 py-2">Shipping & returns</Link>
           <Link to={privacyPath} className="min-h-8 py-2">Privacy</Link>

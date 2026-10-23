@@ -440,6 +440,51 @@ export type Database = {
         }
         Relationships: []
       }
+      store_contacts: {
+        Row: {
+          id: string
+          name: string
+          email: string | null
+          phone: string | null
+          interest_type: string
+          message: string | null
+          marketing_consent: boolean
+          marketing_consent_at: string | null
+          source: string
+          status: string
+          internal_note: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          email?: string | null
+          phone?: string | null
+          interest_type?: string
+          message?: string | null
+          marketing_consent?: boolean
+          marketing_consent_at?: string | null
+          source?: string
+          status?: string
+          internal_note?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string | null
+          phone?: string | null
+          interest_type?: string
+          message?: string | null
+          marketing_consent?: boolean
+          marketing_consent_at?: string | null
+          source?: string
+          status?: string
+          internal_note?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           id: string

@@ -11,7 +11,7 @@ export default function PrivacyPolicy() {
       />
       <div className="container-luxury max-w-4xl">
         <h1 className="font-serif text-4xl md:text-5xl mb-4">Privacy Policy</h1>
-        <p className="text-muted-foreground mb-8">Last Updated: December 25, 2025</p>
+        <p className="text-muted-foreground mb-8">Last Updated: October 23, 2026</p>
 
         <div className="prose prose-sm md:prose-base max-w-none space-y-8">
           <section>
@@ -43,11 +43,13 @@ export default function PrivacyPolicy() {
               <li><strong>Profile Data:</strong> Username, password, purchases, order history, preferences, feedback, survey responses</li>
               <li><strong>Usage Data:</strong> Information about how you use our website, products, and services</li>
               <li><strong>Marketing Data:</strong> Your preferences in receiving marketing communications and your communication preferences</li>
+              <li><strong>Store Contact Data:</strong> Your name, phone number or email, the reason for your inquiry, and any optional message you submit through our mobile store contact form</li>
             </ul>
 
             <h3 className="font-serif text-xl mb-3">2.2 How We Collect Information</h3>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
               <li><strong>Direct Interactions:</strong> You provide information when you register, place an order, subscribe to newsletters, request information, or contact us</li>
+              <li><strong>Exhibition and mobile store forms:</strong> We receive the contact details and optional message you choose to submit so our team can follow up</li>
               <li><strong>Automated Technologies:</strong> We use cookies, server logs, and similar technologies to collect technical and usage data</li>
               <li><strong>Third Parties:</strong> We may receive information from analytics providers and delivery services</li>
             </ul>
@@ -61,6 +63,7 @@ export default function PrivacyPolicy() {
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
               <li><strong>Order Processing:</strong> To process and deliver your orders, manage payments, fees, and charges, and collect money owed to us</li>
               <li><strong>Customer Service:</strong> To communicate with you about your orders, respond to inquiries, and provide customer support</li>
+              <li><strong>Store follow-up:</strong> To respond to exhibition or mobile store requests. We send promotional updates only when you separately opt in, and you can ask us to stop at any time</li>
               <li><strong>Account Management:</strong> To create and manage your account, verify your identity, and maintain our relationship with you</li>
               <li><strong>Marketing:</strong> To send promotional emails about new products, special offers, or other information (with your consent)</li>
               <li><strong>Website Improvement:</strong> To understand how our website is used, improve user experience, and develop new products/services</li>
@@ -131,6 +134,7 @@ export default function PrivacyPolicy() {
               <li><strong>Account Data:</strong> Retained while your account is active or as needed to provide services</li>
               <li><strong>Transaction Records:</strong> Retained for 7 years for tax and accounting purposes</li>
               <li><strong>Marketing Data:</strong> Retained until you unsubscribe or request deletion</li>
+              <li><strong>Store contact requests:</strong> Retained while needed to follow up and maintain our customer service records, or until you request deletion, subject to legal obligations</li>
               <li><strong>Technical Data:</strong> Typically retained for 2 years for analytics and security purposes</li>
             </ul>
             <p className="text-muted-foreground leading-relaxed">
