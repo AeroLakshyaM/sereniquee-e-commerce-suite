@@ -10,6 +10,8 @@ interface OrderData {
   guest_phone?: string | null;
   special_requirements?: string | null;
   order_number?: string | null;
+  guest_name?: string | null;
+  guest_email?: string | null;
   user?: {
     email?: string;
     full_name?: string;
@@ -40,7 +42,8 @@ export function generateInvoiceHTML(order: OrderData): string {
   const shipping = Number(order.shipping_amount ?? 0);
   const tax = Number(order.gst_amount ?? 0);
   const total = order.total_amount;
-  const customerEmail = order.user?.email?.trim();
+  const customerName = order.guest_name?.trim() || order.user?.full_name?.trim() || 'Customer';
+  const customerEmail = order.guest_email?.trim() || order.user?.email?.trim();
   const customerPhone = order.guest_phone?.trim() || order.user?.phone?.trim();
 
   return `
@@ -361,7 +364,7 @@ export function generateInvoiceHTML(order: OrderData): string {
           <div class="info-section">
             <div class="info-box">
               <h3>Bill To</h3>
-              <p><strong>${order.user?.full_name || 'Customer'}</strong></p>
+              <p><strong>${customerName}</strong></p>
               ${customerEmail ? `<p>Email: ${customerEmail}</p>` : ''}
               ${customerPhone ? `<p>Phone: ${customerPhone}</p>` : ''}
               ${order.shipping_address ? `<p>${order.shipping_address}</p>` : ''}

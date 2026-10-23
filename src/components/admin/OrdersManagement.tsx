@@ -33,7 +33,7 @@ export default function OrdersManagement() {
   const queryClient = useQueryClient();
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [adminOrderView, setAdminOrderView] = useState<'orders' | 'payment-attempts'>('orders');
+  const [adminOrderView, setAdminOrderView] = useState<'orders' | 'payment-attempts' | 'invoices'>('orders');
   const [emailingOrderId, setEmailingOrderId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [trackingOrder, setTrackingOrder] = useState<any | null>(null);
@@ -205,7 +205,7 @@ export default function OrdersManagement() {
 
   const deleteSelectedOrder = async () => {
     if (!deleteOrder) return;
-    const pendingUpi = deleteOrder.payment_method === 'upi' && ['pending_payment', 'submitted_for_verification'].includes(deleteOrder.payment_status);
+    const pendingUpi = deleteOrder.payment_method === 'upi' && ['pending_payment', 'submitted_for_verification', 'failed'].includes(deleteOrder.payment_status);
     const proofPath = deleteOrder.payment_proof_path;
     const { data: deleted, error } = pendingUpi
       ? await supabase.rpc('admin_delete_pending_order', { p_order_id: deleteOrder.id })
@@ -379,6 +379,7 @@ export default function OrdersManagement() {
 
   const isTemporaryUpiAttempt = (order: any) => order.payment_method === 'upi' && ['pending_payment', 'failed'].includes(order.payment_status);
   const paymentAttempts = filteredOrdersBySearch?.filter(order => isTemporaryUpiAttempt(order)) || [];
+  const invoiceOrders = filteredOrdersBySearch?.filter(order => !isTemporaryUpiAttempt(order)) || [];
   const filteredOrders = adminOrderView === 'payment-attempts'
     ? paymentAttempts
     : filteredOrdersBySearch?.filter(order => !isTemporaryUpiAttempt(order));
@@ -428,6 +429,9 @@ export default function OrdersManagement() {
         <Button variant={adminOrderView === 'orders' ? 'default' : 'outline'} onClick={() => setAdminOrderView('orders')}>Orders</Button>
         <Button variant={adminOrderView === 'payment-attempts' ? 'default' : 'outline'} onClick={() => setAdminOrderView('payment-attempts')}>
           Payment attempts <Badge className="ml-2" variant="secondary">{orders?.filter(order => isTemporaryUpiAttempt(order)).length || 0}</Badge>
+        </Button>
+        <Button variant={adminOrderView === 'invoices' ? 'default' : 'outline'} onClick={() => setAdminOrderView('invoices')}>
+          Invoices <Badge className="ml-2" variant="secondary">{orders?.filter(order => !isTemporaryUpiAttempt(order)).length || 0}</Badge>
         </Button>
       </div>
 
@@ -842,25 +846,47 @@ export default function OrdersManagement() {
           <p className="text-muted-foreground">No orders found.</p>
         </div>
       )}
-      </> : <section className="space-y-4">
+      </> : adminOrderView === 'payment-attempts' ? <section className="space-y-4">
         <div>
           <h2 className="font-serif text-xl">Customers continuing UPI checkout</h2>
-          <p className="text-sm text-muted-foreground">These are temporary payment attempts. They become regular orders after the customer submits payment details.</p>
+          <p className="text-sm text-muted-foreground">Open an attempt to review the customer, delivery details, and items. Edit or remove pending attempts here.</p>
         </div>
         {paymentAttempts.length === 0 ? <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">No active UPI payment attempts.</CardContent></Card> : paymentAttempts.map(order => (
           <Card key={order.id} className="shadow-soft"><CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between md:p-5">
             <div className="min-w-0 space-y-1">
-              <div className="flex flex-wrap items-center gap-2"><span className="font-serif font-semibold">{order.order_number || 'Unnumbered checkout'}</span><Badge variant="outline">{order.payment_status === 'pending_payment' ? 'Awaiting payment' : 'Expired or cancelled'}</Badge></div>
+              <div className="flex flex-wrap items-center gap-2"><span className="font-serif font-semibold">{order.order_number || 'Unnumbered checkout'}</span><Badge variant="outline">{order.payment_status === 'pending_payment' ? 'Awaiting payment' : order.status === 'cancelled' ? 'Cancelled' : 'Expired'}</Badge></div>
               <p className="text-sm">{customerName(order)} · {customerEmail(order)}</p>
-              <p className="text-sm font-medium">₹{order.total_amount.toFixed(2)} <span className="font-normal text-muted-foreground">· expires {order.payment_expires_at ? new Date(order.payment_expires_at).toLocaleString() : 'soon'}</span></p>
+              <p className="text-sm font-medium">₹{order.total_amount.toFixed(2)} <span className="font-normal text-muted-foreground">· {order.order_items.length} line items · created {new Date(order.created_at).toLocaleString()}</span></p>
+              {order.payment_status === 'pending_payment' && <p className="text-xs text-muted-foreground">Payment link expires {order.payment_expires_at ? new Date(order.payment_expires_at).toLocaleString() : 'soon'}</p>}
             </div>
             <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={() => setSelectedOrder(order)}><Package className="mr-2 h-4 w-4" />View order</Button>
+              {order.payment_status === 'pending_payment' && <Button size="sm" variant="outline" onClick={() => void beginEditOrder(order)}><FileText className="mr-2 h-4 w-4" />Edit attempt</Button>}
               {order.payment_status === 'pending_payment' && <Button size="sm" variant="outline" disabled={emailingOrderId === order.id || !customerEmail(order)} onClick={() => void sendOrderEmail(order, 'payment-reminder')}>
                 <Mail className="mr-2 h-4 w-4" />{emailingOrderId === order.id ? 'Sending…' : 'Email payment link'}
               </Button>}
               {order.payment_status === 'pending_payment' && <Button size="sm" variant="ghost" className="text-destructive" onClick={async () => { const { data, error } = await supabase.rpc('admin_cancel_pending_upi_order', { p_order_id: order.id }); if (error || !data) toast({ title: 'Could not cancel payment attempt', description: error?.message || 'This attempt is no longer active.', variant: 'destructive' }); else { await queryClient.invalidateQueries({ queryKey: ['admin-orders'] }); await queryClient.invalidateQueries({ queryKey: ['analytics'] }); toast({ title: 'Payment attempt cancelled' }); } }}>
                 Cancel attempt
               </Button>}
+              <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setDeleteOrder(order)}><Trash2 className="mr-2 h-4 w-4" />Delete</Button>
+            </div>
+          </CardContent></Card>
+        ))}
+      </section> : <section className="space-y-4">
+        <div>
+          <h2 className="font-serif text-xl">Order invoices</h2>
+          <p className="text-sm text-muted-foreground">Open or print an invoice using the saved order details. Unpaid and failed UPI attempts are excluded.</p>
+        </div>
+        {invoiceOrders.length === 0 ? <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">No order invoices found.</CardContent></Card> : invoiceOrders.map(order => (
+          <Card key={order.id}><CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 space-y-1">
+              <p className="font-semibold">{displayOrderNumber(order)}</p>
+              <p className="text-sm text-muted-foreground">{customerName(order)} · {customerEmail(order) || 'No email'} · {new Date(order.created_at).toLocaleDateString()}</p>
+              <p className="text-sm">{order.payment_status.replace(/_/g, ' ')} · ₹{order.total_amount.toFixed(2)}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => setSelectedOrder(order)}>View order</Button>
+              <Button size="sm" onClick={() => handleDownloadInvoice(order)}><FileText className="mr-2 h-4 w-4" />View / print invoice</Button>
             </div>
           </CardContent></Card>
         ))}
@@ -879,6 +905,14 @@ export default function OrdersManagement() {
                 <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{selectedOrder.shipping_address || 'Not provided'}</p>
                 <p className="mt-2 text-sm">{customerName(selectedOrder)} · {customerEmail(selectedOrder)} · {customerPhone(selectedOrder)}</p>
               </div>
+              <div className="rounded-lg border p-3 text-sm">
+                <h4 className="font-semibold">Payment</h4>
+                <p className="mt-1 capitalize text-muted-foreground">{selectedOrder.payment_method} · {selectedOrder.payment_status.replace(/_/g, ' ')}</p>
+                <p className="text-muted-foreground">Order status: {selectedOrder.status}</p>
+                {selectedOrder.payment_expires_at && <p className="text-muted-foreground">Payment link expires: {new Date(selectedOrder.payment_expires_at).toLocaleString()}</p>}
+                {selectedOrder.utr_number && <p className="text-muted-foreground">Customer UTR: <span className="font-mono">{selectedOrder.utr_number}</span></p>}
+                <p className="mt-1 font-semibold">Total: ₹{selectedOrder.total_amount.toFixed(2)}</p>
+              </div>
               <div>
                 <h4 className="font-semibold">Line items</h4>
                 <div className="mt-2 space-y-2">
@@ -895,6 +929,8 @@ export default function OrdersManagement() {
                 <h4 className="font-semibold">Status history</h4>
                 <div className="mt-2 space-y-2">{statusHistory.map(entry => <div key={`${entry.status}-${entry.created_at}`} className="flex justify-between text-sm"><span className="capitalize">{entry.status}</span><span className="text-muted-foreground">{new Date(entry.created_at).toLocaleString()}</span></div>)}</div>
               </div>
+              {isTemporaryUpiAttempt(selectedOrder) ? <p className="text-xs text-muted-foreground">An invoice is available after this payment attempt becomes a confirmed order.</p> : <Button variant="outline" onClick={() => handleDownloadInvoice(selectedOrder)}><FileText className="mr-2 h-4 w-4" />View / print invoice</Button>}
+              {selectedOrder.payment_method === 'upi' && selectedOrder.payment_status === 'pending_payment' && <Button variant="outline" onClick={() => void beginEditOrder(selectedOrder)}><FileText className="mr-2 h-4 w-4" />Edit pending order</Button>}
               <Button variant="destructive" onClick={() => setDeleteOrder(selectedOrder)}><Trash2 className="mr-2 h-4 w-4" /> Delete Order</Button>
             </div>
           )}
