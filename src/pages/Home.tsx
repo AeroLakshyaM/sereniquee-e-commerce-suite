@@ -12,7 +12,7 @@ import { InstagramFeed } from '@/components/social/InstagramFeed';
 import { CategorySection } from '@/components/CategorySection';
 import { galleryImages } from '@/data/galleryImages';
 import { Product } from '@/types';
-import { ArrowRight, BookOpen, Flame, Heart, Leaf, Sparkles, Star, Timer } from 'lucide-react';
+import { ArrowRight, BookOpen, Flame, Heart, Sparkles, Star } from 'lucide-react';
 
 export default function Home() {
   const { data, isLoading } = useProducts(undefined, undefined, { listing: true });
@@ -195,41 +195,6 @@ export default function Home() {
 
       {/* Dynamic Category Section from Database */}
       <CategorySection />
-
-      {/* Why Choose Us - Features Grid */}
-      <section className="container-luxury py-12 sm:py-16 md:py-20 border-b border-border/50">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-          <div className="group text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/30 mb-4 group-hover:scale-110 transition-transform">
-              <Leaf className="h-6 w-6 text-amber-700 dark:text-amber-500" />
-            </div>
-            <h3 className="font-serif text-lg sm:text-xl mb-2 sm:mb-3">100% Natural</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed px-4">
-              Made with pure soy wax and premium essential oils, free from harmful chemicals and toxins.
-            </p>
-          </div>
-          
-          <div className="group text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/30 mb-4 group-hover:scale-110 transition-transform">
-              <Heart className="h-6 w-6 text-amber-700 dark:text-amber-500" />
-            </div>
-            <h3 className="font-serif text-lg sm:text-xl mb-2 sm:mb-3">Handcrafted Care</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed px-4">
-              Each candle is lovingly hand-poured in small batches to ensure exceptional quality.
-            </p>
-          </div>
-          
-          <div className="group text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/30 mb-4 group-hover:scale-110 transition-transform">
-              <Timer className="h-6 w-6 text-amber-700 dark:text-amber-500" />
-            </div>
-            <h3 className="font-serif text-lg sm:text-xl mb-2 sm:mb-3">Long Lasting</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed px-4">
-              45+ hours of clean, even burn time to fill your space with beautiful fragrance.
-            </p>
-          </div>
-        </div>
-      </section>
 
       {/* Signature Scents Preview */}
       <section className="bg-gradient-to-b from-secondary/50 to-transparent py-12 sm:py-16 md:py-24">
