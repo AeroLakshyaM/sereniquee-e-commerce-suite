@@ -54,8 +54,7 @@ BEGIN
 
   -- Return the old reservation before replacing lines, then reserve the edited quantities.
   IF v_order.inventory_reserved THEN
-    UPDATE public.products p SET stock_quantity = COALESCE(p.stock_quantity, 0) + oi.quantity
-    FROM public.order_items oi WHERE oi.order_id = p_order_id AND p.id = oi.product_id;
+    PERFORM public.adjust_order_inventory(p_order_id, 1);
   END IF;
   DELETE FROM public.order_items WHERE order_id = p_order_id;
   FOR v_item IN SELECT value FROM jsonb_array_elements(p_items) LOOP
@@ -104,8 +103,7 @@ BEGIN
     RETURN FALSE;
   END IF;
   IF v_order.inventory_reserved THEN
-    UPDATE public.products p SET stock_quantity = COALESCE(p.stock_quantity, 0) + oi.quantity
-    FROM public.order_items oi WHERE oi.order_id = p_order_id AND p.id = oi.product_id;
+    PERFORM public.adjust_order_inventory(p_order_id, 1);
   END IF;
   IF v_order.coupon_use_reserved AND v_order.discount_code_id IS NOT NULL THEN
     UPDATE public.discount_codes SET uses_count = GREATEST(COALESCE(uses_count, 0) - 1, 0)
