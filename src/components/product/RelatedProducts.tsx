@@ -3,6 +3,7 @@ import { Product } from '@/types';
 import { Link } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
+import { useStorefrontBasePath } from '@/contexts/StorefrontContext';
 import { Plus } from 'lucide-react';
 
 interface RelatedProductsProps {
@@ -11,6 +12,7 @@ interface RelatedProductsProps {
 }
 
 export function RelatedProducts({ currentProduct, limit = 4 }: RelatedProductsProps) {
+  const basePath = useStorefrontBasePath();
   const { data: productsData, isLoading } = useProducts();
   const { addItem } = useCart();
   const allProducts = productsData?.pages.flatMap((page) => page.products) ?? [];
@@ -71,7 +73,7 @@ export function RelatedProducts({ currentProduct, limit = 4 }: RelatedProductsPr
           return (
             <Link
               key={product.id}
-              to={`/product/${product.slug}`}
+              to={`${basePath}/product/${product.slug}`}
               className="group block"
             >
               <div className="relative overflow-hidden bg-secondary aspect-[3/4] mb-4">

@@ -9,11 +9,14 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
 import { Product } from '@/types';
 import { ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { useStorefrontPath } from '@/contexts/StorefrontContext';
 
 export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchParams, setSearchParams] = useSearchParams();
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const customOrdersPath = useStorefrontPath('/custom-orders');
+  const shopPath = useStorefrontPath('/shop');
   const searchQuery = searchParams.get('search') || '';
   const categoryFromUrl = searchParams.get('category');
   
@@ -53,7 +56,7 @@ export default function Shop() {
         title="Shop Luxury Handmade Candles - Sereniquee"
         description="Browse Sereniquee Candles’ hand-poured soy candle collection. Courier shipping is quoted after your order based on destination, parcel weight, and courier partner."
         keywords="buy handmade candles, luxury candles shop, soy wax candles, scented candles online, natural candles, eco-friendly candles, aromatherapy candles"
-        url="/shop"
+        url={shopPath}
       />
       
       {/* Top Right Custom Orders Button */}
@@ -64,7 +67,7 @@ export default function Shop() {
           asChild 
           className="border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] hover:border-amber-500 transition-all duration-300 group bg-amber-50/50 dark:bg-amber-950/20"
         >
-          <Link to="/custom-orders" className="flex items-center gap-2">
+          <Link to={customOrdersPath} className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform animate-pulse" />
             <span className="font-medium text-amber-900 dark:text-amber-100">Custom Orders</span>
           </Link>
@@ -178,7 +181,7 @@ export default function Shop() {
           <p className="text-base sm:text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Whether you need bulk orders for an event, personalized wedding favors, or a custom scent blended just for you, our bespoke service can bring your unique vision to life.
           </p>
-          <Link to="/custom-orders">
+          <Link to={customOrdersPath}>
             <Button size="lg" className="bg-primary text-white hover:bg-primary/90 px-8 py-6 text-sm sm:text-base transition-all group">
               Request a Custom Order
               <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />

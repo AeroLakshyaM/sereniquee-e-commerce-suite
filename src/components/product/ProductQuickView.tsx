@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Eye, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useStorefrontPath } from '@/contexts/StorefrontContext';
 
 interface ProductQuickViewProps {
   product: Product | null;
@@ -22,6 +23,7 @@ interface ProductQuickViewProps {
 export function ProductQuickView({ product, isOpen, onClose }: ProductQuickViewProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
+  const productPath = useStorefrontPath(product ? `/product/${product.slug}` : '/shop');
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -218,7 +220,7 @@ export function ProductQuickView({ product, isOpen, onClose }: ProductQuickViewP
                 </div>
               )}
 
-              <Link to={`/product/${product.slug}`} onClick={onClose}>
+              <Link to={productPath} onClick={onClose}>
                 <Button variant="outline" className="w-full" size="lg">
                   <Eye className="h-4 w-4 mr-2" />
                   View Full Details

@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Banknote, CheckCircle2, ClipboardCopy, Clock3, Truck } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useStorefrontBasePath, useStorefrontPath } from '@/contexts/StorefrontContext';
 
 const UPI_ID = import.meta.env.VITE_UPI_ID as string | undefined;
 const UPI_PAYEE_NAME = (import.meta.env.VITE_UPI_PAYEE_NAME as string | undefined) || 'Sereniquee Candles';
@@ -36,6 +37,11 @@ function loadPendingUpiOrder(): PendingUpiOrder | null {
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const storeBasePath = useStorefrontBasePath();
+  const homePath = useStorefrontPath('/');
+  const shopPath = useStorefrontPath('/shop');
+  const checkoutPath = useStorefrontPath('/checkout');
+  const authPath = '/auth';
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const { items, totalPrice, clearCart } = useCart();
@@ -144,7 +150,7 @@ export default function Checkout() {
       const order = Array.isArray(data) ? data[0] : data;
       if (error || !order) {
         toast({ title: 'Payment link expired', description: 'This payment attempt is no longer active. Return to checkout to start a new order.' , variant: 'destructive' });
-        navigate('/checkout', { replace: true });
+        navigate(checkoutPath, { replace: true });
         return;
       }
       const payment: PendingUpiOrder = {
@@ -159,7 +165,7 @@ export default function Checkout() {
       };
       sessionStorage.setItem('pendingUpiOrder', JSON.stringify(payment));
       setPendingPayment(payment);
-      navigate('/checkout', { replace: true });
+      navigate(checkoutPath, { replace: true });
     };
     void resumePayment();
     return () => { cancelled = true; };
@@ -198,7 +204,7 @@ export default function Checkout() {
           setPendingPayment(null);
           if (orderState.payment_status === 'submitted_for_verification') {
             toast({ title: 'Payment details already submitted', description: 'Your transaction is being reviewed.' });
-            navigate(user ? '/profile' : '/');
+            navigate(user && !storeBasePath ? '/profile' : homePath);
           } else {
             toast({ title: 'UPI payment attempt closed', description: 'Your cart is ready. Choose a payment method to place a fresh order.' });
           }
@@ -269,7 +275,7 @@ export default function Checkout() {
       clearCart();
       sessionStorage.removeItem('pendingUpiOrder');
       toast({ title: 'Payment submitted for verification', description: 'We will confirm your order after checking the UPI transaction.' });
-      navigate(user ? '/profile' : '/');
+      navigate(user && !storeBasePath ? '/profile' : homePath);
     } catch (error) {
       if (uploadedProofPath) await supabase.storage.from('upi-payment-proofs').remove([uploadedProofPath]);
       toast({ title: 'Could not submit UTR', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
@@ -365,7 +371,7 @@ export default function Checkout() {
         clearCart();
         clearCheckoutAttemptKey();
         toast({ title: 'Order placed', description: `Order total ₹${paymentDetails.amount.toFixed(2)}. Your courier shipping fee will be quoted by email and paid separately before dispatch.` });
-        navigate(user ? '/profile' : '/');
+        navigate(user && !storeBasePath ? '/profile' : homePath);
       } else {
         try { sessionStorage.setItem('pendingUpiOrder', JSON.stringify(paymentDetails)); } catch { /* The active payment remains available in this page. */ }
         setPendingPayment(paymentDetails);
@@ -503,7 +509,7 @@ export default function Checkout() {
       <div className="container-luxury py-12 text-center">
         <h1 className="font-serif text-3xl mb-4">Your cart is empty</h1>
         <p className="text-muted-foreground mb-8">Add some candles to your cart to checkout.</p>
-        <Button onClick={() => navigate('/shop')}>Continue Shopping</Button>
+        <Button onClick={() => navigate(shopPath)}>Continue Shopping</Button>
       </div>
     );
   }
@@ -514,7 +520,7 @@ export default function Checkout() {
         title="Checkout - Complete Your Order - Sereniquee"
         description="Complete your candle order with UPI. Submit your transaction reference for manual payment verification."
         keywords="checkout, buy candles, UPI payment, payment verification, candle purchase"
-        url="/checkout"
+        url={checkoutPath}
       />
       <h1 className="font-serif text-3xl md:text-4xl text-center mb-8">Checkout</h1>
 
@@ -535,7 +541,7 @@ export default function Checkout() {
               <p className="text-muted-foreground">
                 Sign in to track your order and enjoy faster checkout.
               </p>
-              <Link to="/auth" state={{ from: '/checkout' }}>
+              <Link to={authPath} state={{ from: checkoutPath }}>
                 <Button className="w-full">
                   Sign In or Create Account
                 </Button>

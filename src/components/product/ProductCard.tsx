@@ -4,6 +4,7 @@ import { Plus, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { Product } from '@/types';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
+import { useStorefrontPath } from '@/contexts/StorefrontContext';
 
 interface ProductCardProps {
   product: Product;
@@ -37,6 +38,7 @@ function getStorageImageSrcSet(source: string): string | undefined {
 
 export function ProductCard({ product, featured, onQuickView, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
+  const productPath = useStorefrontPath(`/product/${product.slug}`);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [failedTransformedSource, setFailedTransformedSource] = useState<string | null>(null);
   const images = product.image_urls?.length
@@ -60,7 +62,7 @@ export function ProductCard({ product, featured, onQuickView, priority = false }
     <article className="group">
       <div className="relative mb-4 aspect-[3/4] overflow-hidden bg-secondary">
         <Link
-          to={`/product/${product.slug}`}
+          to={productPath}
           className="absolute inset-0 block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           aria-label={`View ${product.name}`}
         >
@@ -167,7 +169,7 @@ export function ProductCard({ product, featured, onQuickView, priority = false }
       </div>
 
       <Link
-        to={`/product/${product.slug}`}
+        to={productPath}
         className="block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
         <div className="space-y-1">

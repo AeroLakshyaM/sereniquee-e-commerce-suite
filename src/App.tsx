@@ -33,6 +33,8 @@ const ShippingReturns  = lazy(() => import("./pages/ShippingReturns"));
 const ShippingQuote    = lazy(() => import("./pages/ShippingQuote"));
 const NotFound         = lazy(() => import("./pages/NotFound"));
 const CustomOrders     = lazy(() => import("./pages/CustomOrders"));
+const ExhibitionHome   = lazy(() => import("./pages/ExhibitionHome"));
+const MobileStoreLayout = lazy(() => import("./components/layout/MobileStoreLayout"));
 
 // ─── Shared page-level loading fallback ──────────────────────────────────────
 function PageLoader() {
@@ -84,6 +86,13 @@ const App = () => (
                       </Layout>
                     }
                   />
+                  <Route path="/mobile-store" element={<MobileStoreLayout />}>
+                    <Route index element={<ExhibitionHome />} />
+                    <Route path="shop" element={<Shop />} />
+                    <Route path="product/:slug" element={<ProductDetail />} />
+                    <Route path="checkout" element={<Checkout />} />
+                    <Route path="custom-orders" element={<CustomOrders />} />
+                  </Route>
                   <Route
                     path="/shop"
                     element={

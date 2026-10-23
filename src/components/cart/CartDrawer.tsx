@@ -1,17 +1,19 @@
 import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import { useStorefrontPath } from '@/contexts/StorefrontContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 export function CartDrawer() {
   const navigate = useNavigate();
+  const checkoutPath = useStorefrontPath('/checkout');
   const { items, isCartOpen, setIsCartOpen, removeItem, updateQuantity, totalPrice } = useCart();
 
   if (!isCartOpen) return null;
 
   const handleCheckout = () => {
     setIsCartOpen(false);
-    navigate('/checkout');
+    navigate(checkoutPath);
   };
 
   return (

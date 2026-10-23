@@ -11,8 +11,10 @@ import { Minus, Plus, ArrowLeft, Flame, Clock, AlertTriangle, Sparkles, Heart, H
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ProductReviews } from '@/components/product/ProductReviews';
+import { useStorefrontPath } from '@/contexts/StorefrontContext';
 
 export default function ProductDetail() {
+  const storePath = useStorefrontPath;
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { data: product, isLoading } = useProductBySlug(slug!);
@@ -45,7 +47,7 @@ export default function ProductDetail() {
     return (
       <div className="container-luxury py-12 text-center">
         <p className="text-muted-foreground">Product not found.</p>
-        <Button onClick={() => navigate('/shop')} className="mt-4">
+        <Button onClick={() => navigate(storePath('/shop'))} className="mt-4">
           Back to Shop
         </Button>
       </div>
@@ -89,7 +91,7 @@ export default function ProductDetail() {
         description={product.seo_description || product.description || `Shop ${product.name} from Sereniquee. Luxury handmade candles crafted with love.`}
         keywords={product.seo_keywords || `${product.name}, ${product.category}, handmade candles, luxury candles, scented candles`}
         image={product.image_url || undefined}
-        url={`/product/${product.slug}`}
+        url={storePath(`/product/${product.slug}`)}
         type="product"
         product={product}
       />
@@ -114,7 +116,7 @@ export default function ProductDetail() {
         <p className="text-2xl font-serif mb-4">₹{product.price.toFixed(2)}</p>
         <div className="mb-4">
           <ShareButton 
-            url={`/product/${product.slug}`}
+            url={storePath(`/product/${product.slug}`)}
             title={product.name}
             description={product.description || `Check out ${product.name} from Sereniquee Candles`}
             variant="outline"
@@ -216,7 +218,7 @@ export default function ProductDetail() {
             {/* Share Button */}
             <div className="mb-6">
               <ShareButton 
-                url={`/product/${product.slug}`}
+                url={storePath(`/product/${product.slug}`)}
                 title={product.name}
                 description={product.description || `Check out ${product.name} from Sereniquee Candles`}
                 variant="outline"
