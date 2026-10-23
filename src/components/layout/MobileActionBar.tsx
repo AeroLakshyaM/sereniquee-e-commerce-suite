@@ -1,13 +1,16 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { House, ShoppingBag, Store } from 'lucide-react';
+import { Bookmark, House, ShoppingBag, Store } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useStorefrontPath } from '@/contexts/StorefrontContext';
+import { useScentPassport } from '@/contexts/ScentPassportContext';
 
 export function MobileActionBar() {
   const { totalItems, setIsCartOpen } = useCart();
+  const { products } = useScentPassport();
   const { pathname } = useLocation();
   const homePath = useStorefrontPath('/');
   const shopPath = useStorefrontPath('/shop');
+  const passportPath = useStorefrontPath('/passport');
   const itemClass = 'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium tracking-wide';
   const activeClass = 'text-[#173b38]';
   const inactiveClass = 'text-muted-foreground';
@@ -20,6 +23,9 @@ export function MobileActionBar() {
         </NavLink>
         <NavLink to={shopPath} className={({ isActive }) => `${itemClass} ${isActive ? activeClass : inactiveClass}`}>
           <Store className="h-5 w-5" strokeWidth={1.8} /><span>Collection</span>
+        </NavLink>
+        <NavLink to={passportPath} className={({ isActive }) => `${itemClass} ${isActive ? activeClass : inactiveClass}`}>
+          <span className="relative"><Bookmark className="h-5 w-5" strokeWidth={1.8} />{products.length > 0 && <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#173b38] px-1 text-[9px] text-white">{products.length}</span>}</span><span>Passport</span>
         </NavLink>
         <button type="button" onClick={() => setIsCartOpen(true)} className={`${itemClass} ${inactiveClass}`} aria-label={`Open bag${totalItems ? `, ${totalItems} items` : ''}`}>
           <span className="relative"><ShoppingBag className="h-5 w-5" strokeWidth={1.8} />{totalItems > 0 && <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#173b38] px-1 text-[9px] text-white">{totalItems}</span>}</span>

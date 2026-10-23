@@ -5,6 +5,8 @@ import { useCart } from '@/contexts/CartContext';
 import { StorefrontBasePathProvider, useStorefrontPath } from '@/contexts/StorefrontContext';
 import { MobileActionBar } from './MobileActionBar';
 import { MobileChatDock } from './MobileChatDock';
+import { MobileStoreFooter } from './MobileStoreFooter';
+import { ScentPassportProvider } from '@/contexts/ScentPassportContext';
 
 function MobileStoreFrame() {
   const { totalItems, setIsCartOpen } = useCart();
@@ -24,6 +26,7 @@ function MobileStoreFrame() {
       <main className="mx-auto min-h-[calc(100svh-8rem)] max-w-3xl">
         <Outlet />
       </main>
+      <MobileStoreFooter />
       <CartDrawer />
       <MobileActionBar />
       <MobileChatDock />
@@ -32,5 +35,5 @@ function MobileStoreFrame() {
 }
 
 export default function MobileStoreLayout() {
-  return <StorefrontBasePathProvider basePath="/mobile-store"><MobileStoreFrame /></StorefrontBasePathProvider>;
+  return <StorefrontBasePathProvider basePath="/mobile-store"><ScentPassportProvider><MobileStoreFrame /></ScentPassportProvider></StorefrontBasePathProvider>;
 }

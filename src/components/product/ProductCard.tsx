@@ -4,7 +4,8 @@ import { Plus, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { Product } from '@/types';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
-import { useStorefrontPath } from '@/contexts/StorefrontContext';
+import { useStorefrontBasePath, useStorefrontPath } from '@/contexts/StorefrontContext';
+import { ScentPassportButton } from './ScentPassportButton';
 
 interface ProductCardProps {
   product: Product;
@@ -39,6 +40,7 @@ function getStorageImageSrcSet(source: string): string | undefined {
 export function ProductCard({ product, featured, onQuickView, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
   const productPath = useStorefrontPath(`/product/${product.slug}`);
+  const basePath = useStorefrontBasePath();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [failedTransformedSource, setFailedTransformedSource] = useState<string | null>(null);
   const images = product.image_urls?.length
@@ -177,6 +179,7 @@ export function ProductCard({ product, featured, onQuickView, priority = false }
             {product.name}
           </h3>
           <p className="text-sm text-muted-foreground">₹{product.price.toFixed(2)}</p>
+          {basePath && <div className="pt-2"><ScentPassportButton product={product} compact /></div>}
         </div>
       </Link>
     </article>

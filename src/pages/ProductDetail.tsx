@@ -11,10 +11,12 @@ import { Minus, Plus, ArrowLeft, Flame, Clock, AlertTriangle, Sparkles, Heart, H
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ProductReviews } from '@/components/product/ProductReviews';
-import { useStorefrontPath } from '@/contexts/StorefrontContext';
+import { useStorefrontBasePath, useStorefrontPath } from '@/contexts/StorefrontContext';
+import { ScentPassportButton } from '@/components/product/ScentPassportButton';
 
 export default function ProductDetail() {
   const storePath = useStorefrontPath;
+  const storeBasePath = useStorefrontBasePath();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { data: product, isLoading } = useProductBySlug(slug!);
@@ -114,6 +116,7 @@ export default function ProductDetail() {
         )}
         <h1 className="font-serif text-3xl mb-3">{product.name}</h1>
         <p className="text-2xl font-serif mb-4">₹{product.price.toFixed(2)}</p>
+        {storeBasePath && <div className="mb-5"><ScentPassportButton product={product} compact /></div>}
         <div className="mb-4">
           <ShareButton 
             url={storePath(`/product/${product.slug}`)}
