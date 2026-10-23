@@ -1,5 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
 
+:root {
+  --chat--color-primary: #8c6239;
+  --chat--color-primary-shade-50: #734f2c;
+  --chat--color-primary-shade-100: #5a3d20;
+  --chat--color-secondary: #fbf8f3;
+  --chat--color-dark: #2c221e;
+  --chat--window--width: 380px;
+  --chat--window--height: 560px;
+  --chat--toggle--size: 60px;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

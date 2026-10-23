@@ -47,13 +47,15 @@ export function CartDrawer() {
             ) : (
               <div className="space-y-6">
                 {items.map((item) => (
-                  <div key={item.product.id} className="flex gap-4">
+                  <div key={`${item.product.id}:${item.variant?.id ?? 'base'}`} className="flex gap-4">
                     {/* Product Image */}
                     <div className="w-20 h-24 bg-secondary flex-shrink-0 overflow-hidden">
-                      {item.product.image_url ? (
+                      {(item.variant?.image_url || item.product.image_url) ? (
                         <img
-                          src={item.product.image_url}
-                          alt={item.product.name}
+                          src={item.variant?.image_url || item.product.image_url || ''}
+                          alt={`${item.product.name}${item.variant ? ` — ${item.variant.name}` : ''}`}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -66,8 +68,9 @@ export function CartDrawer() {
                     {/* Product Details */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-serif text-sm truncate">{item.product.name}</h3>
+                      {item.variant && <p className="text-xs text-muted-foreground">{item.variant.name}</p>}
                       <p className="text-muted-foreground text-sm">
-                        ₹{item.product.price.toFixed(2)}
+                        ₹{(item.variant?.price ?? item.product.price).toFixed(2)}
                       </p>
 
                       {/* Quantity Controls */}
@@ -76,7 +79,8 @@ export function CartDrawer() {
                           variant="outline"
                           size="icon"
                           className="h-7 w-7"
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                          aria-label={`Decrease quantity of ${item.product.name}${item.variant ? ` ${item.variant.name}` : ''}`}
+                          onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variant?.id)}
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
@@ -85,7 +89,8 @@ export function CartDrawer() {
                           variant="outline"
                           size="icon"
                           className="h-7 w-7"
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          aria-label={`Increase quantity of ${item.product.name}${item.variant ? ` ${item.variant.name}` : ''}`}
+                          onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)}
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
@@ -97,7 +102,8 @@ export function CartDrawer() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                      onClick={() => removeItem(item.product.id)}
+                      aria-label={`Remove ${item.product.name}${item.variant ? ` ${item.variant.name}` : ''} from cart`}
+                      onClick={() => removeItem(item.product.id, item.variant?.id)}
                     >
                       <X className="h-4 w-4" />
                     </Button>

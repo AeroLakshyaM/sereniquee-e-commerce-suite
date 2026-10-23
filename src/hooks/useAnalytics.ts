@@ -77,7 +77,8 @@ export const useAnalytics = () => {
         userGrowth,
       };
     },
-    refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
   });
 };
 

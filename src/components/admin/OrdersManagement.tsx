@@ -713,6 +713,7 @@ export default function OrdersManagement() {
                               <p className="font-medium text-xs md:text-sm truncate">
                                 {item.product?.name || 'Unknown Product'}
                               </p>
+                              {item.variant_name && <p className="text-xs text-muted-foreground truncate">Option: {item.variant_name}</p>}
                               <p className="text-xs text-muted-foreground">
                                 Qty: {item.quantity} × ₹{item.price_at_time.toFixed(2)}
                               </p>
@@ -883,7 +884,7 @@ export default function OrdersManagement() {
                 <div className="mt-2 space-y-2">
                   {selectedOrder.order_items.map((item: any) => (
                     <div key={item.id} className="flex justify-between border-b py-2 text-sm">
-                      <span>{item.product?.name || 'Product'} × {item.quantity}</span>
+                      <span>{item.product?.name || 'Product'}{item.variant_name ? ` · ${item.variant_name}` : ''} × {item.quantity}</span>
                       <span>₹{item.price_at_time.toFixed(2)}</span>
                     </div>
                   ))}

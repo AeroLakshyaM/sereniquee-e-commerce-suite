@@ -167,6 +167,8 @@ export default function BlogPost() {
                 key={`${url}-${index}`}
                 src={url}
                 alt={`Gallery image ${index + 1}`}
+                loading="lazy"
+                decoding="async"
                 className="h-64 w-full rounded-3xl object-cover"
               />
             ))}

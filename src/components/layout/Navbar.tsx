@@ -11,7 +11,7 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  // Debounced value — only updated after the user stops typing for 300 ms
+  // Debounced value — only updated after the user stops typing for 500 ms
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const { totalItems, setIsCartOpen } = useCart();
   const { user, isAdmin } = useAuth();
@@ -19,11 +19,11 @@ export function Navbar() {
 
   // Debounce the search query so we don't fire a DB request on every keystroke
   useEffect(() => {
-    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+    if (!searchQuery.trim() || searchQuery.trim().length < 3) {
       setDebouncedQuery('');
       return;
     }
-    const timer = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 300);
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 500);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
@@ -31,7 +31,7 @@ export function Navbar() {
   const { data: searchData, isFetching: isSearching } = useProducts(
     undefined,
     debouncedQuery || undefined,
-    { listing: true },
+    { listing: true, enabled: searchOpen && debouncedQuery.length >= 3 },
   );
 
   const searchResults = useMemo(() => {

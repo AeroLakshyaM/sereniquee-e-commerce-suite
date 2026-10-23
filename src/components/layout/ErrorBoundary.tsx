@@ -1,5 +1,6 @@
 import React, { Component, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
+import { reportClientError } from '@/lib/errorReporting';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -29,6 +30,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     // Log to the console in development; swap for a real error reporting
     // service (e.g. Sentry) in production.
     console.error('[ErrorBoundary] Caught error:', error, info);
+    reportClientError('render_error', error);
   }
 
   handleReset = () => {

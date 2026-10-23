@@ -4,6 +4,48 @@ ALTER TABLE public.orders
   ADD COLUMN IF NOT EXISTS inventory_reserved BOOLEAN NOT NULL DEFAULT FALSE,
   ADD COLUMN IF NOT EXISTS coupon_use_reserved BOOLEAN NOT NULL DEFAULT FALSE;
 
+ALTER TABLE public.order_items
+  ADD COLUMN IF NOT EXISTS variant_id UUID REFERENCES public.product_variants(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS variant_name TEXT;
+
+CREATE OR REPLACE FUNCTION public.adjust_order_inventory(p_order_id UUID, p_delta INTEGER)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_item RECORD;
+BEGIN
+  IF p_delta = 0 OR p_delta IS NULL THEN RETURN; END IF;
+  FOR v_item IN
+    SELECT product_id, variant_id, SUM(quantity)::INTEGER AS quantity
+    FROM public.order_items
+    WHERE order_id = p_order_id
+    GROUP BY product_id, variant_id
+    ORDER BY product_id, variant_id NULLS FIRST
+  LOOP
+    IF v_item.variant_id IS NOT NULL THEN
+      UPDATE public.product_variants
+      SET stock_quantity = stock_quantity + (p_delta * v_item.quantity)
+      WHERE id = v_item.variant_id
+        AND (p_delta > 0 OR stock_quantity >= (-p_delta * v_item.quantity));
+    ELSIF v_item.variant_name IS NOT NULL AND p_delta > 0 THEN
+      RAISE EXCEPTION 'A selected product option was removed before its reserved stock could be restored. Contact support.';
+    ELSE
+      UPDATE public.products
+      SET stock_quantity = COALESCE(stock_quantity, 0) + (p_delta * v_item.quantity)
+      WHERE id = v_item.product_id
+        AND (p_delta > 0 OR COALESCE(stock_quantity, 0) >= (-p_delta * v_item.quantity));
+    END IF;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Inventory changed while updating this order. Please refresh and try again.';
+    END IF;
+  END LOOP;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.adjust_order_inventory(UUID, INTEGER) FROM PUBLIC, anon, authenticated;
+
 UPDATE public.orders
 SET payment_method = 'upi'
 WHERE payment_method IS NULL OR payment_method NOT IN ('upi', 'cod');
@@ -101,8 +143,7 @@ BEGIN
 
   UPDATE public.orders SET payment_status = 'failed', status = 'cancelled', inventory_reserved = FALSE, coupon_use_reserved = FALSE, updated_at = NOW() WHERE id = p_order_id;
   IF v_order.inventory_reserved THEN
-    UPDATE public.products p SET stock_quantity = COALESCE(p.stock_quantity, 0) + oi.quantity
-    FROM public.order_items oi WHERE oi.order_id = p_order_id AND p.id = oi.product_id;
+    PERFORM public.adjust_order_inventory(p_order_id, 1);
   END IF;
   IF v_order.coupon_use_reserved AND v_order.discount_code_id IS NOT NULL THEN
     UPDATE public.discount_codes SET uses_count = GREATEST(COALESCE(uses_count, 0) - 1, 0) WHERE id = v_order.discount_code_id;
@@ -139,8 +180,7 @@ BEGIN
     WHERE id = v_order.id AND payment_status = 'pending_payment';
     IF FOUND THEN
       IF v_order.inventory_reserved THEN
-        UPDATE public.products p SET stock_quantity = COALESCE(p.stock_quantity, 0) + oi.quantity
-        FROM public.order_items oi WHERE oi.order_id = v_order.id AND p.id = oi.product_id;
+        PERFORM public.adjust_order_inventory(v_order.id, 1);
       END IF;
       IF v_order.coupon_use_reserved AND v_order.discount_code_id IS NOT NULL THEN
         UPDATE public.discount_codes SET uses_count = GREATEST(COALESCE(uses_count, 0) - 1, 0)
@@ -170,11 +210,7 @@ BEGIN
     RAISE EXCEPTION 'Guest order details could not be verified.';
   END IF;
 
-  FOR v_item IN SELECT product_id, quantity FROM public.order_items WHERE order_id = p_order_id LOOP
-    UPDATE public.products SET stock_quantity = COALESCE(stock_quantity, 0) - v_item.quantity
-    WHERE id = v_item.product_id AND COALESCE(stock_quantity, 0) >= v_item.quantity;
-    IF NOT FOUND THEN RAISE EXCEPTION 'One or more products no longer have enough stock.'; END IF;
-  END LOOP;
+  PERFORM public.adjust_order_inventory(p_order_id, -1);
 
   IF v_order.discount_code_id IS NOT NULL THEN
     UPDATE public.discount_codes SET uses_count = COALESCE(uses_count, 0) + 1

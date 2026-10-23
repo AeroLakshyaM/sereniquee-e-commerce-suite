@@ -171,6 +171,8 @@ export type Database = {
           order_id: string
           price_at_time: number
           product_id: string | null
+          variant_id: string | null
+          variant_name: string | null
           quantity: number
         }
         Insert: {
@@ -179,6 +181,8 @@ export type Database = {
           order_id: string
           price_at_time: number
           product_id?: string | null
+          variant_id?: string | null
+          variant_name?: string | null
           quantity: number
         }
         Update: {
@@ -187,6 +191,8 @@ export type Database = {
           order_id?: string
           price_at_time?: number
           product_id?: string | null
+          variant_id?: string | null
+          variant_name?: string | null
           quantity?: number
         }
         Relationships: [
@@ -202,6 +208,42 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_status_history: {
+        Row: {
+          id: string
+          order_id: string
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          status: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          status?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -356,6 +398,48 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_order_inquiries: {
+        Row: {
+          id: string
+          name: string
+          email: string
+          phone: string | null
+          inquiry_type: "custom" | "bulk" | "wholesale" | "other"
+          description: string
+          quantity_estimate: number | null
+          budget_range: string | null
+          status: "new" | "contacted" | "quoted" | "ordered"
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          email: string
+          phone?: string | null
+          inquiry_type: "custom" | "bulk" | "wholesale" | "other"
+          description: string
+          quantity_estimate?: number | null
+          budget_range?: string | null
+          status?: "new" | "contacted" | "quoted" | "ordered"
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string
+          phone?: string | null
+          inquiry_type?: "custom" | "bulk" | "wholesale" | "other"
+          description?: string
+          quantity_estimate?: number | null
+          budget_range?: string | null
+          status?: "new" | "contacted" | "quoted" | "ordered"
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           id: string
@@ -379,45 +463,66 @@ export type Database = {
       }
       products: {
         Row: {
+          average_rating: number | null
           category: string | null
           created_at: string | null
           description: string | null
           featured: boolean | null
+          full_description: string | null
           id: string
           image_url: string | null
+          image_urls: string[] | null
           metadata: Json
           name: string
           price: number
+          review_count: number | null
+          seo_description: string | null
+          seo_keywords: string | null
+          seo_title: string | null
           slug: string
           sku: string | null
           stock_quantity: number | null
           updated_at: string | null
         }
         Insert: {
+          average_rating?: number | null
           category?: string | null
           created_at?: string | null
           description?: string | null
           featured?: boolean | null
+          full_description?: string | null
           id?: string
           image_url?: string | null
+          image_urls?: string[] | null
           metadata?: Json
           name: string
           price: number
+          review_count?: number | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
           slug?: string
           sku?: string | null
           stock_quantity?: number | null
           updated_at?: string | null
         }
         Update: {
+          average_rating?: number | null
           category?: string | null
           created_at?: string | null
           description?: string | null
           featured?: boolean | null
+          full_description?: string | null
           id?: string
           image_url?: string | null
+          image_urls?: string[] | null
           metadata?: Json
           name?: string
           price?: number
+          review_count?: number | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
           slug?: string
           sku?: string | null
           stock_quantity?: number | null
@@ -837,6 +942,25 @@ export type Database = {
           payment_status: string
           payment_expires_at: string | null
         }>
+      }
+      get_admin_users: {
+        Args: Record<PropertyKey, never>
+        Returns: Array<{
+          id: string
+          email: string | null
+          full_name: string | null
+          phone: string | null
+          address: string | null
+          city: string | null
+          postal_code: string | null
+          country: string | null
+          created_at: string | null
+          last_sign_in_at: string | null
+        }>
+      }
+      delete_user_by_admin: {
+        Args: { target_user_id: string }
+        Returns: undefined
       }
       admin_delete_pending_order: {
         Args: { p_order_id: string }

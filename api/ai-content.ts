@@ -63,14 +63,21 @@ export default async function handler(req: Request, res: Response) {
 
     let prompt: string;
     if (action === 'blog-generate') {
-      if (!validText(req.body?.topic, 300) || (req.body?.additionalNotes && !validText(req.body.additionalNotes, 2000))) return res.status(400).json({ error: 'Enter a topic under 300 characters and notes under 2,000 characters.' });
-      prompt = blogPrompt(req.body.topic.trim(), req.body.additionalNotes?.trim() || '');
+      const topic = typeof req.body?.topic === 'string' ? req.body.topic : '';
+      const additionalNotes = typeof req.body?.additionalNotes === 'string' ? req.body.additionalNotes : '';
+      if (!validText(topic, 300) || (additionalNotes && !validText(additionalNotes, 2000))) return res.status(400).json({ error: 'Enter a topic under 300 characters and notes under 2,000 characters.' });
+      prompt = blogPrompt(topic.trim(), additionalNotes.trim());
     } else if (action === 'blog-enhance') {
-      if (!validText(req.body?.content, 20000) || !validText(req.body?.instructions, 2000)) return res.status(400).json({ error: 'Content and editing instructions are required within the allowed length.' });
-      prompt = blogEnhancePrompt(req.body.content, req.body.instructions);
+      const content = typeof req.body?.content === 'string' ? req.body.content : '';
+      const instructions = typeof req.body?.instructions === 'string' ? req.body.instructions : '';
+      if (!validText(content, 20000) || !validText(instructions, 2000)) return res.status(400).json({ error: 'Content and editing instructions are required within the allowed length.' });
+      prompt = blogEnhancePrompt(content, instructions);
     } else if (action === 'business-insights') {
-      if (!validText(req.body?.businessData, 5000) || !validText(req.body?.productList, 20000) || !validText(req.body?.ordersSummary, 5000)) return res.status(400).json({ error: 'Business insight input is missing or too large.' });
-      prompt = businessPrompt(req.body.businessData, req.body.productList, req.body.ordersSummary);
+      const businessData = typeof req.body?.businessData === 'string' ? req.body.businessData : '';
+      const productList = typeof req.body?.productList === 'string' ? req.body.productList : '';
+      const ordersSummary = typeof req.body?.ordersSummary === 'string' ? req.body.ordersSummary : '';
+      if (!validText(businessData, 5000) || !validText(productList, 20000) || !validText(ordersSummary, 5000)) return res.status(400).json({ error: 'Business insight input is missing or too large.' });
+      prompt = businessPrompt(businessData, productList, ordersSummary);
     } else {
       const messages = req.body?.messages;
       if (!Array.isArray(messages) || messages.length < 1 || messages.length > 12 || messages.some(m => !m || !['user', 'assistant'].includes(m.role) || !validText(m.content, 1200))) return res.status(400).json({ error: 'Chat history is invalid or too long.' });

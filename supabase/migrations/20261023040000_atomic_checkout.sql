@@ -1,6 +1,10 @@
 ALTER TABLE public.orders
   ADD COLUMN IF NOT EXISTS checkout_idempotency_key UUID;
 
+ALTER TABLE public.order_items
+  ADD COLUMN IF NOT EXISTS variant_id UUID REFERENCES public.product_variants(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS variant_name TEXT;
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_checkout_idempotency_key
   ON public.orders(checkout_idempotency_key);
 
@@ -50,8 +54,11 @@ DECLARE
   v_payment_expires_at TIMESTAMPTZ;
   v_line JSONB;
   v_product_id UUID;
+  v_variant_id UUID;
   v_quantity INTEGER;
+  v_unit_price NUMERIC(10,2);
   v_product public.products%ROWTYPE;
+  v_variant public.product_variants%ROWTYPE;
 BEGIN
   IF p_idempotency_key IS NULL THEN
     RAISE EXCEPTION 'Checkout session expired. Please try again.';
@@ -95,32 +102,47 @@ BEGIN
   FOR v_line IN SELECT value FROM jsonb_array_elements(p_items) LOOP
     IF jsonb_typeof(v_line->'product_id') <> 'string'
       OR jsonb_typeof(v_line->'quantity') <> 'number'
+      OR (v_line ? 'variant_id' AND v_line->'variant_id' <> 'null'::JSONB AND jsonb_typeof(v_line->'variant_id') <> 'string')
       OR (v_line->>'quantity')::NUMERIC <> trunc((v_line->>'quantity')::NUMERIC)
       OR (v_line->>'quantity')::INTEGER < 1 OR (v_line->>'quantity')::INTEGER > 100 THEN
       RAISE EXCEPTION 'One or more cart items are invalid.';
     END IF;
     v_product_id := (v_line->>'product_id')::UUID;
+    v_variant_id := NULLIF(v_line->>'variant_id', '')::UUID;
     v_quantity := (v_line->>'quantity')::INTEGER;
   END LOOP;
 
   FOR v_line IN
-    SELECT jsonb_build_object('product_id', grouped.product_id, 'quantity', grouped.quantity) AS value
+    SELECT jsonb_build_object('product_id', grouped.product_id, 'variant_id', grouped.variant_id, 'quantity', grouped.quantity) AS value
     FROM (
-      SELECT (item->>'product_id')::UUID AS product_id, SUM((item->>'quantity')::INTEGER)::INTEGER AS quantity
+      SELECT (item->>'product_id')::UUID AS product_id, NULLIF(item->>'variant_id', '')::UUID AS variant_id,
+        SUM((item->>'quantity')::INTEGER)::INTEGER AS quantity
       FROM jsonb_array_elements(p_items) AS lines(item)
-      GROUP BY (item->>'product_id')::UUID
-      ORDER BY (item->>'product_id')::UUID
+      GROUP BY (item->>'product_id')::UUID, NULLIF(item->>'variant_id', '')::UUID
+      ORDER BY (item->>'product_id')::UUID, NULLIF(item->>'variant_id', '')::UUID NULLS FIRST
     ) grouped
   LOOP
     v_product_id := (v_line->>'product_id')::UUID;
+    v_variant_id := NULLIF(v_line->>'variant_id', '')::UUID;
     v_quantity := (v_line->>'quantity')::INTEGER;
     IF v_quantity > 500 THEN RAISE EXCEPTION 'The quantity for an item is too large.'; END IF;
     SELECT * INTO v_product FROM public.products p WHERE p.id = v_product_id FOR UPDATE;
     IF NOT FOUND THEN RAISE EXCEPTION 'One of the products in your cart is no longer available.'; END IF;
-    IF COALESCE(v_product.stock_quantity, 0) < v_quantity THEN
-      RAISE EXCEPTION 'Only % of % are currently available.', COALESCE(v_product.stock_quantity, 0), v_product.name;
+    IF v_variant_id IS NOT NULL THEN
+      SELECT * INTO v_variant FROM public.product_variants pv
+      WHERE pv.id = v_variant_id AND pv.product_id = v_product_id AND pv.is_active = TRUE FOR UPDATE;
+      IF NOT FOUND THEN RAISE EXCEPTION 'A selected product option is no longer available. Please review your cart.'; END IF;
+      IF COALESCE(v_variant.stock_quantity, 0) < v_quantity THEN
+        RAISE EXCEPTION 'Only % of % (% option) are currently available.', COALESCE(v_variant.stock_quantity, 0), v_product.name, v_variant.name;
+      END IF;
+      v_unit_price := v_variant.price;
+    ELSE
+      IF COALESCE(v_product.stock_quantity, 0) < v_quantity THEN
+        RAISE EXCEPTION 'Only % of % are currently available.', COALESCE(v_product.stock_quantity, 0), v_product.name;
+      END IF;
+      v_unit_price := v_product.price;
     END IF;
-    v_subtotal := v_subtotal + (v_product.price * v_quantity);
+    v_subtotal := v_subtotal + (v_unit_price * v_quantity);
   END LOOP;
 
   IF length(COALESCE(v_coupon_code, '')) > 100 THEN
@@ -182,22 +204,36 @@ BEGIN
   END IF;
 
   FOR v_line IN
-    SELECT jsonb_build_object('product_id', grouped.product_id, 'quantity', grouped.quantity) AS value
+    SELECT jsonb_build_object('product_id', grouped.product_id, 'variant_id', grouped.variant_id, 'quantity', grouped.quantity) AS value
     FROM (
-      SELECT (item->>'product_id')::UUID AS product_id, SUM((item->>'quantity')::INTEGER)::INTEGER AS quantity
+      SELECT (item->>'product_id')::UUID AS product_id, NULLIF(item->>'variant_id', '')::UUID AS variant_id,
+        SUM((item->>'quantity')::INTEGER)::INTEGER AS quantity
       FROM jsonb_array_elements(p_items) AS lines(item)
-      GROUP BY (item->>'product_id')::UUID
-      ORDER BY (item->>'product_id')::UUID
+      GROUP BY (item->>'product_id')::UUID, NULLIF(item->>'variant_id', '')::UUID
+      ORDER BY (item->>'product_id')::UUID, NULLIF(item->>'variant_id', '')::UUID NULLS FIRST
     ) grouped
   LOOP
     v_product_id := (v_line->>'product_id')::UUID;
+    v_variant_id := NULLIF(v_line->>'variant_id', '')::UUID;
     v_quantity := (v_line->>'quantity')::INTEGER;
-    UPDATE public.products p SET stock_quantity = COALESCE(p.stock_quantity, 0) - v_quantity
-    WHERE p.id = v_product_id AND COALESCE(p.stock_quantity, 0) >= v_quantity;
+    IF v_variant_id IS NOT NULL THEN
+      UPDATE public.product_variants pv SET stock_quantity = pv.stock_quantity - v_quantity
+      WHERE pv.id = v_variant_id AND pv.product_id = v_product_id AND pv.is_active = TRUE
+        AND pv.stock_quantity >= v_quantity;
+    ELSE
+      UPDATE public.products p SET stock_quantity = COALESCE(p.stock_quantity, 0) - v_quantity
+      WHERE p.id = v_product_id AND COALESCE(p.stock_quantity, 0) >= v_quantity;
+    END IF;
     IF NOT FOUND THEN RAISE EXCEPTION 'Stock changed while checking out. Please review your cart and try again.'; END IF;
-    SELECT * INTO v_product FROM public.products p WHERE p.id = v_product_id;
-    INSERT INTO public.order_items(order_id, product_id, quantity, price_at_time)
-    VALUES (v_order_id, v_product_id, v_quantity, v_product.price);
+    IF v_variant_id IS NOT NULL THEN
+      SELECT * INTO v_variant FROM public.product_variants pv WHERE pv.id = v_variant_id;
+      INSERT INTO public.order_items(order_id, product_id, variant_id, variant_name, quantity, price_at_time)
+      VALUES (v_order_id, v_product_id, v_variant_id, v_variant.name, v_quantity, v_variant.price);
+    ELSE
+      SELECT * INTO v_product FROM public.products p WHERE p.id = v_product_id;
+      INSERT INTO public.order_items(order_id, product_id, quantity, price_at_time)
+      VALUES (v_order_id, v_product_id, v_quantity, v_product.price);
+    END IF;
   END LOOP;
 
   IF v_coupon_code IS NOT NULL THEN

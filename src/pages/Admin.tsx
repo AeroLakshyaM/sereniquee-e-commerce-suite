@@ -1,7 +1,8 @@
-import { useState, useMemo, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useProducts } from '@/hooks/useProducts';
+import { useAdminProducts } from '@/hooks/useProducts';
 import { supabase } from '@/integrations/supabase/client';
+import { runBulkProductAction } from '@/lib/adminProducts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -50,25 +51,26 @@ import {
   Mail,
 } from 'lucide-react';
 import { Product } from '@/types';
-import SimpleDashboard from '@/components/admin/SimpleDashboard';
-import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
-import UsersManagement from '@/components/admin/UsersManagement';
-import OrdersManagement from '@/components/admin/OrdersManagement';
-import CalendarView from '@/components/admin/CalendarView';
-import QuickProductForm from '@/components/admin/QuickProductForm';
-import OrderNotifications from '@/components/admin/OrderNotifications';
-import { BlogManager } from '@/components/admin/BlogManager';
-import BusinessInsights from '@/components/admin/BusinessInsights';
-import CategoryManager from '@/components/admin/CategoryManager';
-import SocialPostsManager from '@/components/admin/SocialPostsManager';
-import CustomOrdersManager from '@/components/admin/CustomOrdersManager';
-import OfflineInvoiceGenerator from '@/components/admin/OfflineInvoiceGenerator';
-import ReviewsManagement from '@/components/admin/ReviewsManagement';
-import InventoryManager from '@/components/admin/InventoryManager';
-import CouponsManager from '@/components/admin/CouponsManager';
-import NewsletterManager from '@/components/admin/NewsletterManager';
 import { slugify } from '@/lib/utils';
 import type { Json } from '@/integrations/supabase/types';
+
+const SimpleDashboard = lazy(() => import('@/components/admin/SimpleDashboard'));
+const AnalyticsDashboard = lazy(() => import('@/components/admin/AnalyticsDashboard'));
+const UsersManagement = lazy(() => import('@/components/admin/UsersManagement'));
+const OrdersManagement = lazy(() => import('@/components/admin/OrdersManagement'));
+const CalendarView = lazy(() => import('@/components/admin/CalendarView'));
+const QuickProductForm = lazy(() => import('@/components/admin/QuickProductForm'));
+const OrderNotifications = lazy(() => import('@/components/admin/OrderNotifications'));
+const BlogManager = lazy(() => import('@/components/admin/BlogManager').then(module => ({ default: module.BlogManager })));
+const BusinessInsights = lazy(() => import('@/components/admin/BusinessInsights'));
+const CategoryManager = lazy(() => import('@/components/admin/CategoryManager'));
+const SocialPostsManager = lazy(() => import('@/components/admin/SocialPostsManager'));
+const CustomOrdersManager = lazy(() => import('@/components/admin/CustomOrdersManager'));
+const OfflineInvoiceGenerator = lazy(() => import('@/components/admin/OfflineInvoiceGenerator'));
+const ReviewsManagement = lazy(() => import('@/components/admin/ReviewsManagement'));
+const InventoryManager = lazy(() => import('@/components/admin/InventoryManager'));
+const CouponsManager = lazy(() => import('@/components/admin/CouponsManager'));
+const NewsletterManager = lazy(() => import('@/components/admin/NewsletterManager'));
 
 // Tab definitions — a single source of truth for the admin nav
 const TABS = [
@@ -131,6 +133,7 @@ export default function Admin() {
 
   const [productSearch, setProductSearch] = useState('');
   const [debouncedProductSearch, setDebouncedProductSearch] = useState('');
+  const [productPage, setProductPage] = useState(0);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [stockPopoverProductId, setStockPopoverProductId] = useState<string | null>(null);
   const [stockDraft, setStockDraft] = useState('');
@@ -141,19 +144,17 @@ export default function Admin() {
     return () => window.clearTimeout(timer);
   }, [productSearch]);
 
-  // ── Product list — fetched in pages so the admin table remains responsive ──
-  const {
-    data: productsData,
-    isLoading,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-  } = useProducts(undefined, debouncedProductSearch);
+  useEffect(() => setProductPage(0), [debouncedProductSearch]);
 
-  const products = useMemo(
-    () => productsData?.pages.flatMap(page => page.products) ?? [],
-    [productsData],
-  );
+  // ── Product list — keep only the current server-filtered page in memory ────
+  const { data: productsData, isLoading } = useAdminProducts(debouncedProductSearch, productPage);
+  const products = productsData?.products ?? [];
+  const productCount = productsData?.total ?? 0;
+  const productPageCount = Math.max(1, Math.ceil(productCount / 25));
+
+  useEffect(() => {
+    if (productPage >= productPageCount) setProductPage(Math.max(0, productPageCount - 1));
+  }, [productPage, productPageCount]);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -230,9 +231,7 @@ export default function Admin() {
   const handleBulkAction = async (action: 'featured' | 'unfeatured' | 'delete') => {
     if (selectedProductIds.length === 0) return;
     setIsBulkUpdating(true);
-    const result = action === 'delete'
-      ? await supabase.from('products').delete().in('id', selectedProductIds)
-      : await supabase.from('products').update({ featured: action === 'featured' }).in('id', selectedProductIds);
+    const result = await runBulkProductAction(action, selectedProductIds);
 
     if (result.error) {
       toast({ title: 'Bulk action failed', description: result.error.message, variant: 'destructive' });
@@ -310,7 +309,9 @@ export default function Admin() {
           <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl">Admin Dashboard</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">Keep products, orders, and customer experiences moving from one place.</p>
         </div>
-        <OrderNotifications />
+        <Suspense fallback={<div className="text-sm text-muted-foreground">Loading notifications…</div>}>
+          <OrderNotifications />
+        </Suspense>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
@@ -358,6 +359,7 @@ export default function Admin() {
           </div>
         </div>
 
+        <Suspense fallback={<div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">Loading section…</div>}>
         <TabsContent value="home" className="space-y-6">
           <SimpleDashboard />
         </TabsContent>
@@ -508,9 +510,11 @@ export default function Admin() {
                       <tr>
                         <th className="p-4">
                           <Checkbox
-                            checked={products.length > 0 && selectedProductIds.length === products.length}
-                            onCheckedChange={(checked) => setSelectedProductIds(checked ? products.map(product => product.id) : [])}
-                            aria-label="Select all products"
+                            checked={products.length > 0 && products.every(product => selectedProductIds.includes(product.id))}
+                            onCheckedChange={(checked) => setSelectedProductIds(current => checked
+                              ? [...new Set([...current, ...products.map(product => product.id)])]
+                              : current.filter(id => !products.some(product => product.id === id)))}
+                            aria-label="Select all products on this page"
                           />
                         </th>
                         <th className="text-left p-4 text-sm font-medium">Product</th>
@@ -625,15 +629,20 @@ export default function Admin() {
               </div>
             )}
           </div>
-          {products.length > 0 && hasNextPage && (
-            <div className="flex justify-center pt-4">
-              <Button
-                variant="outline"
-                onClick={() => void fetchNextPage()}
-                disabled={isFetchingNextPage}
-              >
-                {isFetchingNextPage ? 'Loading products...' : 'Load More Products'}
-              </Button>
+          {productCount > 0 && (
+            <div className="flex flex-col items-center justify-between gap-3 pt-4 text-sm text-muted-foreground sm:flex-row">
+              <p>
+                Showing {productPage * 25 + 1}–{Math.min((productPage + 1) * 25, productCount)} of {productCount} products
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setProductPage(page => Math.max(0, page - 1))} disabled={productPage === 0 || isLoading}>
+                  Previous
+                </Button>
+                <span className="flex items-center px-2">Page {productPage + 1} of {productPageCount}</span>
+                <Button variant="outline" size="sm" onClick={() => setProductPage(page => Math.min(productPageCount - 1, page + 1))} disabled={productPage + 1 >= productPageCount || isLoading}>
+                  Next
+                </Button>
+              </div>
             </div>
           )}
         </TabsContent>
@@ -681,6 +690,7 @@ export default function Admin() {
         <TabsContent value="newsletter" className="space-y-6">
           <NewsletterManager />
         </TabsContent>
+        </Suspense>
       </Tabs>
     </div>
   );

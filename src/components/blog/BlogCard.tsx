@@ -36,6 +36,8 @@ export function BlogCard({ blog, variant = 'default' }: BlogCardProps) {
           <img
             src={blog.cover_image_url}
             alt={blog.title}
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (

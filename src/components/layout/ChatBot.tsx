@@ -52,10 +52,13 @@ export function ChatBot() {
     setIsLoading(true);
 
     try {
-      const chatHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [
-        ...messages.map(({ role, content }) => ({ role: role as 'user' | 'assistant', content })),
-        { role: 'user', content: userMessage.content },
-      ].slice(-12);
+      type ChatHistoryEntry = { role: 'user' | 'assistant'; content: string };
+      const previousMessages: ChatHistoryEntry[] = messages.map(({ role, content }) => {
+        const chatRole: 'user' | 'assistant' = role === 'user' ? 'user' : 'assistant';
+        return { role: chatRole, content };
+      });
+      const currentMessage: ChatHistoryEntry = { role: 'user', content: userMessage.content };
+      const chatHistory = previousMessages.concat(currentMessage).slice(-12);
       const text = await sendChatMessage(chatHistory);
 
       const assistantMessage: Message = {

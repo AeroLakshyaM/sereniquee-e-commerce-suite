@@ -532,6 +532,8 @@ export function BlogManager() {
                   <img
                     src={formState.coverImageUrl}
                     alt="Cover preview"
+                    loading="lazy"
+                    decoding="async"
                     className="rounded-md border object-cover h-40 w-full"
                   />
                 )}
@@ -576,7 +578,7 @@ export function BlogManager() {
                         )}
                       </div>
                       {url && (
-                        <img src={url} alt={`Gallery ${index + 1}`} className="rounded-md border object-cover h-32 w-full" />
+                        <img src={url} alt={`Gallery ${index + 1}`} loading="lazy" decoding="async" className="rounded-md border object-cover h-32 w-full" />
                       )}
                     </div>
                   ))}

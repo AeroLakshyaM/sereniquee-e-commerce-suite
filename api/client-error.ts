@@ -9,7 +9,7 @@ export default async function handler(req: Request, res: Response) {
   const event = req.body?.event;
   const message = req.body?.message?.trim().slice(0, 400);
   const code = req.body?.code?.slice(0, 40);
-  if (!['checkout_failure', 'payment_email_failure'].includes(event || '') || !message) return res.status(400).json({ error: 'Invalid error report.' });
+  if (!['checkout_failure', 'payment_email_failure', 'unhandled_rejection', 'unhandled_error', 'render_error'].includes(event || '') || !message) return res.status(400).json({ error: 'Invalid error report.' });
   try {
     if (!await consumeRateLimit(req, 'client:error-report', 20, 3600)) return res.status(429).json({ error: 'Error report limit reached.' });
     const incidentId = randomUUID();

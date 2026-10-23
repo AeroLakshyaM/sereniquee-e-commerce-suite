@@ -61,7 +61,7 @@ REVOKE ALL ON FUNCTION public.resume_pending_upi_order(UUID, TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.resume_pending_upi_order(UUID, TEXT) TO anon, authenticated;
 
 DROP FUNCTION IF EXISTS public.submit_upi_payment_utr(UUID, TEXT, TEXT, TEXT);
-CREATE FUNCTION public.submit_upi_payment_utr(
+CREATE OR REPLACE FUNCTION public.submit_upi_payment_utr(
   p_order_id UUID,
   p_utr TEXT,
   p_guest_email TEXT DEFAULT NULL,
@@ -122,8 +122,7 @@ BEGIN
   UPDATE public.orders SET payment_status = 'failed', status = 'cancelled', payment_expires_at = NULL, inventory_reserved = FALSE,
     coupon_use_reserved = FALSE, updated_at = NOW() WHERE id = p_order_id;
   IF v_order.inventory_reserved THEN
-    UPDATE public.products p SET stock_quantity = COALESCE(p.stock_quantity, 0) + oi.quantity
-    FROM public.order_items oi WHERE oi.order_id = p_order_id AND p.id = oi.product_id;
+    PERFORM public.adjust_order_inventory(p_order_id, 1);
   END IF;
   IF v_order.coupon_use_reserved AND v_order.discount_code_id IS NOT NULL THEN
     UPDATE public.discount_codes SET uses_count = GREATEST(COALESCE(uses_count, 0) - 1, 0)
@@ -135,7 +134,7 @@ REVOKE ALL ON FUNCTION public.cancel_pending_upi_order(UUID, TEXT, TEXT) FROM PU
 GRANT EXECUTE ON FUNCTION public.cancel_pending_upi_order(UUID, TEXT, TEXT) TO anon, authenticated;
 
 DROP FUNCTION IF EXISTS public.expire_pending_upi_order(UUID, TEXT);
-CREATE FUNCTION public.expire_pending_upi_order(p_order_id UUID, p_guest_email TEXT DEFAULT NULL, p_resume_token TEXT DEFAULT NULL)
+CREATE OR REPLACE FUNCTION public.expire_pending_upi_order(p_order_id UUID, p_guest_email TEXT DEFAULT NULL, p_resume_token TEXT DEFAULT NULL)
 RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   v_order public.orders%ROWTYPE;
@@ -157,8 +156,7 @@ BEGIN
   UPDATE public.orders SET payment_status = 'failed', status = 'cancelled', inventory_reserved = FALSE, coupon_use_reserved = FALSE,
     updated_at = NOW() WHERE id = p_order_id;
   IF v_order.inventory_reserved THEN
-    UPDATE public.products p SET stock_quantity = COALESCE(p.stock_quantity, 0) + oi.quantity
-    FROM public.order_items oi WHERE oi.order_id = p_order_id AND p.id = oi.product_id;
+    PERFORM public.adjust_order_inventory(p_order_id, 1);
   END IF;
   IF v_order.coupon_use_reserved AND v_order.discount_code_id IS NOT NULL THEN
     UPDATE public.discount_codes SET uses_count = GREATEST(COALESCE(uses_count, 0) - 1, 0)
@@ -179,8 +177,7 @@ BEGIN
   UPDATE public.orders SET payment_status = 'failed', status = 'cancelled', payment_expires_at = NULL, inventory_reserved = FALSE,
     coupon_use_reserved = FALSE, updated_at = NOW() WHERE id = p_order_id;
   IF v_order.inventory_reserved THEN
-    UPDATE public.products p SET stock_quantity = COALESCE(p.stock_quantity, 0) + oi.quantity
-    FROM public.order_items oi WHERE oi.order_id = p_order_id AND p.id = oi.product_id;
+    PERFORM public.adjust_order_inventory(p_order_id, 1);
   END IF;
   IF v_order.coupon_use_reserved AND v_order.discount_code_id IS NOT NULL THEN
     UPDATE public.discount_codes SET uses_count = GREATEST(COALESCE(uses_count, 0) - 1, 0)

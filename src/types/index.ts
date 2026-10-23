@@ -1,25 +1,15 @@
-export interface Product {
-  id: string;
-  name: string;
-  slug?: string;
-  sku?: string | null;
-  description: string | null;
-  full_description?: string | null; // Detailed product description with specifications, care instructions, etc.
-  price: number;
-  category: string | null;
+import type { Database, Json } from '@/integrations/supabase/types';
+
+type ProductRow = Database['public']['Tables']['products']['Row'];
+
+/** Database product fields are the source of truth; these refinements describe app-ready query results. */
+export type Product = Omit<ProductRow, 'stock_quantity' | 'featured' | 'created_at' | 'updated_at' | 'metadata'> & {
   stock_quantity: number;
-  image_url: string | null;
-  image_urls?: string[]; // Array of image URLs for multiple product photos
   featured: boolean;
-  average_rating?: number;
-  review_count?: number;
-  seo_title?: string | null;
-  seo_description?: string | null;
-  seo_keywords?: string | null;
   created_at: string;
   updated_at: string;
-  metadata?: Record<string, unknown> | null;
-}
+  metadata?: Extract<Json, Record<string, unknown>> | null;
+};
 
 export interface CartItem {
   product: Product;
@@ -54,6 +44,8 @@ export interface OrderItem {
   id: string;
   order_id: string;
   product_id: string | null;
+  variant_id?: string | null;
+  variant_name?: string | null;
   quantity: number;
   price_at_time: number;
   created_at: string;

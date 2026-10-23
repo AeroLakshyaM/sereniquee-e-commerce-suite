@@ -34,6 +34,8 @@ export interface AdminOrder {
   order_items: Array<{
     id: string;
     product_id: string | null;
+    variant_id: string | null;
+    variant_name: string | null;
     quantity: number;
     price_at_time: number;
     product: {
@@ -146,6 +148,8 @@ export const useAdminOrders = (search = '', startDate?: string, endDate?: string
         order_items: (itemsByOrder[order.id] || []).map((item) => ({
           id: item.id,
           product_id: item.product_id,
+          variant_id: item.variant_id,
+          variant_name: item.variant_name,
           quantity: item.quantity,
           price_at_time: Number(item.price_at_time),
           product: productMap[item.product_id] ? {

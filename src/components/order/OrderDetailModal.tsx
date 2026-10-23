@@ -210,6 +210,7 @@ export default function OrderDetailModal({ orderId, onClose }: OrderDetailModalP
                   </div>
                   <div className="flex-1">
                     <p className="font-medium">{item.product?.name || 'Product'}</p>
+                    {item.variant_name && <p className="text-sm text-muted-foreground">Option: {item.variant_name}</p>}
                     <p className="text-sm text-muted-foreground">
                       Quantity: {item.quantity} × ₹{item.price_at_time.toFixed(2)}
                     </p>

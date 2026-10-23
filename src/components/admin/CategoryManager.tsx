@@ -188,6 +188,8 @@ export default function CategoryManager() {
                 <img
                   src={category.image_url}
                   alt={category.name}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -261,6 +263,8 @@ export default function CategoryManager() {
                     <img
                       src={formData.image_url}
                       alt="Preview"
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-48 object-cover rounded-lg"
                     />
                     <Button

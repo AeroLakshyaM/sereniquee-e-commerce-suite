@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { useCreateOrder } from '@/hooks/useOrders';
+import { mapCartToCheckoutItems } from '@/lib/checkout';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,6 +58,7 @@ export default function Checkout() {
   const [cancelPaymentOpen, setCancelPaymentOpen] = useState(false);
   const checkoutKeyStorage = useRef<string | null>(null);
   const checkoutKeyMemory = useRef<Record<string, string>>({});
+  const utrSubmissionInFlight = useRef(false);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -238,7 +240,8 @@ export default function Checkout() {
 
   const submitUtr = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!pendingPayment || !utrNumber.trim()) return;
+    if (utrSubmissionInFlight.current || !pendingPayment || !utrNumber.trim()) return;
+    utrSubmissionInFlight.current = true;
     setIsSubmittingUtr(true);
     let uploadedProofPath: string | null = null;
     try {
@@ -271,6 +274,7 @@ export default function Checkout() {
       if (uploadedProofPath) await supabase.storage.from('upi-payment-proofs').remove([uploadedProofPath]);
       toast({ title: 'Could not submit UTR', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
     } finally {
+      utrSubmissionInFlight.current = false;
       setIsSubmittingUtr(false);
     }
   };
@@ -334,7 +338,7 @@ export default function Checkout() {
       checkoutKeyMemory.current[storageKey] = idempotencyKey;
 
       const createdOrder = await createOrder.mutateAsync({
-        items: items.map(item => ({ productId: item.product.id, quantity: item.quantity })),
+        items: mapCartToCheckoutItems(items),
         idempotencyKey,
         customerName: formData.fullName,
         customerEmail: formData.email,
@@ -701,12 +705,14 @@ export default function Checkout() {
             <div className="bg-card p-6 shadow-soft">
               <div className="space-y-4 mb-6">
                 {items.map((item) => (
-                  <div key={item.product.id} className="flex gap-4">
+                  <div key={`${item.product.id}:${item.variant?.id ?? 'base'}`} className="flex gap-4">
                     <div className="w-16 h-20 bg-secondary flex-shrink-0 overflow-hidden">
-                      {item.product.image_url ? (
+                      {(item.variant?.image_url || item.product.image_url) ? (
                         <img
-                          src={item.product.image_url}
-                          alt={item.product.name}
+                          src={item.variant?.image_url || item.product.image_url || ''}
+                          alt={`${item.product.name}${item.variant ? ` — ${item.variant.name}` : ''}`}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -717,9 +723,10 @@ export default function Checkout() {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-serif text-sm">{item.product.name}</h3>
+                      {item.variant && <p className="text-xs text-muted-foreground">{item.variant.name}</p>}
                       <p className="text-muted-foreground text-sm">Qty: {item.quantity}</p>
                     </div>
-                    <p className="text-sm">₹{(item.product.price * item.quantity).toFixed(2)}</p>
+                    <p className="text-sm">₹{((item.variant?.price ?? item.product.price) * item.quantity).toFixed(2)}</p>
                   </div>
                 ))}
               </div>

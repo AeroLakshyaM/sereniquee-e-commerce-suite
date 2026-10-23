@@ -41,7 +41,7 @@ export function useOrderItems(orderId: string) {
 }
 
 interface CreateOrderParams {
-  items: Array<{ productId: string; quantity: number }>;
+  items: Array<{ productId: string; variantId?: string; quantity: number }>;
   idempotencyKey: string;
   customerName: string;
   customerEmail: string;
@@ -63,7 +63,7 @@ export function useCreateOrder() {
       }
       const { data, error } = await supabase.rpc('create_checkout_order', {
         p_idempotency_key: idempotencyKey,
-        p_items: items.map(item => ({ product_id: item.productId, quantity: item.quantity })),
+        p_items: items.map(item => ({ product_id: item.productId, variant_id: item.variantId ?? null, quantity: item.quantity })),
         p_customer_name: customerName,
         p_customer_email: customerEmail,
         p_customer_phone: customerPhone || null,

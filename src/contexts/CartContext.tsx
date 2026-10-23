@@ -16,6 +16,8 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = 'sereniquee_cart';
+const CART_UPDATED_AT_KEY = 'sereniquee_cart_updated_at';
+const CART_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 /** Produces a stable key that distinguishes same-product-different-variant line items. */
 function cartItemKey(productId: string, variantId?: string): string {
@@ -27,6 +29,13 @@ function loadCartFromStorage(): CartItem[] {
   try {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
     if (!stored) return [];
+    const updatedAt = Number(localStorage.getItem(CART_UPDATED_AT_KEY));
+    if (Number.isFinite(updatedAt) && updatedAt > 0 && Date.now() - updatedAt > CART_MAX_AGE_MS) {
+      localStorage.removeItem(CART_STORAGE_KEY);
+      localStorage.removeItem(CART_UPDATED_AT_KEY);
+      return [];
+    }
+    if (!updatedAt) localStorage.setItem(CART_UPDATED_AT_KEY, String(Date.now()));
     const parsed = JSON.parse(stored);
     // Basic shape validation — must be an array
     if (!Array.isArray(parsed)) return [];
@@ -44,11 +53,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Persist cart to localStorage whenever it changes
   useEffect(() => {
     try {
+      localStorage.setItem(CART_UPDATED_AT_KEY, String(Date.now()));
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
     } catch {
       console.warn('[CartContext] Failed to persist cart to localStorage.');
     }
   }, [items]);
+
+  // Keep other open tabs in sync without re-rendering when the stored cart is unchanged.
+  useEffect(() => {
+    const syncCart = (event: StorageEvent) => {
+      if (event.key !== CART_STORAGE_KEY && event.key !== CART_UPDATED_AT_KEY) return;
+      const storedItems = loadCartFromStorage();
+      const serialized = JSON.stringify(storedItems);
+      setItems(current => JSON.stringify(current) === serialized ? current : storedItems);
+    };
+    window.addEventListener('storage', syncCart);
+    return () => window.removeEventListener('storage', syncCart);
+  }, []);
 
   /**
    * Add a product (+ optional variant) to the cart.

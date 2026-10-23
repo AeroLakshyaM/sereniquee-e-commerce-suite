@@ -11,6 +11,38 @@ interface ProductsPage {
 
 interface ProductQueryOptions {
   listing?: boolean;
+  enabled?: boolean;
+}
+
+const ADMIN_PRODUCTS_PAGE_SIZE = 25;
+
+export function useAdminProducts(searchQuery: string, page: number) {
+  return useQuery({
+    queryKey: ['products', 'admin', searchQuery, page],
+    queryFn: async ({ signal }): Promise<{ products: Product[]; total: number }> => {
+      let query = supabase
+        .from('products')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false });
+
+      const keywords = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      if (keywords.length > 0) {
+        const searchFilters = keywords
+          .map(keyword => {
+            const term = escapeSearchTerm(keyword);
+            return `name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%,sku.ilike.%${term}%`;
+          })
+          .join(',');
+        query = query.or(searchFilters);
+      }
+
+      const from = page * ADMIN_PRODUCTS_PAGE_SIZE;
+      const { data, count, error } = await query.range(from, from + ADMIN_PRODUCTS_PAGE_SIZE - 1).abortSignal(signal);
+      if (error) throw error;
+      return { products: (data || []) as Product[], total: count || 0 };
+    },
+  });
 }
 
 const PRODUCT_LISTING_FIELDS = 'id,name,slug,sku,description,price,category,stock_quantity,image_url,image_urls,featured,created_at,updated_at';
@@ -24,7 +56,7 @@ export function useProducts(category?: string, searchQuery?: string, options: Pr
   return useInfiniteQuery({
     queryKey: ['products', category, searchQuery, listingOnly ? 'listing' : 'full'],
     initialPageParam: 0,
-    queryFn: async ({ pageParam }): Promise<ProductsPage> => {
+    queryFn: async ({ pageParam, signal }): Promise<ProductsPage> => {
       let query = supabase
         .from('products')
         .select(listingOnly ? PRODUCT_LISTING_FIELDS : '*')
@@ -48,16 +80,17 @@ export function useProducts(category?: string, searchQuery?: string, options: Pr
 
       const from = pageParam * PRODUCTS_PAGE_SIZE;
       const to = from + PRODUCTS_PAGE_SIZE - 1;
-      const { data, error } = await query.range(from, to);
+      const { data, error } = await query.range(from, to).abortSignal(signal);
 
       if (error) throw error;
       return {
-        products: (data || []) as Product[],
+        products: (data || []) as unknown as Product[],
         nextPage: pageParam + 1,
       };
     },
     getNextPageParam: (lastPage, allPages) =>
       lastPage.products.length === PRODUCTS_PAGE_SIZE ? allPages.length : undefined,
+    enabled: options.enabled ?? true,
   });
 }
 
