@@ -12,7 +12,7 @@ import { InstagramFeed } from '@/components/social/InstagramFeed';
 import { CategorySection } from '@/components/CategorySection';
 import { galleryImages } from '@/data/galleryImages';
 import { Product } from '@/types';
-import { ArrowRight, BookOpen, Flame, Heart, Sparkles, Star } from 'lucide-react';
+import { ArrowRight, BookOpen, Flame, Heart, Leaf, Sparkles, Star } from 'lucide-react';
 
 export default function Home() {
   const { data, isLoading } = useProducts(undefined, undefined, { listing: true });
