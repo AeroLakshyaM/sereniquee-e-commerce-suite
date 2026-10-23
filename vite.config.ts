@@ -23,7 +23,6 @@ export default defineConfig(({ mode }) => ({
           if (/\/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'react-vendor';
           if (id.includes('/node_modules/@supabase/')) return 'supabase-vendor';
           if (id.includes('/node_modules/@tanstack/')) return 'query-vendor';
-          if (id.includes('/node_modules/recharts/') || id.includes('/node_modules/d3-')) return 'charts-vendor';
           if (id.includes('/node_modules/@radix-ui/')) return 'radix-vendor';
         },
       },
