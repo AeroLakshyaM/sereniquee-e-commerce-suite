@@ -331,7 +331,7 @@ export function generateInvoiceHTML(order: OrderData): string {
               border: none;
             }
             
-            button {
+            .print-hint {
               display: none;
             }
           }
@@ -466,28 +466,8 @@ export function generateInvoiceHTML(order: OrderData): string {
           </div>
         </div>
         
-        <div style="text-align: center; margin-top: 30px;">
-          <button 
-            onclick="window.print()" 
-            style="
-              background: #2c2c2c;
-              color: #faf8f3;
-              border: 1px solid #1a1a1a;
-              padding: 14px 32px;
-              font-size: 14px;
-              font-family: Georgia, serif;
-              border-radius: 3px;
-              cursor: pointer;
-              font-weight: 600;
-              letter-spacing: 1px;
-              text-transform: uppercase;
-              transition: all 0.3s ease;
-            "
-            onmouseover="this.style.background='#1a1a1a'"
-            onmouseout="this.style.background='#2c2c2c'"
-          >
-            Print / Save as PDF
-          </button>
+        <div class="print-hint" style="text-align: center; margin-top: 30px; color: #555; font-size: 13px;">
+          Use your browser’s Print command to print this invoice or save it as a PDF.
         </div>
       </body>
     </html>
