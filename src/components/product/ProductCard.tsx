@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Eye, Heart } from 'lucide-react';
 import { Product } from '@/types';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { useStorefrontBasePath, useStorefrontPath } from '@/contexts/StorefrontContext';
 import { ScentPassportButton } from './ScentPassportButton';
+import { useOptionalMobileFavorites } from '@/contexts/MobileFavoritesContext';
 
 interface ProductCardProps {
   product: Product;
@@ -41,6 +42,7 @@ export function ProductCard({ product, featured, onQuickView, priority = false }
   const { addItem } = useCart();
   const productPath = useStorefrontPath(`/product/${product.slug}`);
   const basePath = useStorefrontBasePath();
+  const favorites = useOptionalMobileFavorites();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [failedTransformedSource, setFailedTransformedSource] = useState<string | null>(null);
   const images = product.image_urls?.length
@@ -135,11 +137,17 @@ export function ProductCard({ product, featured, onQuickView, priority = false }
         )}
 
         {product.stock_quantity === 0 && (
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <span className="rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground">
-              Out of Stock
+          <div className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center ${basePath ? 'bg-black/55' : 'bg-black/60 backdrop-blur-sm'}`}>
+            <span className={basePath ? 'rounded-full border border-white/30 bg-[#173b38] px-4 py-2 text-sm font-semibold text-white shadow-lg' : 'rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground'}>
+              {basePath ? 'Sold out' : 'Out of Stock'}
             </span>
           </div>
+        )}
+
+        {basePath && favorites && (
+          <button type="button" onClick={() => favorites.toggleSaved(product)} aria-label={favorites.isSaved(product.id) ? `Remove ${product.name} from saved candles` : `Save ${product.name} for later`} aria-pressed={favorites.isSaved(product.id)} className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#173b38] shadow-md transition active:scale-95">
+            <Heart className={`h-5 w-5 ${favorites.isSaved(product.id) ? 'fill-rose-600 text-rose-600' : ''}`} strokeWidth={1.8} />
+          </button>
         )}
 
         <div className="absolute bottom-4 left-4 right-4 z-20 opacity-100 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">

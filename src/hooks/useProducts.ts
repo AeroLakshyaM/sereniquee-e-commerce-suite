@@ -12,6 +12,7 @@ interface ProductsPage {
 interface ProductQueryOptions {
   listing?: boolean;
   enabled?: boolean;
+  scentMetadata?: boolean;
 }
 
 const ADMIN_PRODUCTS_PAGE_SIZE = 25;
@@ -54,12 +55,12 @@ function escapeSearchTerm(term: string) {
 export function useProducts(category?: string, searchQuery?: string, options: ProductQueryOptions = {}) {
   const listingOnly = options.listing === true;
   return useInfiniteQuery({
-    queryKey: ['products', category, searchQuery, listingOnly ? 'listing' : 'full'],
+    queryKey: ['products', category, searchQuery, listingOnly ? 'listing' : 'full', options.scentMetadata ? 'scent-metadata' : 'standard'],
     initialPageParam: 0,
     queryFn: async ({ pageParam, signal }): Promise<ProductsPage> => {
       let query = supabase
         .from('products')
-        .select(listingOnly ? PRODUCT_LISTING_FIELDS : '*')
+        .select(listingOnly ? `${PRODUCT_LISTING_FIELDS}${options.scentMetadata ? ',metadata' : ''}` : '*')
         .order('created_at', { ascending: false })
         .order('id', { ascending: false });
 

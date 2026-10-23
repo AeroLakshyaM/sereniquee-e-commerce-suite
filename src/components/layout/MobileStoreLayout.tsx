@@ -7,6 +7,7 @@ import { MobileActionBar } from './MobileActionBar';
 import { MobileChatDock } from './MobileChatDock';
 import { MobileStoreFooter } from './MobileStoreFooter';
 import { ScentPassportProvider } from '@/contexts/ScentPassportContext';
+import { MobileFavoritesProvider } from '@/contexts/MobileFavoritesContext';
 
 function MobileStoreFrame() {
   const { totalItems, setIsCartOpen } = useCart();
@@ -35,5 +36,5 @@ function MobileStoreFrame() {
 }
 
 export default function MobileStoreLayout() {
-  return <StorefrontBasePathProvider basePath="/mobile-store"><ScentPassportProvider><MobileStoreFrame /></ScentPassportProvider></StorefrontBasePathProvider>;
+  return <StorefrontBasePathProvider basePath="/mobile-store"><ScentPassportProvider><MobileFavoritesProvider><MobileStoreFrame /></MobileFavoritesProvider></ScentPassportProvider></StorefrontBasePathProvider>;
 }
