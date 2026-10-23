@@ -153,8 +153,12 @@ export default function Admin() {
   const productPageCount = Math.max(1, Math.ceil(productCount / 25));
 
   useEffect(() => {
-    if (productPage >= productPageCount) setProductPage(Math.max(0, productPageCount - 1));
-  }, [productPage, productPageCount]);
+    // A page change briefly has no data while its query loads. Only clamp after
+    // a successful response so that transient empty state cannot reset page 2.
+    if (productsData && productPage >= productPageCount) {
+      setProductPage(Math.max(0, productPageCount - 1));
+    }
+  }, [productPage, productPageCount, productsData]);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
