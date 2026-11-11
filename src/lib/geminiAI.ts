@@ -35,7 +35,3 @@ export async function generateBusinessInsights(input: { businessData: string; pr
   return result.text;
 }
 
-export async function sendChatMessage(messages: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<string> {
-  const result = await callAI({ action: 'chat', messages }, false);
-  return result.text;
-}

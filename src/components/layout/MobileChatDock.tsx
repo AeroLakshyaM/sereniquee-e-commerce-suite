@@ -1,129 +1,74 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
-type SavedPosition = { left: number; top: number };
-const POSITION_KEY = 'sereniquee-mobile-chat-position';
+// ─── WhatsApp SVG icon ────────────────────────────────────────────────────────
+const WhatsAppIcon = () => (
+  <svg viewBox="0 0 32 32" className="h-6 w-6" aria-hidden="true" fill="currentColor">
+    <path d="M16.002 2.003c-7.732 0-14 6.268-14 14 0 2.468.647 4.866 1.878 6.982L2 30l7.155-1.873A13.943 13.943 0 0 0 16.002 30c7.732 0 14-6.268 14-14s-6.268-13.997-14-13.997zm8.21 19.874c-.35.993-2.024 1.908-2.809 1.941-.717.03-1.637.043-2.647-.167-.608-.127-1.388-.451-2.41-.935-4.243-2.06-6.993-6.118-7.205-6.402-.211-.283-1.72-2.285-1.72-4.361 0-2.076 1.108-3.096 1.502-3.527.395-.43.857-.538 1.143-.538.285 0 .571 0 .82.015.26.013.616-.1.966.737.35.835 1.187 2.86 1.29 3.067.103.205.171.444.03.726-.14.283-.212.444-.414.676-.214.256-.452.57-.193 1.114.26.542 1.154 1.897 2.475 3.07 1.702 1.514 3.138 1.984 3.681 2.205.542.221.859.19 1.178-.115.31-.3 1.35-1.4 1.712-1.878.36-.478.719-.4 1.207-.24.488.16 3.084 1.454 3.607 1.718.533.266.888.4 1.017.618.13.218.13 1.262-.221 2.256z" />
+  </svg>
+);
 
-function readPosition(): SavedPosition | null {
-  try {
-    const value = localStorage.getItem(POSITION_KEY);
-    if (!value) return null;
-    const position = JSON.parse(value) as SavedPosition;
-    return Number.isFinite(position.left) && Number.isFinite(position.top) ? position : null;
-  } catch {
-    return null;
+const WHATSAPP_NUMBER = '919827310636';
+
+/** Mobile store context-aware message. */
+function useMobileMessage(): string {
+  const { pathname } = useLocation();
+
+  if (pathname.includes('/product/')) {
+    const slug = pathname.split('/product/')[1]?.replace(/-/g, ' ') ?? '';
+    const name = slug
+      .split(' ')
+      .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+    return `Hi! I'm interested in *${name}* from Sereniquee. Can you help?`;
   }
+
+  if (pathname.includes('/checkout')) {
+    return 'Hi! I have a question about my Sereniquee order.';
+  }
+
+  return "Hi! I found your store and I'm interested in your candles!";
 }
 
-function findToggle(): HTMLElement | null {
-  const host = document.querySelector('#n8n-chat');
-  return host?.querySelector<HTMLElement>('.chat-window-toggle')
-    ?? host?.shadowRoot?.querySelector<HTMLElement>('.chat-window-toggle')
-    ?? document.querySelector<HTMLElement>('.chat-window-toggle');
-}
-
+/**
+ * Replaces the old MobileChatDock (n8n drag-and-drop widget) with a clean
+ * WhatsApp contact button for the mobile storefront.
+ */
 export function MobileChatDock() {
-  useEffect(() => {
-    document.body.classList.add('mobile-store-mode');
-    let attached: HTMLElement | null = null;
-    let moved = false;
-    let pointerStart: { x: number; y: number; left: number; top: number; pointerId: number } | null = null;
+  const [isVisible, setIsVisible] = useState(true);
+  const message = useMobileMessage();
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
-    const applyPosition = (element: HTMLElement, position: SavedPosition) => {
-      const maxLeft = Math.max(8, window.innerWidth - element.offsetWidth - 8);
-      const maxTop = Math.max(8, window.innerHeight - element.offsetHeight - 8);
-      element.style.setProperty('position', 'fixed', 'important');
-      element.style.setProperty('left', `${Math.min(Math.max(8, position.left), maxLeft)}px`, 'important');
-      element.style.setProperty('top', `${Math.min(Math.max(8, position.top), maxTop)}px`, 'important');
-      element.style.setProperty('right', 'auto', 'important');
-      element.style.setProperty('bottom', 'auto', 'important');
-      element.style.setProperty('touch-action', 'none', 'important');
-      element.style.setProperty('z-index', '10001', 'important');
-    };
+  if (!isVisible) return null;
 
-    const onPointerDown = (event: PointerEvent) => {
-      if (event.button !== 0 && event.pointerType !== 'touch') return;
-      const rect = attached?.getBoundingClientRect();
-      if (!rect) return;
-      pointerStart = { x: event.clientX, y: event.clientY, left: rect.left, top: rect.top, pointerId: event.pointerId };
-      moved = false;
-      try { attached?.setPointerCapture(event.pointerId); } catch { /* Pointer capture is not available in every embedded browser. */ }
-    };
+  return (
+    <div className="fixed bottom-[5.5rem] right-4 z-[200] flex flex-col items-end gap-2">
+      {/* Dismiss button — small × tap target */}
+      <button
+        onClick={() => setIsVisible(false)}
+        className="flex h-5 w-5 items-center justify-center rounded-full bg-black/40 text-white text-[10px] leading-none"
+        aria-label="Close WhatsApp button"
+      >
+        ×
+      </button>
 
-    const onPointerMove = (event: PointerEvent) => {
-      if (!attached || !pointerStart || event.pointerId !== pointerStart.pointerId) return;
-      const dx = event.clientX - pointerStart.x;
-      const dy = event.clientY - pointerStart.y;
-      if (!moved && Math.hypot(dx, dy) < 5) return;
-      moved = true;
-      event.preventDefault();
-      const left = Math.min(Math.max(8, pointerStart.left + dx), window.innerWidth - attached.offsetWidth - 8);
-      const top = Math.min(Math.max(8, pointerStart.top + dy), window.innerHeight - attached.offsetHeight - 8);
-      applyPosition(attached, { left, top });
-      try { localStorage.setItem(POSITION_KEY, JSON.stringify({ left, top })); } catch { /* The dock remains movable if storage is unavailable. */ }
-    };
+      {/* WhatsApp link */}
+      <a
+        href={whatsappUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat on WhatsApp"
+        className="flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-white shadow-lg active:scale-95 transition-transform"
+      >
+        <WhatsAppIcon />
+        <span className="text-sm font-semibold">Chat</span>
 
-    const onPointerUp = (event: PointerEvent) => {
-      if (pointerStart?.pointerId === event.pointerId) pointerStart = null;
-      if (moved) window.setTimeout(() => { moved = false; }, 0);
-    };
-
-    const onClickCapture = (event: MouseEvent) => {
-      if (!moved) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    };
-
-    const attach = () => {
-      const next = findToggle();
-      if (!next || next === attached) return;
-      if (attached) {
-        attached.removeEventListener('pointerdown', onPointerDown, true);
-        attached.removeEventListener('click', onClickCapture, true);
-      }
-      attached = next;
-      const saved = readPosition();
-      if (saved) applyPosition(attached, saved);
-      attached.addEventListener('pointerdown', onPointerDown, true);
-      attached.addEventListener('click', onClickCapture, true);
-    };
-
-    let observingChatHost = false;
-    const observer = new MutationObserver(() => {
-      attach();
-      const host = document.querySelector('#n8n-chat');
-      if (host && !observingChatHost) {
-        observer.disconnect();
-        observer.observe(host, { childList: true, subtree: true });
-        observingChatHost = true;
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-    attach();
-    window.addEventListener('pointermove', onPointerMove, { passive: false });
-    window.addEventListener('pointerup', onPointerUp);
-    window.addEventListener('pointercancel', onPointerUp);
-    window.addEventListener('resize', attach);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerup', onPointerUp);
-      window.removeEventListener('pointercancel', onPointerUp);
-      window.removeEventListener('resize', attach);
-      if (attached) {
-        attached.removeEventListener('pointerdown', onPointerDown, true);
-        attached.removeEventListener('click', onClickCapture, true);
-        attached.style.removeProperty('left');
-        attached.style.removeProperty('top');
-        attached.style.removeProperty('right');
-        attached.style.removeProperty('bottom');
-        attached.style.removeProperty('position');
-        attached.style.removeProperty('touch-action');
-        attached.style.removeProperty('z-index');
-      }
-      document.body.classList.remove('mobile-store-mode');
-    };
-  }, []);
-
-  return null;
+        {/* Pulsing online ring */}
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-200 opacity-75" />
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-100" />
+        </span>
+      </a>
+    </div>
+  );
 }
