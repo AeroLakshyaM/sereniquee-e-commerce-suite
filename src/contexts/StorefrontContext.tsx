@@ -9,7 +9,8 @@ export function StorefrontBasePathProvider({ basePath, children }: { basePath: s
 /** Prefix internal storefront links when the visitor is using the standalone mobile store. */
 export function useStorefrontPath(path: string) {
   const basePath = useContext(StorefrontBasePath);
-  if (!basePath || path === '/') return basePath || '/';
+  if (path === '/') return basePath || '/';
+  if (!basePath) return path.startsWith('/') ? path : `/${path}`;
   return `${basePath}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
