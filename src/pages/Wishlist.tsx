@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
+import { getProductRouteKey } from '@/lib/utils';
 
 export default function WishlistPage() {
   const { data: wishlist, isLoading } = useWishlist();
@@ -149,7 +150,7 @@ export default function WishlistPage() {
               <X className="h-4 w-4" />
             </button>
 
-            <Link to={`/product/${item.product?.slug}`}>
+            <Link to={item.product ? `/product/${getProductRouteKey(item.product)}` : '/shop'}>
               <div className="aspect-[3/4] overflow-hidden bg-muted">
                 {item.product?.image_url ? (
                   <img
@@ -165,7 +166,7 @@ export default function WishlistPage() {
 
             <div className="p-4 space-y-3">
               <div>
-                <Link to={`/product/${item.product?.slug}`}>
+                <Link to={item.product ? `/product/${getProductRouteKey(item.product)}` : '/shop'}>
                   <h3 className="font-medium hover:text-primary transition-colors">
                     {item.product?.name}
                   </h3>

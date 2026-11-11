@@ -14,3 +14,7 @@ export function slugify(input: string) {
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
 }
+
+export function getProductRouteKey(product: { id: string; slug?: string | null }) {
+  return encodeURIComponent(product.slug?.trim() || product.id);
+}

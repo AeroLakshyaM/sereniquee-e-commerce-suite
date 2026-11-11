@@ -13,6 +13,7 @@ import { ShoppingCart, Eye, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useStorefrontPath } from '@/contexts/StorefrontContext';
+import { getProductRouteKey } from '@/lib/utils';
 
 interface ProductQuickViewProps {
   product: Product | null;
@@ -23,7 +24,7 @@ interface ProductQuickViewProps {
 export function ProductQuickView({ product, isOpen, onClose }: ProductQuickViewProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
-  const productPath = useStorefrontPath(product ? `/product/${product.slug}` : '/shop');
+  const productPath = useStorefrontPath(product ? `/product/${getProductRouteKey(product)}` : '/shop');
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 

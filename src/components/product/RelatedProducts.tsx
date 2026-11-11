@@ -5,6 +5,7 @@ import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { useStorefrontBasePath } from '@/contexts/StorefrontContext';
 import { Plus } from 'lucide-react';
+import { getProductRouteKey } from '@/lib/utils';
 
 interface RelatedProductsProps {
   currentProduct: Product;
@@ -73,7 +74,7 @@ export function RelatedProducts({ currentProduct, limit = 4 }: RelatedProductsPr
           return (
             <Link
               key={product.id}
-              to={`${basePath}/product/${product.slug}`}
+              to={`${basePath}/product/${getProductRouteKey(product)}`}
               className="group block"
             >
               <div className="relative overflow-hidden bg-secondary aspect-[3/4] mb-4">

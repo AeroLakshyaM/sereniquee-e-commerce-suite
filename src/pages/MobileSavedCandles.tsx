@@ -4,11 +4,13 @@ import { Button } from '@/components/ui/button';
 import { useMobileFavorites } from '@/contexts/MobileFavoritesContext';
 import { useCart } from '@/contexts/CartContext';
 import { useStorefrontPath } from '@/contexts/StorefrontContext';
+import { getProductRouteKey } from '@/lib/utils';
 
 export default function MobileSavedCandles() {
   const { products, removeSaved } = useMobileFavorites();
   const { addItem } = useCart();
-  const shopPath = useStorefrontPath('/shop');
+  const storefrontPath = useStorefrontPath;
+  const shopPath = storefrontPath('/shop');
   return (
     <section className="px-4 py-8 sm:px-6 sm:py-10">
       <p className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground"><Heart className="h-3.5 w-3.5 text-rose-600" /> Your shortlist</p>
@@ -24,7 +26,7 @@ export default function MobileSavedCandles() {
       ) : (
         <div className="mt-6 space-y-3">{products.map((product) => {
           const image = product.image_urls?.[0] || product.image_url;
-          const productPath = `/mobile-store/product/${product.slug}`;
+          const productPath = storefrontPath(`/product/${getProductRouteKey(product)}`);
           return <article key={product.id} className="flex gap-3 rounded-2xl border border-border/80 bg-card p-3 shadow-sm">
             <Link to={productPath} aria-label={`View ${product.name}`} className="h-24 w-20 shrink-0 overflow-hidden rounded-xl bg-secondary">{image ? <img src={image} alt={product.name} loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-xs text-muted-foreground">Candle</span>}</Link>
             <div className="flex min-w-0 flex-1 flex-col">

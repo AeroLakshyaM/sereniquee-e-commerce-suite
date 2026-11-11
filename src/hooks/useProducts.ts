@@ -140,7 +140,16 @@ export function useProductBySlug(slug: string) {
         .maybeSingle();
       
       if (error) throw error;
-      return data as Product | null;
+      if (data) return data as Product;
+
+      const { data: productById, error: idError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', slug)
+        .maybeSingle();
+
+      if (idError) throw idError;
+      return productById as Product | null;
     },
     enabled: !!slug,
   });

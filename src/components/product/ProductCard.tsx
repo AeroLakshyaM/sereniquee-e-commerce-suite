@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useStorefrontBasePath, useStorefrontPath } from '@/contexts/StorefrontContext';
 import { ScentPassportButton } from './ScentPassportButton';
 import { useOptionalMobileFavorites } from '@/contexts/MobileFavoritesContext';
+import { getProductRouteKey } from '@/lib/utils';
 
 interface ProductCardProps {
   product: Product;
@@ -40,7 +41,7 @@ function getStorageImageSrcSet(source: string): string | undefined {
 
 export function ProductCard({ product, featured, onQuickView, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
-  const productPath = useStorefrontPath(`/product/${product.slug}`);
+  const productPath = useStorefrontPath(`/product/${getProductRouteKey(product)}`);
   const basePath = useStorefrontBasePath();
   const favorites = useOptionalMobileFavorites();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);

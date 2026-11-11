@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useProducts } from '@/hooks/useProducts';
+import { getProductRouteKey } from '@/lib/utils';
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -215,7 +216,7 @@ export function Navbar() {
                       <button
                         key={product.id}
                         onClick={() => {
-                          navigate(`/product/${product.slug}`);
+                          navigate(`/product/${getProductRouteKey(product)}`);
                           setSearchQuery('');
                           setDebouncedQuery('');
                           setSearchOpen(false);
