@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { Instagram, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -6,21 +5,6 @@ const INSTAGRAM_USERNAME = 'sereniquee.candles.co';
 const INSTAGRAM_URL = 'https://www.instagram.com/sereniquee.candles.co';
 
 export function InstagramFeed() {
-  useEffect(() => {
-    // Dynamically load the Elfsight script when the component mounts
-    const script = document.createElement('script');
-    script.src = "https://elfsightcdn.com/platform.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      // Clean up if the component unmounts
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
-
   return (
     <section className="py-16 md:py-24 bg-card overflow-hidden border-t border-b border-border/30 relative">
       {/* Background decoration */}
@@ -57,14 +41,6 @@ export function InstagramFeed() {
           </div>
         </div>
 
-        {/* Elfsight Widget Integration Container */}
-        <div className="w-full relative mt-10 md:mt-16 mx-auto px-2 min-h-[300px]">
-          {/* A slight loading pulse behind the widget in case it takes a moment to load */}
-          <div className="absolute inset-0 bg-secondary/20 animate-pulse rounded-2xl -z-10" />
-          
-          {/* The Elfsight app markup */}
-          <div className="elfsight-app-44541b54-dadb-44d8-9f83-527049d9fed1" data-elfsight-app-lazy></div>
-        </div>
       </div>
     </section>
   );
