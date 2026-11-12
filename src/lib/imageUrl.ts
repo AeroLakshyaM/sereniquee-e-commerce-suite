@@ -4,6 +4,19 @@ const CLOUDINARY_UPLOAD_PATH = '/image/upload/';
 
 export const DEFAULT_IMAGE_WIDTHS = [320, 480, 720, 960] as const;
 
+const disabledTransformHosts = new Set<string>();
+
+export function markTransformHostUnsupported(source: string): void {
+  try {
+    const url = new URL(source);
+    disabledTransformHosts.add(url.hostname);
+  } catch {}
+}
+
+export function resetTransformHostSupport(): void {
+  disabledTransformHosts.clear();
+}
+
 /**
  * Converts a Supabase public storage URL or Cloudinary delivery URL into a resized,
  * format-optimized image URL. Returns null for unsupported or relative URLs so callers
@@ -29,6 +42,13 @@ export function getOptimizedStorageImageUrl(
         );
       }
       return url.toString();
+    }
+
+    if (
+      disabledTransformHosts.has(url.hostname) ||
+      url.hostname.includes('iecjokrpjplmrjnvneuh.supabase.co')
+    ) {
+      return null;
     }
 
     if (!url.pathname.includes(STORAGE_IMAGE_PATH)) return null;

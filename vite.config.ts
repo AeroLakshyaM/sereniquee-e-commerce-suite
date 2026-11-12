@@ -76,23 +76,8 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: "google-fonts-webfonts",
               expiration: {
-                maxEntries: 20,
+                maxEntries: 30,
                 maxAgeSeconds: 60 * 60 * 24 * 365,
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          {
-            urlPattern:
-              /^https:\/\/(res\.cloudinary\.com\/dpdxhh5pv\/|.*\.supabase\.co\/storage\/v1\/(render\/image|object)\/public\/)/i,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "storefront-images",
-              expiration: {
-                maxEntries: 120,
-                maxAgeSeconds: 60 * 60 * 24 * 14,
               },
               cacheableResponse: {
                 statuses: [0, 200],

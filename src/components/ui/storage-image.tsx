@@ -3,6 +3,7 @@ import {
   DEFAULT_IMAGE_WIDTHS,
   getOptimizedStorageImageUrl,
   getStorageImageSrcSet,
+  markTransformHostUnsupported,
 } from '@/lib/imageUrl';
 
 interface StorageImageProps extends ImgHTMLAttributes<HTMLImageElement> {
@@ -10,6 +11,7 @@ interface StorageImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   widths?: readonly number[];
   defaultWidth?: number;
   quality?: number;
+  fetchPriority?: 'high' | 'low' | 'auto';
 }
 
 /**
@@ -23,6 +25,7 @@ export function StorageImage({
   quality = 76,
   sizes,
   onError,
+  fetchPriority,
   ...imgProps
 }: StorageImageProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
@@ -33,11 +36,13 @@ export function StorageImage({
   return (
     <img
       {...imgProps}
+      {...(fetchPriority ? { fetchpriority: fetchPriority } : {})}
       src={useOriginal ? src : optimizedSrc || src}
       srcSet={srcSet}
       sizes={srcSet ? sizes : undefined}
       onError={(event) => {
         if (!useOriginal && optimizedSrc) {
+          markTransformHostUnsupported(src);
           setFailedSrc(src);
         }
         onError?.(event);
