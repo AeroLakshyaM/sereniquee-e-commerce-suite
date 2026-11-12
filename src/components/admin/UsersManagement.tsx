@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useUsers, useDeleteUser } from '@/hooks/useUsers';
+import { useEffect, useState } from 'react';
+import { ADMIN_USERS_PAGE_SIZE, useUsers, useDeleteUser } from '@/hooks/useUsers';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -18,17 +18,29 @@ import { useToast } from '@/hooks/use-toast';
 import { Search, Mail, Phone, MapPin, Calendar, ShoppingBag, DollarSign, Trash2 } from 'lucide-react';
 
 export default function UsersManagement() {
-  const { data: users, isLoading } = useUsers();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const { data, isLoading } = useUsers({
+    search: debouncedSearch,
+    page,
+    pageSize: ADMIN_USERS_PAGE_SIZE,
+  });
+  const users = data?.users ?? [];
+  const totalUsers = data?.total ?? 0;
   const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser();
   const { toast } = useToast();
-  
-  const [searchTerm, setSearchTerm] = useState('');
   const [userToDelete, setUserToDelete] = useState<{ id: string, name: string | null } | null>(null);
 
-  const filteredUsers = users?.filter((user) =>
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+      setPage(0);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const totalPages = Math.max(1, Math.ceil(totalUsers / ADMIN_USERS_PAGE_SIZE));
 
   const handleDelete = () => {
     if (!userToDelete) return;
@@ -67,13 +79,13 @@ export default function UsersManagement() {
         <div>
           <h2 className="font-serif text-2xl mb-2">User Management</h2>
           <p className="text-muted-foreground">
-            Total Users: <span className="font-semibold">{users?.length || 0}</span>
+            Total Users: <span className="font-semibold">{totalUsers}</span>
           </p>
         </div>
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name or email..."
+            placeholder="Search by name, email, or phone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -83,7 +95,7 @@ export default function UsersManagement() {
 
       {/* Users Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {filteredUsers?.map((user) => (
+        {users.map((user) => (
           <Card key={user.id} className="shadow-soft hover:shadow-elegant transition-shadow">
             <CardContent className="p-6">
               <div className="space-y-4">
@@ -178,9 +190,35 @@ export default function UsersManagement() {
         ))}
       </div>
 
-      {filteredUsers?.length === 0 && (
+      {users.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">No users found matching your search.</p>
+        </div>
+      )}
+
+      {totalUsers > ADMIN_USERS_PAGE_SIZE && (
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-sm text-muted-foreground">
+            Page {page + 1} of {totalPages} ({totalUsers} users)
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 0}
+              onClick={() => setPage((current) => Math.max(0, current - 1))}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page + 1 >= totalPages}
+              onClick={() => setPage((current) => current + 1)}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       )}
 

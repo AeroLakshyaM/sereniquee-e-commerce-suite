@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { useAnalytics } from '@/hooks/useAnalytics';
-import { useAdminOrders } from '@/hooks/useAdminOrders';
+import { useAdminOrders, useAdminOrderStats } from '@/hooks/useAdminOrders';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,19 +42,25 @@ const QUICK_LINKS = [
 
 export default function SimpleDashboard() {
   const { data: analytics, isLoading: analyticsLoading, isError: analyticsError } = useAnalytics();
-  const { data: orders, isLoading: ordersLoading, isError: ordersError } = useAdminOrders();
+  const { data: orderStats, isLoading: statsLoading, isError: statsError } = useAdminOrderStats();
+  const { data: pendingOrders = [], isLoading: pendingLoading, isError: pendingError } = useAdminOrders('', undefined, undefined, {
+    limit: 5,
+    status: 'pending',
+    view: 'orders',
+  });
+  const { data: recentOrders = [], isLoading: recentLoading, isError: recentError } = useAdminOrders('', undefined, undefined, {
+    limit: 5,
+    view: 'orders',
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setSearchParams] = useSearchParams();
 
-  const todayOrders = orders?.filter((order) => {
-    const orderDate = new Date(order.created_at);
-    const today = new Date();
-    return orderDate.toDateString() === today.toDateString();
-  }) ?? [];
-  const pendingOrders = orders?.filter((order) => order.status === 'pending') ?? [];
-  const recentOrders = orders?.slice(0, 5) ?? [];
-  const todayRevenue = todayOrders.reduce((sum, order) => sum + Number(order.total_amount), 0);
+  const ordersLoading = statsLoading || pendingLoading || recentLoading;
+  const ordersError = statsError || pendingError || recentError;
+  const todayOrdersCount = orderStats?.ordersToday ?? 0;
+  const pendingCount = orderStats?.statusCounts.pending ?? pendingOrders.length;
+  const todayRevenue = orderStats?.revenueToday ?? 0;
 
   const goToSection = (tab: string) => {
     setSearchParams((previous) => {
@@ -93,8 +99,8 @@ export default function SimpleDashboard() {
   }
 
   const stats = [
-    { label: "Today's sales", value: `₹${todayRevenue.toFixed(2)}`, note: `${todayOrders.length} orders today`, icon: TrendingUp, tone: 'text-emerald-700 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-950/50' },
-    { label: 'Needs attention', value: String(pendingOrders.length), note: 'Pending orders', icon: Clock, tone: 'text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-950/50' },
+    { label: "Today's sales", value: `₹${todayRevenue.toFixed(2)}`, note: `${todayOrdersCount} orders today`, icon: TrendingUp, tone: 'text-emerald-700 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-950/50' },
+    { label: 'Needs attention', value: String(pendingCount), note: 'Pending orders', icon: Clock, tone: 'text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-950/50' },
     { label: 'Products', value: String(analytics?.totalProducts ?? 0), note: 'In your catalog', icon: Package, tone: 'text-sky-700 bg-sky-100 dark:text-sky-300 dark:bg-sky-950/50' },
     { label: 'Customers', value: String(analytics?.totalUsers ?? 0), note: 'Registered accounts', icon: Users, tone: 'text-violet-700 bg-violet-100 dark:text-violet-300 dark:bg-violet-950/50' },
   ];
@@ -183,7 +189,7 @@ export default function SimpleDashboard() {
                 <h3 id="pending-orders-title" className="font-serif text-xl">Needs attention</h3>
                 <p className="mt-1 text-sm text-muted-foreground">Orders waiting to be processed.</p>
               </div>
-              <Badge variant={pendingOrders.length ? 'default' : 'secondary'}>{pendingOrders.length} pending</Badge>
+              <Badge variant={pendingCount ? 'default' : 'secondary'}>{pendingCount} pending</Badge>
             </div>
             <CardContent className="space-y-3 p-5 sm:p-6">
               {pendingOrders.length ? pendingOrders.slice(0, 4).map((order) => (
@@ -201,9 +207,9 @@ export default function SimpleDashboard() {
                   <p className="mt-1 text-xs text-muted-foreground">New pending orders will show here.</p>
                 </div>
               )}
-              {pendingOrders.length > 4 && (
+              {pendingCount > 4 && (
                 <Button variant="outline" className="w-full" onClick={() => goToSection('orders')}>
-                  View all {pendingOrders.length} pending orders <ArrowRight className="ml-2 h-4 w-4" />
+                  View all {pendingCount} pending orders <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
             </CardContent>

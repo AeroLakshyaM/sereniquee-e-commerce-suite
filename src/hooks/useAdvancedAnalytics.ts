@@ -97,63 +97,21 @@ export function useCustomerAnalytics() {
 export function useConversionMetrics(days: number = 30) {
   return useQuery({
     queryKey: ['conversion-metrics', days],
-    queryFn: async () => {
-      const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    queryFn: async ({ signal }) => {
+      const { data, error } = await supabase
+        .rpc('get_admin_conversion_metrics', { p_days: days })
+        .abortSignal(signal);
 
-      // Get completed orders
-      const { data: completedOrders, error: ordersError } = await supabase
-        .from('orders')
-        .select('id, user_id, created_at')
-        .gte('created_at', startDate)
-        .neq('status', 'cancelled');
+      if (error) throw error;
 
-      if (ordersError) throw ordersError;
-
-      // Get total sessions (unique users who created carts)
-      const { data: cartSessions, error: sessionsError } = await supabase
-        .from('orders')
-        .select('user_id')
-        .gte('created_at', startDate)
-        .neq('status', 'cancelled');
-
-      if (sessionsError) throw sessionsError;
-
-      const totalSessions = new Set(cartSessions?.map(s => s.user_id) || []).size;
-      const completedOrdersCount = completedOrders?.length || 0;
-      
-      // Calculate cart abandonment (orders created but not completed)
-      const { data: allOrders } = await supabase
-        .from('orders')
-        .select('id, status')
-        .gte('created_at', startDate);
-
-      const abandonedCarts = allOrders?.filter(o => o.status === 'pending').length || 0;
-      const totalCarts = allOrders?.length || 1;
-
-      const cartAbandonmentRate = ((abandonedCarts / totalCarts) * 100).toFixed(2);
-      const conversionRate = totalSessions > 0 
-        ? ((completedOrdersCount / totalSessions) * 100).toFixed(2)
-        : '0.00';
-
-      // Average order value
-      const { data: revenueData } = await supabase
-        .from('orders')
-        .select('total_amount')
-        .gte('created_at', startDate)
-        .neq('status', 'cancelled');
-
-      const totalRevenue = revenueData?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
-      const avgOrderValue = completedOrdersCount > 0 
-        ? (totalRevenue / completedOrdersCount).toFixed(2)
-        : '0.00';
-
+      const metrics = (data ?? {}) as Record<string, unknown>;
       return {
-        cartAbandonmentRate: parseFloat(cartAbandonmentRate),
-        conversionRate: parseFloat(conversionRate),
-        avgOrderValue: parseFloat(avgOrderValue),
-        totalSessions,
-        completedOrders: completedOrdersCount,
-        abandonedCarts,
+        cartAbandonmentRate: Number(metrics.cartAbandonmentRate ?? 0),
+        conversionRate: Number(metrics.conversionRate ?? 0),
+        avgOrderValue: Number(metrics.avgOrderValue ?? 0),
+        totalSessions: Number(metrics.totalSessions ?? 0),
+        completedOrders: Number(metrics.completedOrders ?? 0),
+        abandonedCarts: Number(metrics.abandonedCarts ?? 0),
       };
     },
     refetchInterval: 120000, // Refetch every 2 minutes
@@ -167,48 +125,19 @@ export function useConversionMetrics(days: number = 30) {
 export function useRevenueMetrics() {
   return useQuery({
     queryKey: ['revenue-metrics'],
-    queryFn: async () => {
-      const now = new Date();
-      const firstDayThisMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+    queryFn: async ({ signal }) => {
+      const { data, error } = await supabase
+        .rpc('get_admin_revenue_metrics')
+        .abortSignal(signal);
 
-      // This month's revenue
-      const { data: thisMonthOrders } = await supabase
-        .from('orders')
-        .select('total_amount')
-        .gte('created_at', firstDayThisMonth)
-        .neq('status', 'cancelled');
+      if (error) throw error;
 
-      const monthlyRevenue = thisMonthOrders?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
-
-      // Last month's revenue
-      const { data: lastMonthOrders } = await supabase
-        .from('orders')
-        .select('total_amount')
-        .gte('created_at', firstDayLastMonth)
-        .lt('created_at', firstDayThisMonth)
-        .neq('status', 'cancelled');
-
-      const lastMonthRevenue = lastMonthOrders?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
-
-      // Total revenue
-      const { data: allOrders } = await supabase
-        .from('orders')
-        .select('total_amount')
-        .neq('status', 'cancelled');
-
-      const totalRevenue = allOrders?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
-
-      // Growth rate
-      const growthRate = lastMonthRevenue > 0
-        ? (((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(2)
-        : '0.00';
-
+      const metrics = (data ?? {}) as Record<string, unknown>;
       return {
-        totalRevenue: parseFloat(totalRevenue.toFixed(2)),
-        monthlyRevenue: parseFloat(monthlyRevenue.toFixed(2)),
-        lastMonthRevenue: parseFloat(lastMonthRevenue.toFixed(2)),
-        growthRate: parseFloat(growthRate),
+        totalRevenue: Number(metrics.totalRevenue ?? 0),
+        monthlyRevenue: Number(metrics.monthlyRevenue ?? 0),
+        lastMonthRevenue: Number(metrics.lastMonthRevenue ?? 0),
+        growthRate: Number(metrics.growthRate ?? 0),
       };
     },
     refetchInterval: 60000,

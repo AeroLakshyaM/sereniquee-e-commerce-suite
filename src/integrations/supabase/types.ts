@@ -1003,6 +1003,49 @@ export type Database = {
           last_sign_in_at: string | null
         }>
       }
+      get_admin_users_paginated: {
+        Args: {
+          p_search?: string
+          p_page?: number
+          p_page_size?: number
+        }
+        Returns: Array<{
+          id: string
+          email: string | null
+          full_name: string | null
+          phone: string | null
+          address: string | null
+          city: string | null
+          postal_code: string | null
+          country: string | null
+          created_at: string | null
+          last_sign_in_at: string | null
+          role: string
+          order_count: number
+          total_spent: number
+          total_count: number
+        }>
+      }
+      get_admin_analytics_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_admin_order_stats: {
+        Args: {
+          p_tz_offset_minutes?: number
+        }
+        Returns: Json
+      }
+      get_admin_conversion_metrics: {
+        Args: {
+          p_days?: number
+        }
+        Returns: Json
+      }
+      get_admin_revenue_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       delete_user_by_admin: {
         Args: { target_user_id: string }
         Returns: undefined

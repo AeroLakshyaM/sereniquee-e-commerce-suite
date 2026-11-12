@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { generateBusinessInsights } from '@/lib/geminiAI';
 import { useProducts } from '@/hooks/useProducts';
-import { useAdminOrders } from '@/hooks/useAdminOrders';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function BusinessInsights() {
   const { data: productsData } = useProducts();
   const products = productsData?.pages.flatMap((page) => page.products) ?? [];
-  const { data: orders } = useAdminOrders();
+  const { data: analytics } = useAnalytics();
   const { toast } = useToast();
   
   // Keep generated insights across browser tabs and page reloads.
@@ -68,17 +68,24 @@ ${i + 1}. ${p.name}
    ${p.average_rating ? `- Rating: ${p.average_rating}/5 (${p.review_count} reviews)` : '- No reviews yet'}
       `).join('\n');
 
-      const ordersData = orders && orders.length > 0 ? `
-Total Orders: ${orders.length}
-Recent Orders Status:
-- Pending: ${orders.filter(o => o.status === 'pending').length}
-- Processing: ${orders.filter(o => o.status === 'processing').length}
-- Shipped: ${orders.filter(o => o.status === 'shipped').length}
-- Delivered: ${orders.filter(o => o.status === 'delivered').length}
-- Cancelled: ${orders.filter(o => o.status === 'cancelled').length}
+      const statusMap = (analytics?.ordersByStatus ?? []).reduce<Record<string, number>>((acc, entry) => {
+        acc[entry.status.toLowerCase()] = entry.count;
+        return acc;
+      }, {});
+      const totalOrdersCount = analytics?.totalOrders ?? 0;
+      const totalRevenueAmount = analytics?.totalRevenue ?? 0;
 
-Total Revenue: ₹${orders.reduce((sum, o) => sum + o.total_amount, 0).toFixed(2)}
-Average Order Value: ₹${(orders.reduce((sum, o) => sum + o.total_amount, 0) / orders.length).toFixed(2)}
+      const ordersData = totalOrdersCount > 0 ? `
+Total Orders: ${totalOrdersCount}
+Recent Orders Status:
+- Pending: ${statusMap.pending ?? 0}
+- Processing: ${statusMap.processing ?? 0}
+- Shipped: ${statusMap.shipped ?? 0}
+- Delivered: ${statusMap.delivered ?? 0}
+- Cancelled: ${statusMap.cancelled ?? 0}
+
+Total Revenue: ₹${totalRevenueAmount.toFixed(2)}
+Average Order Value: ₹${(totalRevenueAmount / totalOrdersCount).toFixed(2)}
       ` : 'No orders yet - This is a new store starting its journey!';
 
       const text = await generateBusinessInsights({ businessData, productList, ordersSummary: ordersData });

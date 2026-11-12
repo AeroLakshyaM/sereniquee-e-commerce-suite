@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+export const ADMIN_USERS_PAGE_SIZE = 24;
+
 export interface User {
   id: string;
   email: string;
@@ -17,75 +19,57 @@ export interface User {
   total_spent: number;
 }
 
-export const useUsers = () => {
+export interface UseUsersOptions {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface UsersPageResult {
+  users: User[];
+  total: number;
+}
+
+export const useUsers = (options: UseUsersOptions = {}) => {
+  const search = options.search ?? '';
+  const page = options.page ?? 0;
+  const pageSize = options.pageSize ?? ADMIN_USERS_PAGE_SIZE;
+
   return useQuery({
-    queryKey: ['users'],
-    queryFn: async (): Promise<User[]> => {
-      // Fetch all users safely from auth.users via RPC
-      const { data: adminUsers, error: usersError } = await supabase.rpc('get_admin_users');
+    queryKey: ['users', { search, page, pageSize }],
+    queryFn: async ({ signal }): Promise<UsersPageResult> => {
+      const { data, error } = await supabase
+        .rpc('get_admin_users_paginated', {
+          p_search: search,
+          p_page: page,
+          p_page_size: pageSize,
+        })
+        .abortSignal(signal);
 
-      if (usersError) throw usersError;
+      if (error) throw error;
 
-      // Fetch all user roles
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
+      const rows = data || [];
+      const total = rows.length > 0 ? Number(rows[0].total_count ?? rows.length) : 0;
 
-      if (rolesError) throw rolesError;
+      const users: User[] = rows.map((row) => ({
+        id: row.id,
+        email: row.email || '',
+        full_name: row.full_name,
+        phone: row.phone,
+        address: row.address,
+        city: row.city,
+        postal_code: row.postal_code,
+        country: row.country,
+        created_at: row.created_at || '',
+        last_sign_in_at: row.last_sign_in_at,
+        role: row.role || 'user',
+        order_count: Number(row.order_count ?? 0),
+        total_spent: Number(row.total_spent ?? 0),
+      }));
 
-      // Create role map
-      const roleMap = (userRoles || []).reduce((acc, ur) => {
-        if (!acc[ur.user_id]) {
-          acc[ur.user_id] = [];
-        }
-        acc[ur.user_id].push(ur.role);
-        return acc;
-      }, {} as { [key: string]: string[] });
-
-      // Fetch order statistics for each user
-      const { data: orders, error: ordersError } = await supabase
-        .from('orders')
-        .select('user_id, total_amount');
-
-      if (ordersError) throw ordersError;
-
-      // Calculate order stats per user
-      const userStats = (orders || []).reduce((acc, order) => {
-        if (!order.user_id) return acc;
-        if (!acc[order.user_id]) {
-          acc[order.user_id] = { order_count: 0, total_spent: 0 };
-        }
-        acc[order.user_id].order_count++;
-        acc[order.user_id].total_spent += Number(order.total_amount);
-        return acc;
-      }, {} as { [key: string]: { order_count: number; total_spent: number } });
-
-      // Combine auth users with order stats and roles
-      const users: User[] = (adminUsers || []).map((adminUser: any) => {
-        const stats = userStats[adminUser.id] || { order_count: 0, total_spent: 0 };
-        const roles = roleMap[adminUser.id] || ['user'];
-        const userRole = roles.includes('admin') ? 'admin' : 'user';
-
-        return {
-          id: adminUser.id,
-          email: adminUser.email || '',
-          full_name: adminUser.full_name,
-          phone: adminUser.phone,
-          address: adminUser.address,
-          city: adminUser.city,
-          postal_code: adminUser.postal_code,
-          country: adminUser.country,
-          created_at: adminUser.created_at,
-          last_sign_in_at: adminUser.last_sign_in_at,
-          role: userRole,
-          order_count: stats.order_count,
-          total_spent: Math.round(stats.total_spent * 100) / 100,
-        };
-      });
-
-      return users;
+      return { users, total };
     },
-    refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
+    staleTime: 60_000,
   });
 };
 
@@ -102,6 +86,7 @@ export const useDeleteUser = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
     },
   });
 };

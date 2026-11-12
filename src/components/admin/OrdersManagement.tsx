@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useAdminOrders } from '@/hooks/useAdminOrders';
+import {
+  ADMIN_ORDERS_PAGE_SIZE,
+  AdminOrder,
+  AdminOrdersPageResult,
+  useAdminOrdersPaginated,
+  useAdminOrderStats,
+} from '@/hooks/useAdminOrders';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,14 +32,39 @@ const escapeHtml = (value: string) => value.replace(/[&<>"']/g, character => ({ 
 
 export default function OrdersManagement() {
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const { data: orders, isLoading } = useAdminOrders(search, startDate, endDate ? new Date(`${endDate}T00:00:00Z`).toISOString().slice(0, 10) : undefined);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [adminOrderView, setAdminOrderView] = useState<'orders' | 'payment-attempts' | 'invoices'>('orders');
+  const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(0);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const normalizedEndDate = endDate ? new Date(`${endDate}T00:00:00Z`).toISOString().slice(0, 10) : undefined;
+  const { data: ordersPage, isLoading } = useAdminOrdersPaginated({
+    search: debouncedSearch,
+    startDate: startDate || undefined,
+    endDate: normalizedEndDate,
+    status: filterStatus,
+    view: adminOrderView,
+    page,
+    pageSize: ADMIN_ORDERS_PAGE_SIZE,
+  });
+  const { data: orderStats } = useAdminOrderStats();
+  const orders = ordersPage?.orders ?? [];
+  const totalMatchingOrders = ordersPage?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalMatchingOrders / ADMIN_ORDERS_PAGE_SIZE));
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [emailingOrderId, setEmailingOrderId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [trackingOrder, setTrackingOrder] = useState<any | null>(null);
@@ -98,14 +129,30 @@ export default function OrdersManagement() {
         variant: 'destructive',
       });
     } else {
-      queryClient.setQueryData(['admin-orders'], (existing: typeof orders | undefined) => {
-        if (!existing) return existing;
-        return existing.map((order) =>
-          order.id === orderId
-            ? { ...order, status: updatedOrder.status, updated_at: updatedOrder.updated_at }
-            : order
-        );
-      });
+      queryClient.setQueriesData(
+        { queryKey: ['admin-orders'] },
+        (existing: AdminOrdersPageResult | AdminOrder[] | undefined) => {
+          if (!existing) return existing;
+          if (Array.isArray(existing)) {
+            return existing.map((order) =>
+              order.id === orderId
+                ? { ...order, status: updatedOrder.status, updated_at: updatedOrder.updated_at }
+                : order
+            );
+          }
+          if ('orders' in existing && Array.isArray(existing.orders)) {
+            return {
+              ...existing,
+              orders: existing.orders.map((order) =>
+                order.id === orderId
+                  ? { ...order, status: updatedOrder.status, updated_at: updatedOrder.updated_at }
+                  : order
+              ),
+            };
+          }
+          return existing;
+        },
+      );
       queryClient.setQueryData(['order-details', orderId], (existing: any) => {
         if (!existing) return existing;
         return { ...existing, status: updatedOrder.status, updated_at: updatedOrder.updated_at };
@@ -369,30 +416,17 @@ export default function OrdersManagement() {
     openInvoiceInNewTab(order);
   };
 
-  const filteredOrdersBySearch = orders?.filter((order) => {
-    if (adminOrderView === 'orders' && filterStatus !== 'all' && order.status !== filterStatus) return false;
-    const normalized = search.toLowerCase();
-    if (!normalized) return true;
-    return [order.id, order.order_number, customerName(order), customerEmail(order), customerPhone(order), order.shipping_address]
-      .some(value => value?.toLowerCase().includes(normalized));
-  });
-
   const isTemporaryUpiAttempt = (order: any) => order.payment_method === 'upi' && ['pending_payment', 'failed'].includes(order.payment_status);
-  const paymentAttempts = filteredOrdersBySearch?.filter(order => isTemporaryUpiAttempt(order)) || [];
-  const invoiceOrders = filteredOrdersBySearch?.filter(order => !isTemporaryUpiAttempt(order)) || [];
-  const filteredOrders = adminOrderView === 'payment-attempts'
-    ? paymentAttempts
-    : filteredOrdersBySearch?.filter(order => !isTemporaryUpiAttempt(order));
+  const paymentAttempts = adminOrderView === 'payment-attempts' ? orders : [];
+  const invoiceOrders = adminOrderView === 'invoices' ? orders : [];
+  const filteredOrders = orders;
 
   const ordersByStatus = useMemo(() => statuses.reduce((acc, status) => {
-    acc[status] = (filteredOrders || []).filter(order => order.status === status);
+    acc[status] = filteredOrders.filter(order => order.status === status);
     return acc;
   }, {} as Record<string, any[]>), [filteredOrders]);
 
-  const statusCounts = orders?.reduce((acc, order) => {
-    acc[order.status] = (acc[order.status] || 0) + 1;
-    return acc;
-  }, {} as { [key: string]: number });
+  const statusCounts = orderStats?.statusCounts;
 
   if (isLoading) {
     return (
@@ -406,10 +440,10 @@ export default function OrdersManagement() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
-          ['Orders today', orders?.filter(order => order.created_at.slice(0, 10) === new Date().toISOString().slice(0, 10)).length || 0],
-          ['Revenue today', `₹${(orders || []).filter(order => order.created_at.slice(0, 10) === new Date().toISOString().slice(0, 10)).reduce((sum, order) => sum + order.total_amount, 0).toFixed(2)}`],
-          ['Pending', statusCounts?.pending || 0],
-          ['Average order', `₹${orders?.length ? (orders.reduce((sum, order) => sum + order.total_amount, 0) / orders.length).toFixed(2) : '0.00'}`],
+          ['Orders today', orderStats?.ordersToday ?? 0],
+          ['Revenue today', `₹${(orderStats?.revenueToday ?? 0).toFixed(2)}`],
+          ['Pending', statusCounts?.pending ?? 0],
+          ['Average order', `₹${(orderStats?.averageOrderValue ?? 0).toFixed(2)}`],
         ].map(([label, value]) => (
           <Card key={String(label)}><CardContent className="p-4"><p className="text-xs text-muted-foreground">{label}</p><p className="text-xl font-semibold">{value}</p></CardContent></Card>
         ))}
@@ -420,18 +454,18 @@ export default function OrdersManagement() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search order ID, customer, email, or phone..." className="pl-9" />
         </div>
-        <Input type="date" value={startDate} onChange={event => setStartDate(event.target.value)} aria-label="Start date" />
-        <Input type="date" value={endDate} onChange={event => setEndDate(event.target.value)} aria-label="End date" />
+        <Input type="date" value={startDate} onChange={event => { setStartDate(event.target.value); setPage(0); }} aria-label="Start date" />
+        <Input type="date" value={endDate} onChange={event => { setEndDate(event.target.value); setPage(0); }} aria-label="End date" />
         <Button variant="outline" onClick={exportOrders}><Download className="mr-2 h-4 w-4" /> Export CSV</Button>
       </div>
 
       <div className="flex w-full gap-2 border-b border-border pb-3">
-        <Button variant={adminOrderView === 'orders' ? 'default' : 'outline'} onClick={() => setAdminOrderView('orders')}>Orders</Button>
-        <Button variant={adminOrderView === 'payment-attempts' ? 'default' : 'outline'} onClick={() => setAdminOrderView('payment-attempts')}>
-          Payment attempts <Badge className="ml-2" variant="secondary">{orders?.filter(order => isTemporaryUpiAttempt(order)).length || 0}</Badge>
+        <Button variant={adminOrderView === 'orders' ? 'default' : 'outline'} onClick={() => { setAdminOrderView('orders'); setPage(0); }}>Orders</Button>
+        <Button variant={adminOrderView === 'payment-attempts' ? 'default' : 'outline'} onClick={() => { setAdminOrderView('payment-attempts'); setPage(0); }}>
+          Payment attempts <Badge className="ml-2" variant="secondary">{orderStats?.paymentAttemptsCount ?? 0}</Badge>
         </Button>
-        <Button variant={adminOrderView === 'invoices' ? 'default' : 'outline'} onClick={() => setAdminOrderView('invoices')}>
-          Invoices <Badge className="ml-2" variant="secondary">{orders?.filter(order => !isTemporaryUpiAttempt(order)).length || 0}</Badge>
+        <Button variant={adminOrderView === 'invoices' ? 'default' : 'outline'} onClick={() => { setAdminOrderView('invoices'); setPage(0); }}>
+          Invoices <Badge className="ml-2" variant="secondary">{orderStats?.invoicesCount ?? 0}</Badge>
         </Button>
       </div>
 
@@ -462,17 +496,17 @@ export default function OrdersManagement() {
         <div>
           <h2 className="font-serif text-xl md:text-2xl mb-2">Order Management</h2>
           <p className="text-sm text-muted-foreground">
-            Total Orders: <span className="font-semibold">{orders?.length || 0}</span>
+            Total Orders: <span className="font-semibold">{totalMatchingOrders}</span>
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <span className="text-xs md:text-sm text-muted-foreground">Filter by status:</span>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <Select value={filterStatus} onValueChange={value => { setFilterStatus(value); setPage(0); }}>
             <SelectTrigger className="w-full sm:w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All ({orders?.length || 0})</SelectItem>
+              <SelectItem value="all">All ({orderStats?.invoicesCount ?? totalMatchingOrders})</SelectItem>
               <SelectItem value="pending">Pending ({statusCounts?.pending || 0})</SelectItem>
               <SelectItem value="processing">Processing ({statusCounts?.processing || 0})</SelectItem>
               <SelectItem value="shipped">Shipped ({statusCounts?.shipped || 0})</SelectItem>
@@ -891,6 +925,32 @@ export default function OrdersManagement() {
           </CardContent></Card>
         ))}
       </section>}
+
+      {totalMatchingOrders > ADMIN_ORDERS_PAGE_SIZE && (
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-sm text-muted-foreground">
+            Page {page + 1} of {totalPages} ({totalMatchingOrders} orders)
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 0}
+              onClick={() => setPage((current) => Math.max(0, current - 1))}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page + 1 >= totalPages}
+              onClick={() => setPage((current) => current + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
 
       <Sheet open={!!selectedOrder} onOpenChange={open => !open && setSelectedOrder(null)}>
         <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
