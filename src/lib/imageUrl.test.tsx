@@ -30,6 +30,21 @@ describe('imageUrl & StorageImage', () => {
     expect(getStorageImageSrcSet('/landing-candles.jpg')).toBeUndefined();
   });
 
+  it('rewrites Cloudinary delivery URLs with f_auto,q_auto,w_...,c_limit and avoids double transforms', () => {
+    const source =
+      'https://res.cloudinary.com/dpdxhh5pv/image/upload/v1790959804/320179ee-6066-4a94-9eb2-e6fd684b3fb8_vlgnfh.jpg';
+    const transformed = getOptimizedStorageImageUrl(source, 480);
+
+    expect(transformed).toBe(
+      'https://res.cloudinary.com/dpdxhh5pv/image/upload/f_auto,q_auto,w_480,c_limit/v1790959804/320179ee-6066-4a94-9eb2-e6fd684b3fb8_vlgnfh.jpg',
+    );
+    expect(getStorageImageSrcSet(source, [320, 640])).toContain('f_auto,q_auto,w_640,c_limit');
+
+    const alreadyTransformed =
+      'https://res.cloudinary.com/dpdxhh5pv/image/upload/f_auto,q_auto,w_800,c_limit/v1790959804/sample.jpg';
+    expect(getOptimizedStorageImageUrl(alreadyTransformed, 480)).toBe(alreadyTransformed);
+  });
+
   it('falls back to original URL when transformed image errors', () => {
     const original = 'https://example.supabase.co/storage/v1/object/public/product-images/candle.jpg';
     render(<StorageImage src={original} alt="Rose Candle" defaultWidth={480} />);

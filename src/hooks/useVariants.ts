@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductVariant } from '@/types';
-import { useEffect } from 'react';
 
 // ============================================
 // FETCH VARIANTS
@@ -22,32 +21,8 @@ export function useProductVariants(productId: string) {
       return data as ProductVariant[];
     },
     enabled: !!productId,
+    staleTime: 2 * 60_000,
   });
-
-  // Real-time subscription for variants
-  useEffect(() => {
-    if (!productId) return;
-
-    const channel = supabase
-      .channel(`product-variants-${productId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'product_variants',
-          filter: `product_id=eq.${productId}`,
-        },
-        () => {
-          query.refetch();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [productId, query]);
 
   return query;
 }

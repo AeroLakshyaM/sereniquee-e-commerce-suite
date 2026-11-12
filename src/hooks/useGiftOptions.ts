@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { GiftOption, OrderGiftDetails } from '@/types';
-import { useEffect } from 'react';
 
 // ============================================
 // FETCH GIFT OPTIONS
@@ -20,29 +19,8 @@ export function useGiftOptions() {
       if (error) throw error;
       return data as GiftOption[];
     },
+    staleTime: 5 * 60_000,
   });
-
-  // Real-time subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel('gift-options-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'gift_options',
-        },
-        () => {
-          query.refetch();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [query]);
 
   return query;
 }

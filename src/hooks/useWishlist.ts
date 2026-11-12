@@ -35,20 +35,21 @@ export function useWishlist() {
 
   // Real-time subscription
   useEffect(() => {
-    if (!user) return;
+    const userId = user?.id;
+    if (!userId) return;
 
     const channel = supabase
-      .channel(`wishlist-${user.id}`)
+      .channel(`wishlist-${userId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'wishlists',
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         () => {
-          query.refetch();
+          queryClient.invalidateQueries({ queryKey: ['wishlist', userId] });
         }
       )
       .subscribe();
@@ -56,7 +57,7 @@ export function useWishlist() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, query]);
+  }, [user?.id, queryClient]);
 
   return query;
 }

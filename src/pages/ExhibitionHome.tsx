@@ -112,15 +112,18 @@ export default function ExhibitionHome() {
       />
 
       <section className="relative isolate flex min-h-[calc(88svh-4rem)] items-end overflow-hidden bg-[#173b38] text-white md:min-h-[620px] md:items-center">
-        <img
-          src="/landing-candles.jpg"
-          alt="A warm display of SERENIQUEE candles"
-          width={768}
-          height={1280}
-          fetchPriority="high"
-          decoding="async"
-          className="absolute inset-0 -z-20 h-full w-full object-cover object-center"
-        />
+        <picture className="contents">
+          <source srcSet="/landing-candles.webp" type="image/webp" />
+          <img
+            src="/landing-candles.jpg"
+            alt="A warm display of SERENIQUEE candles"
+            width={768}
+            height={1280}
+            fetchPriority="high"
+            decoding="async"
+            className="absolute inset-0 -z-20 h-full w-full object-cover object-center"
+          />
+        </picture>
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#102a28]/95 via-[#102a28]/55 to-[#102a28]/10 md:bg-gradient-to-r md:from-[#102a28]/90 md:via-[#102a28]/55 md:to-transparent" />
         <div className="mx-auto w-full max-w-7xl px-5 pb-12 pt-24 sm:px-8 sm:pb-16 md:px-10 md:py-24">
           <div className="max-w-xl">

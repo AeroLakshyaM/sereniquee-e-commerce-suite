@@ -10,6 +10,7 @@ import { ProductQuickView } from '@/components/product/ProductQuickView';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { InstagramFeed } from '@/components/social/InstagramFeed';
 import { CategorySection } from '@/components/CategorySection';
+import { StorageImage } from '@/components/ui/storage-image';
 import { galleryImages } from '@/data/galleryImages';
 import { Product } from '@/types';
 import { ArrowRight, BookOpen, Flame, Heart, Leaf, Sparkles, Star } from 'lucide-react';
@@ -39,15 +40,18 @@ export default function Home() {
         </div>
 
         <div className="absolute inset-y-0 right-0 w-full md:w-[55%]" aria-hidden="true">
-          <img
-            src="/landing-candles.jpg"
-            alt=""
-            width={768}
-            height={1280}
-            fetchPriority="high"
-            decoding="async"
-            className="h-full w-full object-cover object-center opacity-20 md:opacity-100"
-          />
+          <picture className="contents">
+            <source srcSet="/landing-candles.webp" type="image/webp" />
+            <img
+              src="/landing-candles.jpg"
+              alt=""
+              width={768}
+              height={1280}
+              fetchPriority="high"
+              decoding="async"
+              className="h-full w-full object-cover object-center opacity-20 md:opacity-100"
+            />
+          </picture>
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/25 md:from-background md:via-background/35 md:to-transparent" />
         </div>
         
@@ -296,16 +300,19 @@ export default function Home() {
             <div className="order-1 md:order-2 relative">
               <div className="aspect-[3/4] rounded-lg overflow-hidden relative group shadow-xl">
                 {/* Main Image */}
-                <img 
-                  src="/landing-candles.jpg" 
-                  alt="Hand-poured luxury candles by Sereniquee"
-                  width={800}
-                  height={1067}
-                  loading="eager"
-                  fetchPriority="high"
-                  decoding="async"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
+                <picture className="contents">
+                  <source srcSet="/landing-candles.webp" type="image/webp" />
+                  <img 
+                    src="/landing-candles.jpg" 
+                    alt="Hand-poured luxury candles by Sereniquee"
+                    width={800}
+                    height={1067}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                </picture>
                 {/* Subtle gradient overlay for depth */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-60" />
                 {/* Decorative corner accent */}
@@ -553,11 +560,13 @@ export default function Home() {
                       key={`${groupIndex}-${image.id}`}
                       className="gallery-marquee-item group relative aspect-square rounded-xl overflow-hidden bg-secondary border border-border/50 hover:border-amber-500/50 transition-all duration-300"
                     >
-                      <img
+                      <StorageImage
                         src={image.url}
                         alt={image.caption}
                         width={400}
                         height={400}
+                        defaultWidth={480}
+                        sizes="280px"
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         loading="lazy"
                         decoding="async"

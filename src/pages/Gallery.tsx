@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Camera, X } from 'lucide-react';
 import CircularGallery from '@/components/CircularGallery';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
+import { StorageImage } from '@/components/ui/storage-image';
 import { GalleryImage, galleryImages } from '@/data/galleryImages';
+import { getOptimizedStorageImageUrl } from '@/lib/imageUrl';
 
 export default function Gallery() {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
@@ -16,7 +18,7 @@ export default function Gallery() {
 
   // Prepare items for CircularGallery
   const circularGalleryItems = galleryImages.map(img => ({
-    image: img.url,
+    image: getOptimizedStorageImageUrl(img.url, 800) ?? img.url,
     text: img.caption
   }));
 
@@ -105,9 +107,11 @@ export default function Gallery() {
                 onClick={() => setSelectedImage(image)}
               >
                 <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-secondary border border-border/50 group-hover:border-amber-500/50 transition-all duration-300">
-                  <img
+                  <StorageImage
                     src={image.url}
                     alt={image.caption}
+                    defaultWidth={480}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     loading="lazy"
                   />
@@ -152,9 +156,12 @@ export default function Gallery() {
 
           <div className="max-w-5xl w-full" onClick={(e) => e.stopPropagation()}>
             <div className="relative rounded-2xl overflow-hidden">
-              <img
+              <StorageImage
                 src={selectedImage.url}
                 alt={selectedImage.caption}
+                defaultWidth={960}
+                widths={[480, 720, 960, 1280]}
+                sizes="(max-width: 1024px) 100vw, 1024px"
                 className="w-full h-auto max-h-[80vh] object-contain"
               />
             </div>

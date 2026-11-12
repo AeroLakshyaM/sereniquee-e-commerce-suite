@@ -46,11 +46,14 @@ export default function About() {
             </p>
           </div>
           <div className="aspect-square bg-muted overflow-hidden rounded-sm">
-            <img 
-              src="/aboutus-img.jpg" 
-              alt="Sereniquee Candles" 
-              className="w-full h-full object-cover"
-            />
+            <picture className="contents">
+              <source srcSet="/aboutus-img.webp" type="image/webp" />
+              <img 
+                src="/aboutus-img.jpg" 
+                alt="Sereniquee Candles" 
+                className="w-full h-full object-cover"
+              />
+            </picture>
           </div>
         </div>
       </section>
@@ -70,11 +73,14 @@ export default function About() {
               {/* Profile Image */}
               <div className="mx-auto md:mx-0">
                 <div className="aspect-square w-full max-w-[300px] bg-muted rounded-sm overflow-hidden">
-                  <img 
-                    src="/owner-pic.jpeg" 
-                    alt="Sarah Katherine - Founder" 
-                    className="w-full h-full object-contain"
-                  />
+                  <picture className="contents">
+                    <source srcSet="/owner-pic.webp" type="image/webp" />
+                    <img 
+                      src="/owner-pic.jpeg" 
+                      alt="Sarah Katherine - Founder" 
+                      className="w-full h-full object-contain"
+                    />
+                  </picture>
                 </div>
               </div>
 

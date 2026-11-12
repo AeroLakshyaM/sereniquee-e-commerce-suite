@@ -12,6 +12,8 @@ export function useProductReviews(productId: string, filters?: {
   approved?: boolean;
   sortBy?: 'recent' | 'rating' | 'helpful';
 }) {
+  const queryClient = useQueryClient();
+
   const query = useQuery({
     queryKey: ['product-reviews', productId, filters],
     queryFn: async () => {
@@ -84,7 +86,8 @@ export function useProductReviews(productId: string, filters?: {
           filter: `product_id=eq.${productId}`,
         },
         () => {
-          query.refetch();
+          queryClient.invalidateQueries({ queryKey: ['product-reviews', productId] });
+          queryClient.invalidateQueries({ queryKey: ['review-stats', productId] });
         }
       )
       .subscribe();
@@ -92,7 +95,7 @@ export function useProductReviews(productId: string, filters?: {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [productId, query]);
+  }, [productId, queryClient]);
 
   return query;
 }
