@@ -151,7 +151,7 @@ export default function Home() {
       </section>
 
       {/* Bespoke Gift Box Hamper Customizer Showcase */}
-      <section className="relative overflow-hidden py-14 sm:py-20 bg-[#1c2e28] text-white">
+      <section className="relative overflow-hidden py-14 sm:py-20 bg-gradient-to-b from-[#2c221e] via-[#241a17] to-[#1c1411] text-[#fbf8f3] border-y border-amber-900/40">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:20px_20px]" />
         <div className="container-luxury relative z-10 grid md:grid-cols-2 gap-10 items-center">
           <div>
@@ -267,10 +267,10 @@ export default function Home() {
             </div>
 
             <div className="group relative overflow-hidden rounded-lg bg-background border border-border/50 p-6 sm:p-8 hover:border-amber-500/50 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-green-100 dark:bg-green-950/20 rounded-full blur-3xl -z-10 group-hover:scale-150 transition-transform duration-500" />
+              <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-amber-100/60 dark:bg-amber-950/20 rounded-full blur-3xl -z-10 group-hover:scale-150 transition-transform duration-500" />
               <div className="mb-4 sm:mb-6">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-50 dark:bg-green-950/30 flex items-center justify-center mb-3 sm:mb-4">
-                  <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 dark:text-green-400" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mb-3 sm:mb-4">
+                  <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-amber-700 dark:text-amber-400" />
                 </div>
                 <h3 className="font-serif text-xl sm:text-2xl mb-2">Fresh & Clean</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
@@ -411,7 +411,7 @@ export default function Home() {
                     packaging is beautiful. Perfect for gifting too."
                   </p>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-medium text-sm">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-white font-medium text-sm">
                       A
                     </div>
                     <div>
@@ -477,7 +477,7 @@ export default function Home() {
                     packaging is beautiful. Perfect for gifting too."
                   </p>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-medium text-sm">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-white font-medium text-sm">
                       A
                     </div>
                     <div>

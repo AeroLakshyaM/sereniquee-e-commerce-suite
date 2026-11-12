@@ -1,200 +1,487 @@
+import { Link } from 'react-router-dom';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
+import { Button } from '@/components/ui/button';
+import {
+  Sparkles,
+  Flame,
+  Leaf,
+  Heart,
+  Recycle,
+  ShieldCheck,
+  CheckCircle2,
+  ArrowRight,
+  Gift,
+  Clock,
+  Compass,
+} from 'lucide-react';
+
+const JOURNEY_MILESTONES = [
+  {
+    year: '2023',
+    title: 'The Kitchen Studio',
+    subtitle: 'Where tranquility began',
+    description:
+      'Frustrated by commercial paraffin candles that smoked and gave headaches, our founder began blending pure soy wax with therapeutic botanical oils in a modest kitchen atelier.',
+    highlight: 'First 50 small batches poured',
+  },
+  {
+    year: '2024',
+    title: 'The Clean Wax Standard',
+    subtitle: 'Zero compromises on wellness',
+    description:
+      'We perfected our proprietary 100% natural soy wax blend paired with unbleached, lead-free cotton wicks. We pledged to never use petroleum paraffin, phthalates, or chemical hardeners.',
+    highlight: '100% Botanical Soy certified',
+  },
+  {
+    year: '2025',
+    title: 'Bespoke Luxury Gifting',
+    subtitle: 'Celebrations & intimate hampers',
+    description:
+      'Introduced our bespoke gold-embossed hamper builder with handwritten calligraphy wax-sealed notes, becoming a beloved gift for Indian weddings, Diwali, and mindful home warmings.',
+    highlight: 'Custom Hamper customizer launched',
+  },
+  {
+    year: 'Today',
+    title: 'The Sanctuary of Light',
+    subtitle: 'Hand-poured for conscious homes',
+    description:
+      'Illuminating thousands of spaces across India. Despite our growth, every single candle is still individually wicked, stirred, poured, and cured by hand with serene mindfulness.',
+    highlight: 'Over 5,000+ homes illuminated',
+  },
+];
+
+const CRAFT_STEPS = [
+  {
+    step: '01',
+    title: 'Ethical Botanical Sourcing',
+    desc: 'Pure renewable soy bean wax harvested sustainably, matched with IFRA-certified fine perfume and essential oils.',
+    icon: Leaf,
+  },
+  {
+    step: '02',
+    title: 'Precision Temperature Blend',
+    desc: 'Oils are gently infused into melted wax at exactly 165°F to preserve the delicate top, heart, and base fragrance notes.',
+    icon: Compass,
+  },
+  {
+    step: '03',
+    title: 'Small-Batch Hand Pouring',
+    desc: 'Hand-poured into heavy luxury glass jars in batches of no more than 12 to ensure mirror-smooth tops and centered wicks.',
+    icon: Flame,
+  },
+  {
+    step: '04',
+    title: 'The 14-Day Slow Cure',
+    desc: 'Allowed to rest and cure in our temperature-regulated darkroom, allowing the scent crystals to bond for maximum hot throw.',
+    icon: Clock,
+  },
+];
+
+const BRAND_VALUES = [
+  {
+    title: 'Pure & Clean Burning',
+    description:
+      '100% pure botanical soy wax with zero paraffin, petroleum, or synthetic dyes. Burns cleanly for up to 50+ hours without black soot.',
+    icon: Leaf,
+    badge: 'Clean Air Pledge',
+  },
+  {
+    title: 'Slow Artisanal Living',
+    description:
+      'We reject assembly-line automation. Each candle is crafted by hand, reflecting the mindfulness and patience we hope it brings to your home.',
+    icon: Flame,
+    badge: 'Handmade in India',
+  },
+  {
+    title: 'Mindful Gifting',
+    description:
+      'Candles create memories. We curate rigid gold-foiled magnetic boxes and write personalized calligraphy notes to make every unboxing magical.',
+    icon: Gift,
+    badge: 'Bespoke Hampers',
+  },
+  {
+    title: 'Sustainable vessels',
+    description:
+      'Our heavy glass jars and tins are designed to be reused forever — as vanity planters, jewelry holders, or stationery organizers.',
+    icon: Recycle,
+    badge: 'Zero Waste jars',
+  },
+];
 
 export default function About() {
   return (
-    <div>
+    <div className="overflow-x-hidden">
       <SeoHelmet
-        title="About Us - Handcrafted Luxury Candles"
-        description="Discover the story behind Sereniquee's handmade soy candles. Learn about our commitment to natural ingredients, sustainable practices, and creating moments of serenity in your home."
-        keywords="about sereniquee, handmade candle story, luxury candle company, soy candle makers, artisan candles, sustainable candles, eco-friendly candles"
+        title="Our Story & Artisanal Craft | Sereniquee Luxury Candles"
+        description="Discover how Sereniquee transforms pure botanical soy wax into hand-poured luxury candles. Meet founder Sushiksha Mishra and learn about our slow living philosophy."
+        keywords="about sereniquee, handmade candles story, soy wax candles india, sushiksha mishra founder, artisan candles india, slow living candles"
         url="/about"
       />
-      {/* Hero */}
-      <section className="bg-secondary py-24">
-        <div className="container-luxury text-center">
-          <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-4">
-            Our Story
-          </p>
-          <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl max-w-3xl mx-auto">
-            Crafted with Intention, Designed for Serenity
+
+      {/* ─── 1. Hero Editorial Statement ──────────────────────────────── */}
+      <section className="relative min-h-[60vh] md:min-h-[70vh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-amber-50/40 via-background to-secondary/30 dark:from-stone-950/40 dark:via-background dark:to-stone-950/20 py-20 md:py-28">
+        <div className="absolute inset-0 bg-[radial-gradient(#d4af37_1px,transparent_1px)] opacity-10 [background-size:24px_24px]" />
+        
+        {/* Warm ambient aura */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-200/25 dark:bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="container-luxury relative z-10 max-w-4xl mx-auto text-center px-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100/80 dark:bg-amber-950/50 border border-amber-300/70 text-amber-900 dark:text-amber-200 text-xs uppercase tracking-widest mb-6 animate-fade-in shadow-2xs">
+            <Sparkles className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" />
+            <span>The Sereniquee Manifesto</span>
+          </div>
+
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight leading-[1.1] mb-6 text-foreground">
+            Crafted with Intention,
+            <span className="italic block mt-1 text-amber-800 dark:text-amber-400"> Poured for Serenity.</span>
           </h1>
-        </div>
-      </section>
 
-      {/* Story */}
-      <section className="container-luxury py-24">
-        <div className="grid md:grid-cols-2 gap-16 items-center">
-          <div>
-            <h2 className="font-serif text-3xl mb-6">The Beginning</h2>
-            <p className="text-muted-foreground leading-relaxed mb-6">
-              Sereniquee was born from a simple desire: to create moments of peace
-              in an increasingly busy world. What started as a personal passion for
-              candle-making in a small kitchen has grown into a boutique collection
-              of luxury candles, each one handcrafted with the same care and
-              attention to detail.
-            </p>
-            <p className="text-muted-foreground leading-relaxed mb-6">
-              We believe that the right scent can transform a space, evoke memories,
-              and create an atmosphere of calm and comfort. That's why we source
-              only the finest ingredients and take the time to perfect each blend.
-            </p>
-            <p className="text-muted-foreground leading-relaxed">
-              Every Sereniquee candle tells a story—from the carefully selected fragrance 
-              notes that evoke different moods and seasons, to the minimalist design that 
-              complements any interior. Our candles aren't just products; they're experiences 
-              crafted to elevate your everyday moments into something extraordinary.
-            </p>
-          </div>
-          <div className="aspect-square bg-muted overflow-hidden rounded-sm">
-            <picture className="contents">
-              <source srcSet="/aboutus-img.webp" type="image/webp" />
-              <img 
-                src="/aboutus-img.jpg" 
-                alt="Sereniquee Candles" 
-                className="w-full h-full object-cover"
-              />
-            </picture>
-          </div>
-        </div>
-      </section>
-
-      {/* Meet the Creator */}
-      <section className="container-luxury py-24 border-t border-border">
-        <div className="text-center mb-16">
-          <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-3">
-            Meet the Creator
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto font-sans font-light mb-10">
+            In an accelerating world, we craft a sanctuary of stillness. Hand-poured in small batches using pure botanical soy wax and artisanal fragrances to transform your space into an oasis of warmth.
           </p>
-          <h2 className="font-serif text-3xl md:text-4xl">The Heart Behind Sereniquee</h2>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm text-foreground/80">
+            <span className="flex items-center gap-1.5 bg-background border border-border/80 px-4 py-2 rounded-full shadow-2xs">
+              <CheckCircle2 className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" /> 100% Pure Soy Wax
+            </span>
+            <span className="flex items-center gap-1.5 bg-background border border-border/80 px-4 py-2 rounded-full shadow-2xs">
+              <CheckCircle2 className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" /> Lead-Free Cotton Wicks
+            </span>
+            <span className="flex items-center gap-1.5 bg-background border border-border/80 px-4 py-2 rounded-full shadow-2xs">
+              <CheckCircle2 className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" /> Zero Paraffin or Toxins
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 2. The Beginning: Origin Story ───────────────────────────── */}
+      <section className="container-luxury py-16 md:py-24">
+        <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-amber-800 dark:text-amber-400 font-semibold">
+              <Flame className="h-3.5 w-3.5" />
+              <span>Where It All Began</span>
+            </div>
+
+            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-medium leading-tight text-foreground">
+              A rebellion against <br className="hidden sm:inline" />
+              synthetic, rushed living.
+            </h2>
+
+            <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+              Sereniquee was never conceived as a corporate brand. It began as an intimate ritual at home: finding solace at the end of exhausting days by lighting a candle, brewing tea, and letting the fragrant flicker slow down the heartbeat of the evening.
+            </p>
+
+            <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+              Yet too often, store-bought candles were made with petroleum paraffin, emitted dark soot onto walls, and caused headaches from synthetic stabilizers. We set out to build what didn&apos;t exist: an uncompromisingly clean, earth-honoring, museum-grade soy candle that smells divine and burns cleanly to the very last drop.
+            </p>
+
+            <div className="pt-2 border-l-2 border-amber-600 pl-4 text-foreground/90 italic font-serif text-base sm:text-lg">
+              &ldquo;We don&apos;t just sell fragrance. We offer an invitation to pause, breathe, and honor the present moment.&rdquo;
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="aspect-[4/5] sm:aspect-square rounded-2xl overflow-hidden bg-muted border border-border shadow-xl relative group">
+              <picture className="contents">
+                <source srcSet="/aboutus-img.webp" type="image/webp" />
+                <img
+                  src="/aboutus-img.jpg"
+                  alt="Sereniquee Hand-Poured Artisan Candles"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  loading="lazy"
+                />
+              </picture>
+              <div className="absolute inset-0 bg-gradient-to-t from-stone-950/70 via-transparent to-transparent flex items-end p-6">
+                <div className="text-white">
+                  <p className="font-serif text-lg font-medium">The Studio Workspace</p>
+                  <p className="text-xs text-white/80">Every vessel individually wicked, hand-poured, and inspected</p>
+                </div>
+              </div>
+            </div>
+            {/* Subtle decorative floating badge */}
+            <div className="absolute -bottom-5 -left-5 bg-background border border-border/80 rounded-xl p-4 shadow-xl hidden sm:flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 flex items-center justify-center">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div className="text-left">
+                <p className="font-bold text-xs uppercase tracking-wider text-foreground">Small-Batch Poured</p>
+                <p className="text-[11px] text-muted-foreground">Max 12 candles per pour</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 3. The Journey Timeline ──────────────────────────────────── */}
+      <section className="bg-gradient-to-b from-secondary/40 via-background to-secondary/20 py-20 md:py-28 border-y border-border/60">
+        <div className="container-luxury max-w-5xl">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <p className="text-xs uppercase tracking-[0.25em] text-amber-800 dark:text-amber-400 font-semibold mb-3">
+              Our Journey
+            </p>
+            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-medium text-foreground">
+              Milestones of Light & Fragrance
+            </h2>
+            <p className="text-sm sm:text-base text-muted-foreground mt-3">
+              From our first small-batch experiments to curating custom hampers for special occasions across India.
+            </p>
+          </div>
+
+          <div className="relative">
+            {/* Center Timeline Spine on Desktop */}
+            <div className="hidden md:block absolute left-1/2 top-4 bottom-4 w-px bg-gradient-to-b from-amber-600/20 via-amber-600/60 to-amber-600/20 -translate-x-1/2" />
+
+            <div className="space-y-8 md:space-y-12">
+              {JOURNEY_MILESTONES.map((item, index) => {
+                const isEven = index % 2 === 0;
+                return (
+                  <div
+                    key={item.year}
+                    className={`relative flex flex-col md:flex-row items-center gap-6 md:gap-12 ${
+                      isEven ? 'md:flex-row-reverse' : ''
+                    }`}
+                  >
+                    {/* Content Card */}
+                    <div className="w-full md:w-1/2">
+                      <div className="bg-card border border-border/80 rounded-2xl p-6 md:p-8 shadow-soft hover:border-amber-500/50 transition-all duration-300 space-y-2 group">
+                        <div className="flex items-center justify-between">
+                          <span className="font-serif text-2xl md:text-3xl font-bold text-amber-700 dark:text-amber-400">
+                            {item.year}
+                          </span>
+                          <span className="text-[10px] uppercase tracking-wider font-semibold bg-amber-100/80 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 px-2.5 py-1 rounded-full border border-amber-300/60">
+                            {item.highlight}
+                          </span>
+                        </div>
+                        <h3 className="font-serif text-xl font-medium text-foreground pt-1">
+                          {item.title}
+                        </h3>
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                          {item.subtitle}
+                        </p>
+                        <p className="text-sm text-muted-foreground leading-relaxed pt-1">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Timeline Dot Marker */}
+                    <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-background border-2 border-amber-600 items-center justify-center shadow-md">
+                      <div className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-pulse" />
+                    </div>
+
+                    {/* Empty Half to Balance Layout */}
+                    <div className="hidden md:block w-1/2" />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 4. Meet the Creator / Founder ────────────────────────────── */}
+      <section className="container-luxury py-20 md:py-28">
+        <div className="text-center mb-14 max-w-2xl mx-auto">
+          <p className="text-xs uppercase tracking-[0.25em] text-amber-800 dark:text-amber-400 font-semibold mb-3">
+            The Artisan
+          </p>
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-medium text-foreground">
+            The Heart Behind Sereniquee
+          </h2>
+          <p className="text-sm sm:text-base text-muted-foreground mt-3">
+            A quiet conversation with our founder, Sushiksha Mishra.
+          </p>
         </div>
 
         <div className="max-w-4xl mx-auto">
-          <div className="bg-card border border-border p-8 md:p-12">
-            <div className="grid md:grid-cols-[300px_1fr] gap-8 md:gap-12 items-start">
-              {/* Profile Image */}
-              <div className="mx-auto md:mx-0">
-                <div className="aspect-square w-full max-w-[300px] bg-muted rounded-sm overflow-hidden">
+          <div className="bg-gradient-to-br from-card via-background to-secondary/30 border border-border/80 rounded-3xl p-6 sm:p-10 md:p-12 shadow-elegant">
+            <div className="grid md:grid-cols-[280px_1fr] gap-8 md:gap-12 items-center">
+              {/* Founder Image */}
+              <div className="mx-auto md:mx-0 w-full max-w-[280px]">
+                <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-muted border border-border/80 shadow-md relative group">
                   <picture className="contents">
                     <source srcSet="/owner-pic.webp" type="image/webp" />
-                    <img 
-                      src="/owner-pic.jpeg" 
-                      alt="Sarah Katherine - Founder" 
-                      className="w-full h-full object-contain"
+                    <img
+                      src="/owner-pic.jpeg"
+                      alt="Sushiksha Mishra - Founder & Lead Artisan"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
                     />
                   </picture>
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/60 via-transparent to-transparent flex items-end p-4">
+                    <span className="text-white text-xs font-serif italic">Lead Artisan & Scent Formulator</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Profile Content */}
-              <div>
-                <h3 className="font-serif text-2xl mb-2">Sushiksha Mishra</h3>
-                <p className="text-accent text-sm mb-6 uppercase tracking-wider">
-                  Founder & Lead Artisan
-                </p>
-                
-                <p className="text-muted-foreground leading-relaxed mb-4">
-                  "I founded Sereniquee with a simple philosophy: a candle is more than just wax and wick—it is 
-                  an experience. My journey began with a desire to create something that not only elevates a 
-                  room's aesthetic but does so consciously, using eco-friendly materials that honor our environment."
-                </p>
-                
-                <p className="text-muted-foreground leading-relaxed mb-4">
-                  Specializing in premium soy wax blends, I personally hand-pour every batch to ensure perfection. 
-                  My creative process is driven by a passion for artistic expression and decorative beauty, 
-                  transforming everyday moments into aromatic memories. Quality and sustainability aren't just 
-                  buzzwords to me; they are the heart of every candle I create.
-                </p>
-                
-                <p className="text-muted-foreground leading-relaxed mb-6">
-                  When I am not in the studio experimenting with new fragrances, you can find me tending to my 
-                  garden or exploring traditional art forms, finding inspiration in nature's palette. Sereniquee 
-                  is my invitation to you to pause, breathe, and embrace the serenity of the present moment.
-                </p>
+              {/* Founder Bio */}
+              <div className="space-y-4 text-left">
+                <div>
+                  <h3 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground">
+                    Sushiksha Mishra
+                  </h3>
+                  <p className="text-xs uppercase tracking-widest text-amber-800 dark:text-amber-400 font-medium mt-1">
+                    Founder & Lead Artisan
+                  </p>
+                </div>
 
-                
+                <div className="space-y-3.5 text-muted-foreground text-sm sm:text-base leading-relaxed">
+                  <p>
+                    &ldquo;I created Sereniquee with a clear, unbending standard: a candle must be far more than molten wax and cotton string. It is a portal to stillness. It alters the texture of the air, softens sharp edges, and calls you back home to yourself.&rdquo;
+                  </p>
+                  <p>
+                    &ldquo;Every morning in our studio, we measure botanical soy flakes, check temperatures with precision, and pour each vessel by hand. We will never rush curing or introduce synthetic shortcuts to scale faster. If it isn&apos;t pure enough to burn beside my own family, it will never enter your home.&rdquo;
+                  </p>
+                </div>
+
+                {/* Founder Atelier Commitments */}
+                <div className="pt-3 border-t border-border/60 grid grid-cols-2 gap-3 text-xs text-foreground font-medium">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
+                    <span>Every batch personally tested</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
+                    <span>Zero petroleum paraffin</span>
+                  </div>
+                </div>
+
+                {/* Signature touch */}
+                <div className="pt-2">
+                  <p className="font-serif italic text-lg sm:text-xl text-amber-900 dark:text-amber-300">
+                    Sushiksha Mishra
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Philosophy */}
-      <section className="container-luxury py-24">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-serif text-3xl md:text-4xl mb-8">Our Philosophy</h2>
-          <p className="text-muted-foreground leading-relaxed text-lg mb-6">
-            At Sereniquee, we believe in the art of slow living. In a world that constantly 
-            demands more, faster, louder—we offer the opposite. Our candles are an invitation 
-            to pause, breathe, and reconnect with yourself.
-          </p>
-          <p className="text-muted-foreground leading-relaxed text-lg">
-            Each product is thoughtfully created to honor both the earth and your well-being. 
-            From the ethically sourced ingredients to the recyclable packaging, every decision 
-            reflects our commitment to mindful luxury that you can feel good about.
-          </p>
-        </div>
-      </section>
-
-      {/* Values */}
-      <section className="bg-secondary py-24">
-        <div className="container-luxury">
-          <div className="text-center mb-16">
-            <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-3">
-              Our Values
+      {/* ─── 5. The 4-Step Artisanal Process ─────────────────────────── */}
+      <section className="bg-secondary/40 py-20 md:py-28 border-t border-border/60">
+        <div className="container-luxury max-w-6xl">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <p className="text-xs uppercase tracking-[0.25em] text-amber-800 dark:text-amber-400 font-semibold mb-3">
+              The Process
             </p>
-            <h2 className="font-serif text-3xl md:text-4xl">What We Stand For</h2>
+            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-medium text-foreground">
+              From Wax to Wonder
+            </h2>
+            <p className="text-sm sm:text-base text-muted-foreground mt-3">
+              Meticulous craftsmanship at every stage of the flame.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-12">
-            <div className="text-center">
-              <h3 className="font-serif text-xl mb-4">Quality</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                We use 100% natural soy wax, premium cotton wicks, and phthalate-free 
-                fragrance oils blended with essential oils. No synthetic additives, 
-                no paraffin, no shortcuts—just pure, clean burning candles.
-              </p>
-            </div>
-            <div className="text-center">
-              <h3 className="font-serif text-xl mb-4">Sustainability</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Our vessels are reusable, our packaging is recyclable, and our 
-                ingredients are ethically sourced. We believe luxury should honor 
-                the earth, not harm it.
-              </p>
-            </div>
-            <div className="text-center">
-              <h3 className="font-serif text-xl mb-4">Craftsmanship</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Each candle is hand-poured in small batches with meticulous attention 
-                to detail. From wick placement to cure time, every step is carefully 
-                monitored to ensure perfection.
-              </p>
-            </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {CRAFT_STEPS.map((step) => {
+              const Icon = step.icon;
+              return (
+                <div
+                  key={step.step}
+                  className="bg-card border border-border/80 rounded-2xl p-6 sm:p-7 hover:border-amber-500/50 hover:shadow-lg transition-all duration-300 space-y-4 group flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 text-amber-700 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <span className="font-serif text-3xl font-light text-muted-foreground/30">
+                        {step.step}
+                      </span>
+                    </div>
+
+                    <h3 className="font-serif text-lg font-medium text-foreground mb-2">
+                      {step.title}
+                    </h3>
+
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      {step.desc}
+                    </p>
+                  </div>
+
+                  <div className="h-1 w-8 bg-amber-600/30 rounded-full group-hover:w-full group-hover:bg-amber-600 transition-all duration-300" />
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Process */}
-      <section className="container-luxury py-24">
-        <div className="text-center mb-16">
-          <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-3">
-            The Process
+      {/* ─── 6. Brand Values & Integrity ──────────────────────────────── */}
+      <section className="container-luxury py-20 md:py-28">
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <p className="text-xs uppercase tracking-[0.25em] text-amber-800 dark:text-amber-400 font-semibold mb-3">
+            Our Commitments
           </p>
-          <h2 className="font-serif text-3xl md:text-4xl">From Wax to Wonder</h2>
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-medium text-foreground">
+            What We Stand For
+          </h2>
+          <p className="text-sm sm:text-base text-muted-foreground mt-3">
+            Honoring both the earth and your home with uncompromising standards.
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-8">
-          {[
-            { step: '01', title: 'Source', desc: 'We carefully select premium, natural ingredients' },
-            { step: '02', title: 'Blend', desc: 'Each scent is crafted to create the perfect balance' },
-            { step: '03', title: 'Pour', desc: 'Hand-poured in small batches for quality control' },
-            { step: '04', title: 'Cure', desc: 'Allowed to cure for optimal scent throw' },
-          ].map((item) => (
-            <div key={item.step} className="text-center">
-              <span className="text-4xl font-serif text-muted-foreground/30">{item.step}</span>
-              <h3 className="font-serif text-lg mt-4 mb-2">{item.title}</h3>
-              <p className="text-muted-foreground text-sm">{item.desc}</p>
-            </div>
-          ))}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {BRAND_VALUES.map((val) => {
+            const Icon = val.icon;
+            return (
+              <div
+                key={val.title}
+                className="bg-card border border-border/80 rounded-2xl p-6 sm:p-7 space-y-3 hover:border-amber-400/60 hover:shadow-soft transition-all duration-300"
+              >
+                <div className="w-10 h-10 rounded-lg bg-secondary text-amber-700 dark:text-amber-400 flex items-center justify-center">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-amber-800 dark:text-amber-400">
+                  {val.badge}
+                </span>
+                <h3 className="font-serif text-lg font-medium text-foreground">
+                  {val.title}
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {val.description}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ─── 7. Invitation CTA Banner ─────────────────────────────────── */}
+      <section className="relative overflow-hidden py-16 sm:py-24 bg-gradient-to-b from-[#2c221e] via-[#241a17] to-[#1c1411] text-[#fbf8f3] border-t border-amber-900/40">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:20px_20px]" />
+        
+        <div className="container-luxury relative z-10 text-center max-w-3xl mx-auto px-4 space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs uppercase tracking-widest">
+            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+            <span>Experience The Serenity</span>
+          </div>
+
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-medium tracking-tight leading-tight text-[#fbf8f3]">
+            Ready to transform your space into <br className="hidden sm:inline" />
+            <span className="italic text-amber-300">a sanctuary of calm?</span>
+          </h2>
+
+          <p className="text-[#fbf8f3]/80 text-sm sm:text-base leading-relaxed max-w-xl mx-auto">
+            Browse our hand-poured candle collections, or build a bespoke gift hamper complete with brass wick trimmers and custom handwritten notes.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+            <Link to="/shop" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto bg-amber-500 text-stone-950 hover:bg-amber-400 font-medium px-8 py-6 rounded-xl shadow-lg shadow-amber-950/40 group">
+                Shop The Collection
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </Link>
+            <Link to="/gift-box" className="w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto border-amber-300/40 text-[#fbf8f3] hover:bg-amber-400/10 px-8 py-6 rounded-xl">
+                <Gift className="mr-2 h-4 w-4 text-amber-300" />
+                Build A Gift Box
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
     </div>

@@ -197,7 +197,7 @@ export default function GiftBoxCustomizer() {
               className={cn(
                 'py-2.5 px-2 rounded-2xl border text-xs sm:text-sm font-medium transition-all duration-200',
                 activeStep === step.num
-                  ? 'border-[#1c2e28] bg-[#1c2e28] text-white shadow-sm'
+                  ? 'border-[#2c221e] bg-[#2c221e] text-white shadow-sm'
                   : 'border-[#eadfd1] bg-[#fdfaf5] text-muted-foreground hover:bg-white hover:text-foreground'
               )}
             >
@@ -242,12 +242,12 @@ export default function GiftBoxCustomizer() {
                         className={cn(
                           'p-4 rounded-2xl border text-left transition-all duration-200 relative',
                           isSelected
-                            ? 'border-[#1c2e28] bg-white ring-2 ring-[#1c2e28]/15 shadow-md'
+                            ? 'border-[#2c221e] bg-white ring-2 ring-[#2c221e]/15 shadow-md'
                             : 'border-[#eadfd1] bg-[#fbf9f6] hover:bg-white'
                         )}
                       >
                         {tier.isPopular && (
-                          <span className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full bg-[#1c2e28] text-white text-[10px] font-bold uppercase tracking-wider">
+                          <span className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full bg-[#2c221e] text-white text-[10px] font-bold uppercase tracking-wider">
                             Most Loved
                           </span>
                         )}
@@ -278,7 +278,7 @@ export default function GiftBoxCustomizer() {
                           'p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between',
                           style.bgClass,
                           isSelected
-                            ? 'border-[#1c2e28] ring-2 ring-[#1c2e28]/20 shadow-md'
+                            ? 'border-[#2c221e] ring-2 ring-[#2c221e]/20 shadow-md'
                             : 'border-[#eadfd1]'
                         )}
                       >
@@ -302,7 +302,7 @@ export default function GiftBoxCustomizer() {
                 <Button
                   type="button"
                   onClick={() => setActiveStep(2)}
-                  className="rounded-full px-6 bg-[#1c2e28] text-white hover:bg-[#253d35]"
+                  className="rounded-full px-6 bg-[#2c221e] text-white hover:bg-[#3d302a]"
                 >
                   <span>Next: Choose {selectedTier.capacity} Candles</span>
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -402,7 +402,7 @@ export default function GiftBoxCustomizer() {
                   type="button"
                   onClick={() => setActiveStep(3)}
                   disabled={selectedCandles.length === 0}
-                  className="rounded-full px-6 bg-[#1c2e28] text-white hover:bg-[#253d35]"
+                  className="rounded-full px-6 bg-[#2c221e] text-white hover:bg-[#3d302a]"
                 >
                   <span>Next: Add Accessories</span>
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -433,7 +433,7 @@ export default function GiftBoxCustomizer() {
                       className={cn(
                         'p-4 rounded-2xl border cursor-pointer transition-all duration-200 flex items-center justify-between gap-4',
                         isChecked
-                          ? 'border-[#1c2e28] bg-white ring-1 ring-[#1c2e28]/20 shadow-sm'
+                          ? 'border-[#2c221e] bg-white ring-1 ring-[#2c221e]/20 shadow-sm'
                           : 'border-[#eadfd1] bg-[#fbf9f6] hover:bg-white'
                       )}
                     >
@@ -441,7 +441,7 @@ export default function GiftBoxCustomizer() {
                         <div
                           className={cn(
                             'h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-colors',
-                            isChecked ? 'bg-[#1c2e28] text-white' : 'bg-[#f0e8de] text-[#8c6239]'
+                            isChecked ? 'bg-[#2c221e] text-white' : 'bg-[#f0e8de] text-[#8c6239]'
                           )}
                         >
                           {acc.iconName === 'Scissors' ? (
@@ -463,7 +463,7 @@ export default function GiftBoxCustomizer() {
                         <span
                           className={cn(
                             'text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full inline-block mt-1',
-                            isChecked ? 'bg-emerald-100 text-emerald-800' : 'bg-muted text-muted-foreground'
+                            isChecked ? 'bg-amber-100 text-amber-900 border border-amber-300/80' : 'bg-muted text-muted-foreground'
                           )}
                         >
                           {isChecked ? 'Included' : '+ Add'}
@@ -487,7 +487,7 @@ export default function GiftBoxCustomizer() {
                 <Button
                   type="button"
                   onClick={() => setActiveStep(4)}
-                  className="rounded-full px-6 bg-[#1c2e28] text-white hover:bg-[#253d35]"
+                  className="rounded-full px-6 bg-[#2c221e] text-white hover:bg-[#3d302a]"
                 >
                   <span>Next: Compose Gift Note</span>
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -565,7 +565,7 @@ export default function GiftBoxCustomizer() {
                 <Button
                   type="button"
                   onClick={handleCompleteBox}
-                  className="rounded-full px-7 bg-[#1c2e28] text-white hover:bg-[#253d35] font-medium shadow-md"
+                  className="rounded-full px-7 bg-[#2c221e] text-white hover:bg-[#3d302a] font-medium shadow-md"
                 >
                   <ShoppingBag className="h-4 w-4 mr-2" />
                   <span>Add Bespoke Box to Bag • ₹{totalPrice.toLocaleString('en-IN')}</span>
@@ -694,7 +694,7 @@ export default function GiftBoxCustomizer() {
             <Button
               type="button"
               onClick={handleCompleteBox}
-              className="w-full h-12 rounded-full bg-[#1c2e28] text-white hover:bg-[#253d35] font-medium shadow-md text-sm"
+              className="w-full h-12 rounded-full bg-[#2c221e] text-white hover:bg-[#3d302a] font-medium shadow-md text-sm"
             >
               <ShoppingBag className="h-4 w-4 mr-2" />
               <span>Add to Bag • ₹{totalPrice.toLocaleString('en-IN')}</span>

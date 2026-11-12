@@ -329,7 +329,7 @@ export default function ProductDetail() {
                       Sold Out
                     </span>
                   ) : product.featured ? (
-                    <span className="rounded-full bg-[#1c2e28] text-white px-3 py-1 text-[11px] font-semibold tracking-wider uppercase shadow-sm">
+                    <span className="rounded-full bg-[#2c221e] text-white px-3 py-1 text-[11px] font-semibold tracking-wider uppercase shadow-sm">
                       Best Seller
                     </span>
                   ) : product.category ? (
@@ -487,7 +487,7 @@ export default function ProductDetail() {
           {/* Price & Taxes */}
           <div className="p-4 rounded-2xl bg-[#fdfaf5] border border-[#eadfd1]/80">
             <div className="flex items-baseline gap-3">
-              <span className="font-serif text-3xl sm:text-4xl font-semibold text-[#1c2e28]">
+              <span className="font-serif text-3xl sm:text-4xl font-semibold text-[#2c221e]">
                 ₹{formatPrice(product.price)}
               </span>
               <span className="text-xs text-muted-foreground font-medium">
@@ -590,7 +590,7 @@ export default function ProductDetail() {
                   'flex-1 h-12 sm:h-13 rounded-full text-sm sm:text-base font-medium transition-all duration-300 shadow-md',
                   isAddedRecently
                     ? 'bg-emerald-700 text-white'
-                    : 'bg-[#1c2e28] text-white hover:bg-[#253d35] active:scale-[0.98]'
+                    : 'bg-[#2c221e] text-white hover:bg-[#3d302a] active:scale-[0.98]'
                 )}
               >
                 {isAddedRecently ? (
@@ -727,7 +727,7 @@ export default function ProductDetail() {
             <TabsContent value="care" className="pt-8 focus-visible:outline-none">
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="p-5 rounded-2xl border border-[#eadfd1]/70 bg-[#fbf9f6] space-y-2">
-                  <div className="h-8 w-8 rounded-full bg-[#1c2e28] text-white flex items-center justify-center text-xs font-semibold">
+                  <div className="h-8 w-8 rounded-full bg-[#2c221e] text-white flex items-center justify-center text-xs font-semibold">
                     1
                   </div>
                   <h4 className="font-semibold text-foreground text-sm">The Memory Burn</h4>
@@ -737,7 +737,7 @@ export default function ProductDetail() {
                 </div>
 
                 <div className="p-5 rounded-2xl border border-[#eadfd1]/70 bg-[#fbf9f6] space-y-2">
-                  <div className="h-8 w-8 rounded-full bg-[#1c2e28] text-white flex items-center justify-center text-xs font-semibold">
+                  <div className="h-8 w-8 rounded-full bg-[#2c221e] text-white flex items-center justify-center text-xs font-semibold">
                     2
                   </div>
                   <h4 className="font-semibold text-foreground text-sm">Trim Your Wick</h4>
@@ -747,7 +747,7 @@ export default function ProductDetail() {
                 </div>
 
                 <div className="p-5 rounded-2xl border border-[#eadfd1]/70 bg-[#fbf9f6] space-y-2">
-                  <div className="h-8 w-8 rounded-full bg-[#1c2e28] text-white flex items-center justify-center text-xs font-semibold">
+                  <div className="h-8 w-8 rounded-full bg-[#2c221e] text-white flex items-center justify-center text-xs font-semibold">
                     3
                   </div>
                   <h4 className="font-semibold text-foreground text-sm">4-Hour Rule</h4>
@@ -757,7 +757,7 @@ export default function ProductDetail() {
                 </div>
 
                 <div className="p-5 rounded-2xl border border-[#eadfd1]/70 bg-[#fbf9f6] space-y-2">
-                  <div className="h-8 w-8 rounded-full bg-[#1c2e28] text-white flex items-center justify-center text-xs font-semibold">
+                  <div className="h-8 w-8 rounded-full bg-[#2c221e] text-white flex items-center justify-center text-xs font-semibold">
                     4
                   </div>
                   <h4 className="font-semibold text-foreground text-sm">Gentle Snuff</h4>
@@ -995,7 +995,7 @@ export default function ProductDetail() {
             onClick={handleAddToCart}
             disabled={product.stock_quantity === 0}
             size="sm"
-            className="rounded-full px-5 h-10 bg-[#1c2e28] text-white hover:bg-[#253d35] font-medium shrink-0"
+            className="rounded-full px-5 h-10 bg-[#2c221e] text-white hover:bg-[#3d302a] font-medium shrink-0"
           >
             {product.stock_quantity === 0 ? 'Sold Out' : 'Add to Bag'}
           </Button>

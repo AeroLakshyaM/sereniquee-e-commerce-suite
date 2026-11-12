@@ -463,7 +463,7 @@ export default function Admin() {
                   className={cn(
                     'p-4 rounded-2xl border text-left transition-all duration-200 hover:shadow-md flex flex-col justify-between group',
                     isActive
-                      ? 'border-[#1c2e28] bg-white ring-2 ring-[#1c2e28]/15 shadow-sm'
+                      ? 'border-[#2c221e] bg-white ring-2 ring-[#2c221e]/15 shadow-sm'
                       : 'border-[#eadfd1] bg-white/70 hover:bg-white hover:border-[#8c6239]/50'
                   )}
                 >
@@ -472,8 +472,8 @@ export default function Admin() {
                       className={cn(
                         'h-9 w-9 rounded-xl flex items-center justify-center transition-colors',
                         isActive
-                          ? 'bg-[#1c2e28] text-white'
-                          : 'bg-[#fbf9f6] text-[#8c6239] group-hover:bg-[#1c2e28] group-hover:text-white'
+                          ? 'bg-[#2c221e] text-white'
+                          : 'bg-[#fbf9f6] text-[#8c6239] group-hover:bg-[#2c221e] group-hover:text-white'
                       )}
                     >
                       <Icon className="h-4 w-4" />
@@ -533,7 +533,7 @@ export default function Admin() {
                 setShowForm(true);
                 setActiveTab('products');
               }}
-              className="rounded-full bg-[#1c2e28] text-white hover:bg-[#253d35] shadow-sm text-xs sm:text-sm h-10 px-5 font-medium"
+              className="rounded-full bg-[#2c221e] text-white hover:bg-[#3d302a] shadow-sm text-xs sm:text-sm h-10 px-5 font-medium"
             >
               <Plus className="h-4 w-4 mr-1.5" />
               Add Product
@@ -585,7 +585,7 @@ export default function Admin() {
                   className={cn(
                     'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all shrink-0',
                     isSelected
-                      ? 'bg-[#1c2e28] text-white shadow-sm ring-2 ring-[#1c2e28]/20'
+                      ? 'bg-[#2c221e] text-white shadow-sm ring-2 ring-[#2c221e]/20'
                       : 'bg-[#fbf9f6] text-muted-foreground hover:text-foreground hover:bg-[#f0e8de] border border-[#eadfd1]/70'
                   )}
                 >
@@ -653,7 +653,7 @@ export default function Admin() {
                   className={cn(
                     'inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all shrink-0',
                     isActive
-                      ? 'bg-white text-foreground shadow-sm border border-[#eadfd1] ring-1 ring-[#1c2e28]/10 font-semibold'
+                      ? 'bg-white text-foreground shadow-sm border border-[#eadfd1] ring-1 ring-[#2c221e]/10 font-semibold'
                       : 'text-muted-foreground hover:text-foreground hover:bg-white/60'
                   )}
                 >
@@ -673,7 +673,7 @@ export default function Admin() {
         {/* Contextual Active Board Banner */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 rounded-2xl border border-[#eadfd1] bg-card/90 shadow-sm">
           <div className="flex items-center gap-3.5 min-w-0">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#1c2e28] text-white shadow-sm">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#2c221e] text-white shadow-sm">
               <ActiveSectionIcon className="h-5 w-5" />
             </span>
             <div className="min-w-0">
@@ -968,7 +968,7 @@ export default function Admin() {
                                       />
                                       <Button
                                         size="sm"
-                                        className="w-full rounded-full bg-[#1c2e28] text-white"
+                                        className="w-full rounded-full bg-[#2c221e] text-white"
                                         onClick={() => void updateStock(product.id)}
                                       >
                                         Save Stock
@@ -981,7 +981,7 @@ export default function Admin() {
                             </td>
                             <td className="p-4">
                               {product.featured ? (
-                                <span className="inline-flex items-center rounded-full bg-[#1c2e28] text-white px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+                                <span className="inline-flex items-center rounded-full bg-[#2c221e] text-white px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
                                   Featured
                                 </span>
                               ) : (
@@ -1043,7 +1043,7 @@ export default function Admin() {
                       setProductSearch('');
                       setShowForm(true);
                     }}
-                    className="rounded-full bg-[#1c2e28] text-white"
+                    className="rounded-full bg-[#2c221e] text-white"
                   >
                     Add a New Candle
                   </Button>

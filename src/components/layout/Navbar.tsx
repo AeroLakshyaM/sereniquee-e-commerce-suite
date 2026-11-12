@@ -149,9 +149,7 @@ export function Navbar() {
                   </span>
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-600/80 mb-0.5 group-hover:scale-125 transition-transform" />
                 </div>
-                <span className="text-[8.5px] uppercase tracking-[0.32em] text-muted-foreground font-sans mt-0.5 font-medium transition-colors group-hover:text-foreground/70">
-                  Luxury Candles
-                </span>
+              
               </Link>
             </div>
 
