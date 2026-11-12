@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
+import { BrandLoader } from '@/components/layout/BrandLoader';
 import { reportClientError } from '@/lib/errorReporting';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tag, UserCircle, ShoppingBag } from 'lucide-react';
@@ -396,7 +397,7 @@ export default function Checkout() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <BrandLoader fullScreen={false} />
       </div>
     );
   }

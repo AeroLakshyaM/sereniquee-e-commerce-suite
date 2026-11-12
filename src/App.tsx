@@ -10,6 +10,7 @@ import { Layout } from "@/components/layout/Layout";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { AdminRoute } from "@/components/layout/ProtectedRoute";
 import { ErrorBoundary } from "@/components/layout/ErrorBoundary";
+import { BrandLoader } from "@/components/layout/BrandLoader";
 
 // ─── Lazy-loaded pages ────────────────────────────────────────────────────────
 // Pages are split into separate chunks so the initial bundle stays small.
@@ -40,11 +41,7 @@ const MobileSavedCandles = lazy(() => import("./pages/MobileSavedCandles"));
 
 // ─── Shared page-level loading fallback ──────────────────────────────────────
 function PageLoader() {
-  return (
-    <div className="min-h-[60vh] flex items-center justify-center">
-      <div className="animate-pulse text-muted-foreground">Loading...</div>
-    </div>
-  );
+  return <BrandLoader fullScreen={false} />;
 }
 
 // ─── QueryClient with sensible defaults ──────────────────────────────────────

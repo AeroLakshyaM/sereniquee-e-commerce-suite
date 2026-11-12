@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/website-favicon.png" />
+    <link rel="preload" as="image" href="/footer_logo.png" />
     <title>Sereniquee Candles - Premium Handcrafted Luxury Candles</title>
     <meta name="description" content="Discover Sereniquee Candles - Premium handcrafted luxury candles made with natural ingredients. Transform your space with our exquisite collection of artisan candles." />
     <meta name="author" content="Sereniquee Candles" />
@@ -21,9 +22,99 @@
     <meta name="twitter:image" content="/landing-candles.jpg" />
 
     <script async src="/google-analytics.js"></script>
+    <style>
+      .initial-brand-loader {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: hsl(30, 33%, 96%);
+        padding: 1.5rem;
+      }
+      .initial-brand-stage {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .initial-brand-glow {
+        position: absolute;
+        width: 11rem;
+        height: 11rem;
+        border-radius: 9999px;
+        background: rgba(252, 211, 77, 0.25);
+        filter: blur(32px);
+        animation: initialBrandBreathe 2.6s ease-in-out infinite;
+      }
+      .initial-brand-ring {
+        position: absolute;
+        width: 9.5rem;
+        height: 9.5rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(23, 59, 56, 0.15);
+        border-top-color: #c99b42;
+        border-right-color: rgba(23, 59, 56, 0.6);
+        animation: initialBrandSpin 2.4s linear infinite;
+      }
+      .initial-brand-logo {
+        position: relative;
+        width: 8.25rem;
+        height: 8.25rem;
+        border-radius: 9999px;
+        object-fit: contain;
+        animation: initialBrandBreathe 2.6s ease-in-out infinite;
+      }
+      .initial-brand-track {
+        margin-top: 1.75rem;
+        width: 10rem;
+        height: 2px;
+        overflow: hidden;
+        border-radius: 9999px;
+        background: rgba(23, 59, 56, 0.1);
+      }
+      .initial-brand-bar {
+        width: 50%;
+        height: 100%;
+        border-radius: 9999px;
+        background: linear-gradient(90deg, #173b38, #c99b42, #173b38);
+        animation: initialBrandSweep 1.5s ease-in-out infinite;
+      }
+      @keyframes initialBrandSpin { to { transform: rotate(360deg); } }
+      @keyframes initialBrandBreathe {
+        0%, 100% { transform: scale(0.985); opacity: 0.92; }
+        50% { transform: scale(1.015); opacity: 1; }
+      }
+      @keyframes initialBrandSweep {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(200%); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .initial-brand-glow, .initial-brand-ring, .initial-brand-logo, .initial-brand-bar {
+          animation: none;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="initial-brand-loader" role="status" aria-label="Loading Sereniquee Candles">
+        <div class="initial-brand-stage">
+          <div class="initial-brand-glow" aria-hidden="true"></div>
+          <div class="initial-brand-ring" aria-hidden="true"></div>
+          <img
+            src="/footer_logo.png"
+            alt="Sereniquee Candles"
+            width="132"
+            height="132"
+            class="initial-brand-logo"
+          />
+        </div>
+        <div class="initial-brand-track" aria-hidden="true">
+          <div class="initial-brand-bar"></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

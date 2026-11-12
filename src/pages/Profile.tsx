@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { LogOut, Package, Eye } from 'lucide-react';
 import OrderDetailModal from '@/components/order/OrderDetailModal';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
+import { BrandLoader } from '@/components/layout/BrandLoader';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -82,15 +83,15 @@ export default function Profile() {
 
   if (authLoading || profileLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <>
         <SeoHelmet
           title="My Profile - Account Settings - Sereniquee"
           description="Manage your Sereniquee account, update your profile information, view order history, and track your candle deliveries."
           keywords="my account, profile settings, order history, account management"
           url="/profile"
         />
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
+        <BrandLoader fullScreen={false} />
+      </>
     );
   }
 

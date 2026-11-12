@@ -358,6 +358,54 @@ body.mobile-store-mode {
     .product-grid-item {
       animation: none;
     }
+    .brand-loader-ring,
+    .brand-loader-glow,
+    .brand-loader-logo,
+    .brand-loader-bar {
+      animation: none !important;
+    }
+  }
+
+  @keyframes brandLoaderSpin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes brandLoaderBreathe {
+    0%, 100% {
+      transform: scale(0.985);
+      opacity: 0.92;
+    }
+    50% {
+      transform: scale(1.015);
+      opacity: 1;
+    }
+  }
+
+  @keyframes brandLoaderSweep {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(200%);
+    }
+  }
+
+  .brand-loader-ring {
+    animation: brandLoaderSpin 2.4s linear infinite;
+  }
+
+  .brand-loader-glow {
+    animation: brandLoaderBreathe 2.6s ease-in-out infinite;
+  }
+
+  .brand-loader-logo {
+    animation: brandLoaderBreathe 2.6s ease-in-out infinite;
+  }
+
+  .brand-loader-bar {
+    animation: brandLoaderSweep 1.5s ease-in-out infinite;
   }
 
   @media (min-width: 640px) {
