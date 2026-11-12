@@ -17,36 +17,36 @@ import {
 
 const JOURNEY_MILESTONES = [
   {
-    year: '2023',
+    year: 'Early 2025',
     title: 'The Kitchen Studio',
-    subtitle: 'Where tranquility began',
+    subtitle: 'Where our craft began',
     description:
-      'Frustrated by commercial paraffin candles that smoked and gave headaches, our founder began blending pure soy wax with therapeutic botanical oils in a modest kitchen atelier.',
-    highlight: 'First 50 small batches poured',
+      'Frustrated by commercial paraffin candles that smoked and caused headaches, founder Sushiksha Mishra began experimenting with 100% natural soy wax and therapeutic botanical oils in her home atelier.',
+    highlight: 'Founded in 2025',
   },
   {
-    year: '2024',
-    title: 'The Clean Wax Standard',
+    year: 'Mid 2025',
+    title: 'The Clean Wax Formula',
     subtitle: 'Zero compromises on wellness',
     description:
-      'We perfected our proprietary 100% natural soy wax blend paired with unbleached, lead-free cotton wicks. We pledged to never use petroleum paraffin, phthalates, or chemical hardeners.',
-    highlight: '100% Botanical Soy certified',
+      'We perfected our clean-burning soy wax formula with lead-free braided cotton wicks. We made a strict studio pledge: zero paraffin, zero petroleum derivatives, and zero chemical additives.',
+    highlight: '100% Paraffin-Free',
   },
   {
-    year: '2025',
-    title: 'Bespoke Luxury Gifting',
-    subtitle: 'Celebrations & intimate hampers',
+    year: 'Late 2025',
+    title: 'Bespoke Hampers & Favors',
+    subtitle: 'Thoughtful custom gifting',
     description:
-      'Introduced our bespoke gold-embossed hamper builder with handwritten calligraphy wax-sealed notes, becoming a beloved gift for Indian weddings, Diwali, and mindful home warmings.',
-    highlight: 'Custom Hamper customizer launched',
+      'We introduced custom-curated hamper boxes and handwritten calligraphy cards for weddings, Diwali, birthdays, and celebrations, helping patrons gift memorable sensory experiences.',
+    highlight: 'Custom Gifting Launched',
   },
   {
     year: 'Today',
-    title: 'The Sanctuary of Light',
-    subtitle: 'Hand-poured for conscious homes',
+    title: '500+ Orders & Growing',
+    subtitle: 'Illuminating homes across India',
     description:
-      'Illuminating thousands of spaces across India. Despite our growth, every single candle is still individually wicked, stirred, poured, and cured by hand with serene mindfulness.',
-    highlight: 'Over 5,000+ homes illuminated',
+      'We have now delivered over 500+ orders to candle lovers nationwide. Despite our growth, every single candle is still personally hand-poured in small batches, inspected, and packed in our studio.',
+    highlight: '500+ Orders Delivered',
   },
 ];
 
@@ -208,6 +208,34 @@ export default function About() {
                 <p className="font-bold text-xs uppercase tracking-wider text-foreground">Small-Batch Poured</p>
                 <p className="text-[11px] text-muted-foreground">Max 12 candles per pour</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Real Studio Milestones Strip ───────────────────────────── */}
+      <section className="border-y border-border/80 bg-[#fbf9f6] dark:bg-card/50 py-10 sm:py-12">
+        <div className="container-luxury max-w-5xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center">
+            <div className="space-y-1">
+              <p className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-foreground">2025</p>
+              <p className="text-xs uppercase tracking-wider text-[#8c6239] font-semibold">Founded</p>
+              <p className="text-[11px] text-muted-foreground">Hand-poured from day one</p>
+            </div>
+            <div className="space-y-1 border-l border-border/60">
+              <p className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[#8c6239]">500+</p>
+              <p className="text-xs uppercase tracking-wider text-[#8c6239] font-semibold">Orders Delivered</p>
+              <p className="text-[11px] text-muted-foreground">To candle lovers across India</p>
+            </div>
+            <div className="space-y-1 border-l border-border/60">
+              <p className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-foreground">100%</p>
+              <p className="text-xs uppercase tracking-wider text-[#8c6239] font-semibold">Pure Soy Wax</p>
+              <p className="text-[11px] text-muted-foreground">Zero paraffin or toxins</p>
+            </div>
+            <div className="space-y-1 border-l border-border/60">
+              <p className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-foreground">Max 12</p>
+              <p className="text-xs uppercase tracking-wider text-[#8c6239] font-semibold">Small Batch Pour</p>
+              <p className="text-[11px] text-muted-foreground">For impeccable quality</p>
             </div>
           </div>
         </div>
