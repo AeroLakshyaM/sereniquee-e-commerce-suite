@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, User, Menu, X, Search } from 'lucide-react';
+import { ShoppingBag, User, Menu, X, Search, Sparkles } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -99,6 +99,17 @@ export function Navbar() {
                 style={{ animationDelay: '0.1s' }}
               >
                 Shop
+              </Link>
+              <Link
+                to="/gift-box"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors animate-slide-down inline-flex items-center gap-1.5"
+                style={{ animationDelay: '0.12s' }}
+              >
+                <span>Bespoke Boxes</span>
+                <span className="text-[10px] tracking-wider uppercase bg-amber-100 text-amber-900 border border-amber-300/70 font-semibold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5">
+                  <Sparkles className="h-2.5 w-2.5 text-amber-700" />
+                  Custom
+                </span>
               </Link>
               <Link
                 to="/blogs"
@@ -338,6 +349,19 @@ export function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Shop
+                </Link>
+                <Link
+                  to="/gift-box"
+                  className="text-base font-medium text-amber-900 bg-amber-50/80 border border-amber-200/60 hover:bg-amber-100/70 transition-colors py-3 px-4 rounded-md flex items-center justify-between"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-amber-700" />
+                    <span>Build Gift Box</span>
+                  </span>
+                  <span className="text-[10px] tracking-wider uppercase font-semibold bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-full">
+                    Custom
+                  </span>
                 </Link>
                 <Link
                   to="/blogs"

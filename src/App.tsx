@@ -38,6 +38,7 @@ const ExhibitionHome   = lazy(() => import("./pages/ExhibitionHome"));
 const MobileStoreLayout = lazy(() => import("./components/layout/MobileStoreLayout"));
 const ScentPassport   = lazy(() => import("./pages/ScentPassport"));
 const MobileSavedCandles = lazy(() => import("./pages/MobileSavedCandles"));
+const GiftBoxCustomizer = lazy(() => import("./pages/GiftBoxCustomizer"));
 
 // ─── Shared page-level loading fallback ──────────────────────────────────────
 function PageLoader() {
@@ -93,6 +94,7 @@ const App = () => (
                     <Route path="product/:slug" element={<ProductDetail />} />
                     <Route path="checkout" element={<Checkout />} />
                     <Route path="custom-orders" element={<CustomOrders />} />
+                    <Route path="gift-box" element={<GiftBoxCustomizer />} />
                     <Route path="passport" element={<ScentPassport />} />
                     <Route path="saved" element={<MobileSavedCandles />} />
                     <Route path="faq" element={<FAQ />} />
@@ -104,6 +106,14 @@ const App = () => (
                     element={
                       <Layout>
                         <Shop />
+                      </Layout>
+                    }
+                  />
+                  <Route
+                    path="/gift-box"
+                    element={
+                      <Layout>
+                        <GiftBoxCustomizer />
                       </Layout>
                     }
                   />

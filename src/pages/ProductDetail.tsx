@@ -37,6 +37,7 @@ import { ScentPassportButton } from '@/components/product/ScentPassportButton';
 import { StorageImage } from '@/components/ui/storage-image';
 import { ProductImageLightbox } from '@/components/product/ProductImageLightbox';
 import { ProductDetailSkeleton } from '@/components/product/ProductDetailSkeleton';
+import { PincodeDeliveryChecker } from '@/components/product/PincodeDeliveryChecker';
 import { useOptionalMobileFavorites } from '@/contexts/MobileFavoritesContext';
 import { useOptionalAuth } from '@/contexts/AuthContext';
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist';
@@ -605,6 +606,9 @@ export default function ProductDetail() {
                 )}
               </Button>
             </div>
+
+            {/* Pincode Delivery Date Checker */}
+            <PincodeDeliveryChecker />
 
             {/* Direct WhatsApp Inquiry & Share */}
             <div className="flex items-center gap-2.5 pt-1">

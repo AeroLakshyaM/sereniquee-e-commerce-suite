@@ -13,7 +13,7 @@ import { CategorySection } from '@/components/CategorySection';
 import { StorageImage } from '@/components/ui/storage-image';
 import { galleryImages } from '@/data/galleryImages';
 import { Product } from '@/types';
-import { ArrowRight, BookOpen, Heart, Leaf, Sparkles, Star } from 'lucide-react';
+import { ArrowRight, BookOpen, Gift, Heart, Leaf, Sparkles, Star } from 'lucide-react';
 
 export default function Home() {
   const { data, isLoading } = useProducts(undefined, undefined, { listing: true });
@@ -147,6 +147,65 @@ export default function Home() {
             </Link>
           </div>
         )}
+        </div>
+      </section>
+
+      {/* Bespoke Gift Box Hamper Customizer Showcase */}
+      <section className="relative overflow-hidden py-14 sm:py-20 bg-[#1c2e28] text-white">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:20px_20px]" />
+        <div className="container-luxury relative z-10 grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs uppercase tracking-widest mb-4">
+              <Gift className="h-3.5 w-3.5" />
+              <span>Gifting Experience</span>
+            </div>
+            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-medium tracking-tight mb-4 leading-tight">
+              Build Your Own <span className="italic text-amber-300">Luxury Gift Box</span>
+            </h2>
+            <p className="text-white/80 text-sm sm:text-base leading-relaxed mb-6 max-w-lg">
+              Curate the ultimate sensory present for Diwali, weddings, birthdays, or festive celebrations.
+              Choose your magnetic gold-embossed box, hand-pick 2 to 4 artisan candle fragrances, add solid brass care instruments, and pen a handwritten calligraphy card.
+            </p>
+            <div className="flex flex-wrap items-center gap-3 mb-8 text-xs text-white/70">
+              <span className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
+                ✨ Choice of 2, 3, or 4 Candles
+              </span>
+              <span className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
+                🎁 Solid Brass Care Tools
+              </span>
+              <span className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
+                💌 Calligraphy Gift Note
+              </span>
+            </div>
+            <Link to="/gift-box">
+              <Button size="lg" className="bg-amber-400 text-stone-950 hover:bg-amber-300 font-medium px-8 py-6 text-sm sm:text-base shadow-lg shadow-amber-950/20 group">
+                Curate Your Gift Box
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </Link>
+          </div>
+          <div className="relative">
+            <div className="relative mx-auto max-w-md rounded-2xl p-6 bg-gradient-to-br from-white/10 to-white/5 border border-white/15 backdrop-blur-md shadow-2xl">
+              <div className="aspect-[4/3] rounded-xl overflow-hidden bg-stone-900/40 relative mb-4 border border-white/10">
+                <img
+                  src="/landing-candles.jpg"
+                  alt="Luxury Gift Hamper Box"
+                  className="w-full h-full object-cover opacity-90 hover:scale-105 transition-transform duration-700"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-transparent flex items-end p-4">
+                  <div className="text-left">
+                    <p className="text-xs uppercase tracking-widest text-amber-300 font-semibold">The Atelier Trio</p>
+                    <p className="text-white text-sm font-serif">Ivory Gold Magnetic Box • 3 Candles • Brass Snuffer</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-xs text-white/80 border-t border-white/10 pt-3">
+                <span>Free Express Shipping Across India</span>
+                <span className="text-amber-300 font-semibold">From ₹1,899</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
