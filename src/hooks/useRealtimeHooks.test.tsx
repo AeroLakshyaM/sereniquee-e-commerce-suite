@@ -29,6 +29,7 @@ const mocks = vi.hoisted(() => {
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'user-123' } }),
+  useOptionalAuth: () => ({ user: { id: 'user-123' } }),
 }));
 
 vi.mock('@/integrations/supabase/client', () => ({

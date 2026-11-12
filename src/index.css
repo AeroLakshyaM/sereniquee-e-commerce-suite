@@ -358,12 +358,74 @@ body.mobile-store-mode {
     .product-grid-item {
       animation: none;
     }
+    .lightbox-panel-open,
+    .lightbox-image-swap {
+      animation: none !important;
+    }
     .brand-loader-ring,
     .brand-loader-glow,
     .brand-loader-logo,
     .brand-loader-bar {
       animation: none !important;
     }
+  }
+
+  @keyframes lightboxOverlayIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes lightboxPanelIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -48%) scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
+  @keyframes lightboxPanelOut {
+    from {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translate(-50%, -48%) scale(0.94);
+    }
+  }
+
+  @keyframes lightboxImageSwap {
+    from {
+      opacity: 0.35;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .lightbox-overlay[data-state="open"] {
+    animation: lightboxOverlayIn 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .lightbox-panel[data-state="open"] {
+    animation: lightboxPanelIn 380ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .lightbox-panel[data-state="closed"] {
+    animation: lightboxPanelOut 220ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+
+  .lightbox-image-swap {
+    animation: lightboxImageSwap 280ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   @keyframes brandLoaderSpin {

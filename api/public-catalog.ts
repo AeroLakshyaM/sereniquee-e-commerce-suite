@@ -12,7 +12,7 @@ interface CatalogResponse {
 }
 
 const PRODUCTS_PAGE_SIZE = 12;
-const PRODUCT_LISTING_FIELDS = 'id,name,slug,sku,description,price,category,stock_quantity,image_url,image_urls,featured,created_at,updated_at';
+const PRODUCT_LISTING_FIELDS = 'id,name,slug,sku,description,price,category,stock_quantity,image_url,image_urls,featured,average_rating,review_count,created_at,updated_at';
 const BLOG_LISTING_FIELDS = 'id,title,slug,excerpt,content,cover_image_url,author_name,is_published,tags,reading_time,published_at,created_at,updated_at';
 
 let cachedAnonClient: SupabaseClient | null = null;

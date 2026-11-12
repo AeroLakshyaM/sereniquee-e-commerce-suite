@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { StoreContactSection } from '@/components/mobile-store/StoreContactSection';
 import { Product } from '@/types';
 import { StorageImage } from '@/components/ui/storage-image';
+import { ProductImageLightbox } from '@/components/product/ProductImageLightbox';
 
 const MOOD_FILTERS = [
   { label: 'Fresh', terms: ['fresh', 'citrus', 'lemon', 'bergamot', 'ocean', 'mint', 'eucalyptus', 'clean'] },
@@ -29,17 +30,29 @@ function productSearchText(product: Product) {
 
 function QuickOrderPick({ product }: { product: Product }) {
   const [quantity, setQuantity] = useState(1);
-  const image = product.image_urls?.[0] || product.image_url;
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const images = product.image_urls?.length ? product.image_urls : product.image_url ? [product.image_url] : [];
+  const image = images[0];
   const inStock = product.stock_quantity > 0;
   const safeQuantity = Math.min(quantity, Math.max(1, product.stock_quantity));
   const message = `Hello! I would like to order ${safeQuantity} x ${product.name} (₹${(product.price * safeQuantity).toFixed(2)}). Please confirm availability, delivery and the final amount.`;
   const whatsappUrl = `https://wa.me/919827310636?text=${encodeURIComponent(message)}`;
 
   return (
-    <article className="w-[72vw] max-w-[250px] shrink-0 snap-start overflow-hidden rounded-2xl border border-[#173b38]/10 bg-white shadow-sm sm:w-56">
-      <div className="relative aspect-[4/3] bg-[#f3eee5]">
-        {image ? <StorageImage src={image} widths={[320, 480, 720]} defaultWidth={480} sizes="(max-width: 639px) 72vw, 224px" alt={product.name} loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-sm text-muted-foreground">SERENIQUEE candle</div>}
-        {!inStock && <span className="absolute left-3 top-3 rounded-full bg-[#173b38] px-3 py-1 text-xs font-semibold text-white">Sold out</span>}
+    <>
+    <article className="group w-[84vw] max-w-[310px] shrink-0 snap-start overflow-hidden rounded-[22px] border border-[#eadfd1] bg-[#fdfaf5] shadow-[0_8px_24px_-14px_rgba(44,34,30,0.16)] transition-[transform,box-shadow] duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:scale-[1.02] sm:w-64">
+      <div className="relative aspect-[4/4.5] overflow-hidden bg-[#f4ede3]">
+        {image ? (
+          <button
+            type="button"
+            onClick={() => setPreviewOpen(true)}
+            aria-label={`Enlarge image of ${product.name}`}
+            className="block h-full w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <StorageImage src={image} widths={[360, 560, 720]} defaultWidth={560} sizes="(max-width: 639px) 84vw, 256px" alt={product.name} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-700 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.08]" />
+          </button>
+        ) : <div className="flex h-full items-center justify-center text-sm text-muted-foreground">SERENIQUEE candle</div>}
+        {!inStock && <span className="absolute left-3 top-3 rounded-full bg-[#2c221e] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white">Sold out</span>}
       </div>
       <div className="p-3.5">
         <h3 className="truncate font-serif text-base font-medium text-[#173b38]">{product.name}</h3>
@@ -57,6 +70,15 @@ function QuickOrderPick({ product }: { product: Product }) {
         </> : <p className="mt-3 flex min-h-11 items-center justify-center rounded-xl bg-[#f3eee5] text-xs font-medium text-[#173b38]/65">Currently unavailable</p>}
       </div>
     </article>
+    <ProductImageLightbox
+      open={previewOpen}
+      onOpenChange={setPreviewOpen}
+      images={images}
+      title={product.name}
+      price={product.price}
+      inStock={inStock}
+    />
+    </>
   );
 }
 

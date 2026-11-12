@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
 import { useProducts } from '@/hooks/useProducts';
 import { useBlogs } from '@/hooks/useBlogs';
-import { ProductCard } from '@/components/product/ProductCard';
+import { FeaturedShowcaseCarousel } from '@/components/product/FeaturedShowcaseCarousel';
 import { ProductGridSkeleton } from '@/components/product/ProductCardSkeleton';
 import { ProductQuickView } from '@/components/product/ProductQuickView';
 import { BlogCard } from '@/components/blog/BlogCard';
@@ -13,7 +13,7 @@ import { CategorySection } from '@/components/CategorySection';
 import { StorageImage } from '@/components/ui/storage-image';
 import { galleryImages } from '@/data/galleryImages';
 import { Product } from '@/types';
-import { ArrowRight, BookOpen, Flame, Heart, Leaf, Sparkles, Star } from 'lucide-react';
+import { ArrowRight, BookOpen, Heart, Leaf, Sparkles, Star } from 'lucide-react';
 
 export default function Home() {
   const { data, isLoading } = useProducts(undefined, undefined, { listing: true });
@@ -107,62 +107,38 @@ export default function Home() {
       </section>
 
       {/* Featured Products */}
-      <section className="container-luxury py-12 sm:py-16 md:py-24">
-        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-          <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
-            <Flame className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 dark:text-amber-400" />
-            <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-muted-foreground">
-              Curated Selection
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#f8f3eb] via-[#f6efe5]/80 to-background py-14 sm:py-20 md:py-24 dark:from-secondary/25 dark:via-background dark:to-background">
+        <div className="container-luxury relative">
+          <div className="mx-auto mb-10 max-w-2xl text-center sm:mb-14">
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.26em] text-[#8a7560] dark:text-muted-foreground">
+              Our Collection
+            </p>
+            <h2 className="mb-3 font-serif text-3xl font-medium tracking-tight text-[#2c221e] sm:text-4xl md:text-5xl dark:text-foreground">
+              Featured Products
+            </h2>
+            <p className="px-4 text-sm text-[#6f6256] sm:text-base dark:text-muted-foreground">
+              Explore our most popular handcrafted candles loved by customers.
             </p>
           </div>
-          <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl mb-3 sm:mb-4">Our Bestsellers</h2>
-          <p className="text-sm sm:text-base text-muted-foreground px-4">
-            Discover our most loved scents, handpicked for their exceptional quality and captivating aromas.
-          </p>
-        </div>
 
-        {isLoading ? (
-          <ProductGridSkeleton count={6} />
-        ) : products && products.length > 0 ? (
-          <>
-            <div
-              className="product-marquee scrollbar-hide overflow-x-auto"
-              aria-label="All products"
-            >
-              <div className="product-marquee-track">
-                {[0, 1].map((groupIndex) => (
-                  <div
-                    key={groupIndex}
-                    className="product-marquee-group"
-                    aria-hidden={groupIndex === 1}
-                  >
-                    {products.map((product) => (
-                      <div
-                        key={`${groupIndex}-${product.id}`}
-                        className="w-[220px] shrink-0 sm:w-[240px] lg:w-[280px]"
-                      >
-                        <ProductCard
-                          product={product}
-                          featured={product.featured}
-                          onQuickView={setQuickViewProduct}
-                          priority={groupIndex === 0 && product.id === products[0]?.id}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ))}
+          {isLoading ? (
+            <ProductGridSkeleton count={4} />
+          ) : products && products.length > 0 ? (
+            <>
+              <FeaturedShowcaseCarousel
+                products={products.slice(0, 12)}
+                onQuickView={setQuickViewProduct}
+              />
+              <div className="mt-10 text-center sm:mt-12">
+                <Link to="/shop">
+                  <Button variant="outline" className="group rounded-full border-[#d6c2a8] bg-[#fdfaf5] px-7 py-5 text-sm text-[#3d3026] transition-all hover:border-[#bfa07a] hover:bg-[#bfa07a] hover:text-white sm:px-9 sm:py-6 sm:text-base dark:border-border dark:bg-card dark:text-foreground">
+                    View Full Collection
+                    <ArrowRight className="ml-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-1 sm:h-4 sm:w-4" />
+                  </Button>
+                </Link>
               </div>
-            </div>
-            <div className="mt-8 sm:mt-12 text-center">
-              <Link to="/shop">
-                <Button variant="outline" className="px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background transition-all group">
-                  View Full Collection
-                  <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            </div>
-          </>
-        ) : (
+            </>
+          ) : (
           <div className="text-center py-12 sm:py-16 bg-secondary/30 rounded-lg mx-4">
             <Sparkles className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground/50 mx-auto mb-3 sm:mb-4" />
             <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4 px-4">No products yet. Add some in the admin dashboard.</p>
@@ -171,6 +147,7 @@ export default function Home() {
             </Link>
           </div>
         )}
+        </div>
       </section>
 
       {/* Custom Orders Teaser */}

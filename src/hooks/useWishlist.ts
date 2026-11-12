@@ -2,14 +2,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { WishlistItem } from '@/types';
 import { useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, useOptionalAuth } from '@/contexts/AuthContext';
 
 // ============================================
 // FETCH USER WISHLIST
 // ============================================
 
 export function useWishlist() {
-  const { user } = useAuth();
+  const auth = useOptionalAuth();
+  const user = auth?.user ?? null;
   const queryClient = useQueryClient();
 
   const query = useQuery({
@@ -68,7 +69,8 @@ export function useWishlist() {
 
 export function useAddToWishlist() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const auth = useOptionalAuth();
+  const user = auth?.user ?? null;
 
   return useMutation({
     mutationFn: async ({
@@ -120,7 +122,8 @@ export function useAddToWishlist() {
 
 export function useRemoveFromWishlist() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const auth = useOptionalAuth();
+  const user = auth?.user ?? null;
 
   return useMutation({
     mutationFn: async (productId: string) => {

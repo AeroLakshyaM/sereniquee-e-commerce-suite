@@ -9,12 +9,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Eye, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ShoppingCart, Eye, ChevronLeft, ChevronRight, Maximize2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useStorefrontPath } from '@/contexts/StorefrontContext';
 import { getProductRouteKey } from '@/lib/utils';
 import { StorageImage } from '@/components/ui/storage-image';
+import { ProductImageLightbox } from './ProductImageLightbox';
 
 interface ProductQuickViewProps {
   product: Product | null;
@@ -28,6 +29,7 @@ export function ProductQuickView({ product, isOpen, onClose }: ProductQuickViewP
   const productPath = useStorefrontPath(product ? `/product/${getProductRouteKey(product)}` : '/shop');
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
 
   if (!product) return null;
 
@@ -68,16 +70,29 @@ export function ProductQuickView({ product, isOpen, onClose }: ProductQuickViewP
             <div className="relative aspect-square overflow-hidden rounded-lg bg-secondary">
               {images.length > 0 ? (
                 <>
-                  <StorageImage
-                    src={images[currentImageIndex]}
-                    widths={[320, 480, 720, 960]}
-                    defaultWidth={720}
-                    sizes="(max-width: 767px) 95vw, 450px"
-                    alt={`${product.name} - Image ${currentImageIndex + 1}`}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsImagePreviewOpen(true)}
+                    aria-label={`Enlarge image of ${product.name}`}
+                    className="group relative block h-full w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <StorageImage
+                      src={images[currentImageIndex]}
+                      widths={[320, 480, 720, 960]}
+                      defaultWidth={720}
+                      sizes="(max-width: 767px) 95vw, 450px"
+                      alt={`${product.name} - Image ${currentImageIndex + 1}`}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover"
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/85 text-[#2c221e] shadow-sm transition-opacity md:opacity-0 md:group-hover:opacity-100"
+                    >
+                      <Maximize2 className="h-3.5 w-3.5" />
+                    </span>
+                  </button>
                   
                   {/* Image Navigation */}
                   {images.length > 1 && (
@@ -235,6 +250,18 @@ export function ProductQuickView({ product, isOpen, onClose }: ProductQuickViewP
           </div>
         </div>
       </DialogContent>
+
+      <ProductImageLightbox
+        open={isImagePreviewOpen}
+        onOpenChange={setIsImagePreviewOpen}
+        images={images}
+        initialIndex={currentImageIndex}
+        title={product.name}
+        price={product.price}
+        productPath={productPath}
+        inStock={product.stock_quantity > 0}
+        onAddToCart={handleAddToCart}
+      />
     </Dialog>
   );
 }

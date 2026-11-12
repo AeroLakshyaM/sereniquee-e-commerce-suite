@@ -18,6 +18,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { SeoHelmet } from '@/components/layout/SeoHelmet';
+import { StorageImage } from '@/components/ui/storage-image';
+import { ProductImageLightbox } from '@/components/product/ProductImageLightbox';
 import { getProductRouteKey } from '@/lib/utils';
 
 export default function WishlistPage() {
@@ -28,6 +30,7 @@ export default function WishlistPage() {
   const { addItem } = useCart();
   const { toast } = useToast();
   const [showClearDialog, setShowClearDialog] = useState(false);
+  const [previewItem, setPreviewItem] = useState<any | null>(null);
 
   const handleRemove = async (productId: string, productName: string) => {
     try {
@@ -139,86 +142,102 @@ export default function WishlistPage() {
       </div>
 
       {/* Wishlist Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {wishlist.map((item) => (
-          <Card key={item.id} className="group relative overflow-hidden">
-            {/* Remove Button */}
-            <button
-              onClick={() => handleRemove(item.product_id, item.product?.name || 'Product')}
-              className="absolute top-2 right-2 z-10 p-2 bg-background/80 backdrop-blur rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <X className="h-4 w-4" />
-            </button>
+          <Card
+            key={item.id}
+            className="group relative flex h-full flex-col justify-between overflow-hidden rounded-[24px] border-[#eadfd1] bg-[#fdfaf5] p-0 shadow-[0_10px_28px_-16px_rgba(44,34,30,0.14)] transition-[transform,box-shadow,border-color] duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:scale-[1.025] hover:shadow-[0_22px_44px_-18px_rgba(44,34,30,0.22)] dark:border-border dark:bg-card"
+          >
+            <div>
+              {/* Full-Bleed Top-Half Product Image */}
+              <div className="relative aspect-[4/4.6] sm:aspect-[4/4.5] w-full overflow-hidden bg-[#f4ede3] dark:bg-muted">
+                <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-black/20 via-black/5 to-transparent" />
+                <div className="pointer-events-none absolute inset-x-3 top-3 z-20 flex items-center justify-between gap-2">
+                  {item.product ? (
+                    item.product.stock_quantity === 0 ? (
+                      <Badge className="pointer-events-auto rounded-full border-0 bg-[#2c221e]/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#fdfaf5] shadow-sm backdrop-blur-sm">
+                        Sold Out
+                      </Badge>
+                    ) : item.product.stock_quantity <= 5 ? (
+                      <Badge className="pointer-events-auto rounded-full border-0 bg-[#fdfaf5]/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8a5526] shadow-sm backdrop-blur-sm">
+                        Only {item.product.stock_quantity} left
+                      </Badge>
+                    ) : (
+                      <Badge className="pointer-events-auto rounded-full border-0 bg-[#fdfaf5]/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#5b4632] shadow-sm backdrop-blur-sm">
+                        Saved
+                      </Badge>
+                    )
+                  ) : (
+                    <span />
+                  )}
 
-            <Link to={item.product ? `/product/${getProductRouteKey(item.product)}` : '/shop'}>
-              <div className="aspect-[3/4] overflow-hidden bg-muted">
-                {item.product?.image_url ? (
-                  <img
-                    src={item.product.image_url}
-                    alt={item.product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20" />
-                )}
+                  <button
+                    onClick={() => handleRemove(item.product_id, item.product?.name || 'Product')}
+                    aria-label={`Remove ${item.product?.name || 'Product'} from wishlist`}
+                    className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#fdfaf5]/90 text-[#4f4136] shadow-sm backdrop-blur-sm transition hover:bg-white hover:text-[#2c221e] dark:bg-card/90 dark:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => item.product && setPreviewItem(item)}
+                  aria-label={`Enlarge image of ${item.product?.name || 'product'}`}
+                  className="block h-full w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {item.product?.image_url ? (
+                    <StorageImage
+                      src={item.product.image_url}
+                      widths={[360, 560, 720]}
+                      defaultWidth={560}
+                      sizes="(max-width: 639px) 92vw, (max-width: 1023px) 50vw, 25vw"
+                      alt={item.product.name}
+                      className="h-full w-full object-cover transition-transform duration-700 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.08]"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gradient-to-br from-muted to-muted-foreground/20" />
+                  )}
+                </button>
               </div>
-            </Link>
 
-            <div className="p-4 space-y-3">
-              <div>
+              <div className="space-y-1.5 p-4 pb-0 pt-3 sm:p-5 sm:pb-0 sm:pt-3.5">
                 <Link to={item.product ? `/product/${getProductRouteKey(item.product)}` : '/shop'}>
-                  <h3 className="font-medium hover:text-primary transition-colors">
+                  <h3 className="line-clamp-1 font-serif text-lg font-semibold text-[#2c221e] transition-colors hover:text-[#7c5d3a] dark:text-foreground">
                     {item.product?.name}
                   </h3>
                 </Link>
-                <p className="text-lg font-semibold mt-1">
-                  ₹{item.product?.price.toFixed(2)}
-                </p>
+                {item.product?.description && (
+                  <p className="line-clamp-2 text-xs leading-relaxed text-[#7c6f63] dark:text-muted-foreground">
+                    {item.product.description}
+                  </p>
+                )}
+                {item.notes && (
+                  <p className="text-xs italic text-muted-foreground">
+                    Note: {item.notes}
+                  </p>
+                )}
+                {(item.notify_on_sale || item.notify_on_restock) && (
+                  <div className="space-y-0.5 text-[11px] text-muted-foreground">
+                    {item.notify_on_sale && <p>✓ Notify on sale</p>}
+                    {item.notify_on_restock && <p>✓ Notify when back in stock</p>}
+                  </div>
+                )}
               </div>
+            </div>
 
-              {/* Stock Status */}
-              {item.product && (
-                <div>
-                  {item.product.stock_quantity === 0 ? (
-                    <Badge variant="destructive">Out of Stock</Badge>
-                  ) : item.product.stock_quantity <= 5 ? (
-                    <Badge variant="secondary" className="text-orange-600">
-                      Only {item.product.stock_quantity} left
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary" className="text-green-600">
-                      In Stock
-                    </Badge>
-                  )}
-                </div>
-              )}
-
-              {/* Notes */}
-              {item.notes && (
-                <p className="text-sm text-muted-foreground italic">
-                  Note: {item.notes}
-                </p>
-              )}
-
-              {/* Actions */}
-              <div className="flex gap-2">
-                <Button
-                  className="flex-1"
-                  onClick={() => handleMoveToCart(item)}
-                  disabled={!item.product || item.product.stock_quantity === 0}
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Add to Cart
-                </Button>
-              </div>
-
-              {/* Notifications */}
-              {(item.notify_on_sale || item.notify_on_restock) && (
-                <div className="text-xs text-muted-foreground space-y-1">
-                  {item.notify_on_sale && <p>✓ Notify on sale</p>}
-                  {item.notify_on_restock && <p>✓ Notify when back in stock</p>}
-                </div>
-              )}
+            <div className="mt-4 flex items-center justify-between gap-2 p-4 pt-2 sm:p-5 sm:pt-2">
+              <p className="text-lg font-bold text-[#2c221e] dark:text-foreground">
+                ₹{item.product?.price.toFixed(2)}
+              </p>
+              <Button
+                className="h-9 rounded-xl bg-[#bfa07a] px-3.5 text-xs font-medium text-white shadow-sm hover:bg-[#ad8c64]"
+                onClick={() => handleMoveToCart(item)}
+                disabled={!item.product || item.product.stock_quantity === 0}
+              >
+                <ShoppingCart className="mr-1.5 h-3.5 w-3.5" />
+                Add to Cart
+              </Button>
             </div>
           </Card>
         ))}
@@ -241,6 +260,27 @@ export default function WishlistPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {previewItem?.product && (
+        <ProductImageLightbox
+          open={Boolean(previewItem)}
+          onOpenChange={(open) => {
+            if (!open) setPreviewItem(null);
+          }}
+          images={
+            previewItem.product.image_urls?.length
+              ? previewItem.product.image_urls
+              : previewItem.product.image_url
+                ? [previewItem.product.image_url]
+                : []
+          }
+          title={previewItem.product.name}
+          price={previewItem.product.price}
+          productPath={`/product/${getProductRouteKey(previewItem.product)}`}
+          inStock={previewItem.product.stock_quantity > 0}
+          onAddToCart={() => handleMoveToCart(previewItem)}
+        />
+      )}
     </div>
   );
 }

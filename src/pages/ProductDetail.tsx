@@ -7,13 +7,14 @@ import { Button } from '@/components/ui/button';
 import { ShareButton } from '@/components/ui/share-button';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { ProductDescription } from '@/components/product/ProductDescription';
-import { Minus, Plus, ArrowLeft, Flame, Clock, AlertTriangle, Sparkles, Heart, Home, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Minus, Plus, ArrowLeft, Flame, Clock, AlertTriangle, Sparkles, Heart, Home, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ProductReviews } from '@/components/product/ProductReviews';
 import { useStorefrontBasePath, useStorefrontPath } from '@/contexts/StorefrontContext';
 import { ScentPassportButton } from '@/components/product/ScentPassportButton';
 import { StorageImage } from '@/components/ui/storage-image';
+import { ProductImageLightbox } from '@/components/product/ProductImageLightbox';
 
 export default function ProductDetail() {
   const storePath = useStorefrontPath;
@@ -24,6 +25,7 @@ export default function ProductDetail() {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
 
   const handleAddToCart = () => {
     if (product) {
@@ -133,22 +135,36 @@ export default function ProductDetail() {
         {/* Product Image Gallery */}
         <div className="space-y-4">
           {/* Main Image */}
-          <div className="relative aspect-square bg-secondary overflow-hidden group">
+          <div className="relative aspect-[4/4.3] sm:aspect-square bg-secondary overflow-hidden rounded-2xl group">
             {images.length > 0 ? (
               <>
-                <StorageImage
-                  src={images[selectedImageIndex]}
-                  widths={[480, 720, 960, 1200]}
-                  defaultWidth={960}
-                  sizes="(max-width: 767px) 100vw, 50vw"
-                  alt={`${product.name} - Image ${selectedImageIndex + 1}`}
-                  width={800}
-                  height={800}
-                  loading="eager"
-                  fetchPriority="high"
-                  decoding="async"
-                  className="w-full h-full object-cover"
-                />
+                <button
+                  type="button"
+                  onClick={() => setIsImagePreviewOpen(true)}
+                  aria-label={`Enlarge image of ${product.name}`}
+                  className="block h-full w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <StorageImage
+                    src={images[selectedImageIndex]}
+                    widths={[480, 720, 960, 1200]}
+                    defaultWidth={960}
+                    sizes="(max-width: 767px) 100vw, 50vw"
+                    alt={`${product.name} - Image ${selectedImageIndex + 1}`}
+                    width={800}
+                    height={800}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                    className="w-full h-full object-cover transition-transform duration-700 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-[#2c221e] shadow-sm backdrop-blur-sm transition-opacity md:opacity-0 md:group-hover:opacity-100"
+                  >
+                    <Maximize2 className="h-3.5 w-3.5" />
+                    Tap to enlarge
+                  </span>
+                </button>
                 
                 {/* Navigation Arrows - Only show if multiple images */}
                 {images.length > 1 && (
@@ -205,7 +221,7 @@ export default function ProductDetail() {
                     height={200}
                     loading="lazy"
                     decoding="async"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-700 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
                   />
                 </button>
               ))}
@@ -540,6 +556,17 @@ export default function ProductDetail() {
       <div className="mt-16 pt-8 border-t border-border">
         <ProductReviews productId={product.id} />
       </div>
+
+      <ProductImageLightbox
+        open={isImagePreviewOpen}
+        onOpenChange={setIsImagePreviewOpen}
+        images={images}
+        initialIndex={selectedImageIndex}
+        title={product.name}
+        price={product.price}
+        inStock={product.stock_quantity > 0}
+        onAddToCart={handleAddToCart}
+      />
     </div>
   );
 }

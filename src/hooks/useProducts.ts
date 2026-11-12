@@ -47,7 +47,7 @@ export function useAdminProducts(searchQuery: string, page: number) {
   });
 }
 
-const PRODUCT_LISTING_FIELDS = 'id,name,slug,sku,description,price,category,stock_quantity,image_url,image_urls,featured,created_at,updated_at';
+const PRODUCT_LISTING_FIELDS = 'id,name,slug,sku,description,price,category,stock_quantity,image_url,image_urls,featured,average_rating,review_count,created_at,updated_at';
 
 function escapeSearchTerm(term: string) {
   return term.replace(/([\\(),])/g, '\\$1');

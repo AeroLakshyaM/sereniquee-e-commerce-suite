@@ -1,12 +1,7 @@
 import { useProducts } from '@/hooks/useProducts';
 import { Product } from '@/types';
-import { Link } from 'react-router-dom';
-import { useCart } from '@/contexts/CartContext';
-import { Button } from '@/components/ui/button';
-import { useStorefrontBasePath } from '@/contexts/StorefrontContext';
-import { Plus } from 'lucide-react';
-import { getProductRouteKey } from '@/lib/utils';
-import { StorageImage } from '@/components/ui/storage-image';
+import { ProductCard } from './ProductCard';
+import { ProductGridSkeleton } from './ProductCardSkeleton';
 
 interface RelatedProductsProps {
   currentProduct: Product;
@@ -14,30 +9,17 @@ interface RelatedProductsProps {
 }
 
 export function RelatedProducts({ currentProduct, limit = 4 }: RelatedProductsProps) {
-  const basePath = useStorefrontBasePath();
   const { data: productsData, isLoading } = useProducts(undefined, undefined, { listing: true });
-  const { addItem } = useCart();
   const allProducts = productsData?.pages.flatMap((page) => page.products) ?? [];
-
-  const handleAddToCart = (e: React.MouseEvent, product: Product) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addItem(product, 1);
-  };
 
   if (isLoading) {
     return (
-      <div className="py-12">
-        <h2 className="font-serif text-2xl md:text-3xl mb-8 text-center">You May Also Like</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="space-y-4">
-              <div className="aspect-[3/4] bg-muted animate-pulse rounded-lg" />
-              <div className="h-4 bg-muted animate-pulse w-3/4 rounded" />
-              <div className="h-4 bg-muted animate-pulse w-1/4 rounded" />
-            </div>
-          ))}
-        </div>
+      <div className="border-t border-border py-12">
+        <p className="mb-2 text-center text-[11px] font-medium uppercase tracking-[0.22em] text-[#8a7560] dark:text-muted-foreground">
+          Curated Pairings
+        </p>
+        <h2 className="mb-8 text-center font-serif text-2xl md:text-3xl">You May Also Like</h2>
+        <ProductGridSkeleton count={limit} />
       </div>
     );
   }
@@ -48,7 +30,7 @@ export function RelatedProducts({ currentProduct, limit = 4 }: RelatedProductsPr
       (p) =>
         p.id !== currentProduct.id &&
         (p.category === currentProduct.category ||
-          Math.abs(p.price - currentProduct.price) < currentProduct.price * 0.3)
+          Math.abs(p.price - currentProduct.price) < currentProduct.price * 0.3),
     )
     .slice(0, limit);
 
@@ -63,76 +45,19 @@ export function RelatedProducts({ currentProduct, limit = 4 }: RelatedProductsPr
   }
 
   return (
-    <div className="py-12 border-t border-border">
-      <h2 className="font-serif text-2xl md:text-3xl mb-8 text-center">You May Also Like</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {productsToShow.map((product) => {
-          // Get only the first image for mobile view
-          const primaryImage = product.image_urls && product.image_urls.length > 0 
-            ? product.image_urls[0] 
-            : product.image_url;
-
-          return (
-            <Link
-              key={product.id}
-              to={`${basePath}/product/${getProductRouteKey(product)}`}
-              className="group block"
-            >
-              <div className="relative overflow-hidden bg-secondary aspect-[3/4] mb-4">
-                {primaryImage ? (
-                  <StorageImage
-                    src={primaryImage}
-                    widths={[320, 480, 720]}
-                    defaultWidth={480}
-                    sizes="(max-width: 767px) 50vw, 25vw"
-                    alt={product.name}
-                    width={400}
-                    height={533}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover product-image-zoom"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                    <span className="font-serif text-lg">Sereniquee</span>
-                  </div>
-                )}
-                
-                {/* Quick Add Button */}
-                {product.stock_quantity > 0 && (
-                  <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <Button
-                      onClick={(e) => handleAddToCart(e, product)}
-                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all"
-                      size="sm"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add to Cart
-                    </Button>
-                  </div>
-                )}
-
-                {/* Out of Stock Badge */}
-                {product.stock_quantity === 0 && (
-                  <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                    <span className="bg-destructive text-destructive-foreground px-3 py-1 font-semibold text-xs rounded-full">
-                      Out of Stock
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <h3 className="font-serif text-base group-hover:text-muted-foreground transition-colors line-clamp-2">
-                  {product.name}
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  ₹{product.price.toFixed(2)}
-                </p>
-              </div>
-            </Link>
-          );
-        })}
+    <div className="border-t border-border py-12">
+      <p className="mb-2 text-center text-[11px] font-medium uppercase tracking-[0.22em] text-[#8a7560] dark:text-muted-foreground">
+        Curated Pairings
+      </p>
+      <h2 className="mb-8 text-center font-serif text-2xl md:text-3xl">You May Also Like</h2>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-7">
+        {productsToShow.map((product) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            featured={product.featured}
+          />
+        ))}
       </div>
     </div>
   );
