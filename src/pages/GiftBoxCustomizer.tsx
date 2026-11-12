@@ -269,29 +269,56 @@ export default function GiftBoxCustomizer() {
                 <div className="grid sm:grid-cols-3 gap-3.5">
                   {BOX_STYLES.map(style => {
                     const isSelected = selectedBoxStyle.id === style.id;
+                    const isDark = style.id === 'midnight-obsidian';
                     return (
                       <button
                         key={style.id}
                         type="button"
                         onClick={() => setSelectedBoxStyle(style)}
                         className={cn(
-                          'p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between',
+                          'p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between relative group min-h-[140px]',
                           style.bgClass,
+                          isDark ? 'text-white' : 'text-foreground',
                           isSelected
-                            ? 'border-[#2c221e] ring-2 ring-[#2c221e]/20 shadow-md'
-                            : 'border-[#eadfd1]'
+                            ? isDark
+                              ? 'border-amber-400 ring-2 ring-amber-400/40 shadow-lg'
+                              : 'border-[#2c221e] ring-2 ring-[#2c221e]/20 shadow-md'
+                            : isDark
+                              ? 'border-stone-700 hover:border-amber-400/50'
+                              : 'border-[#eadfd1] hover:border-[#8c6239]/50'
                         )}
                       >
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-bold uppercase tracking-wide text-foreground">
+                            <span
+                              className={cn(
+                                'text-xs font-bold uppercase tracking-wide',
+                                isDark ? 'text-amber-200' : 'text-foreground'
+                              )}
+                            >
                               {style.name}
                             </span>
-                            {isSelected && <Check className="h-4 w-4 text-[#8c6239]" />}
+                            {isSelected && (
+                              <Check className={cn('h-4 w-4', isDark ? 'text-amber-300' : 'text-[#8c6239]')} />
+                            )}
                           </div>
-                          <p className="text-[11px] text-muted-foreground leading-snug">{style.description}</p>
+                          <p
+                            className={cn(
+                              'text-[11px] leading-snug',
+                              isDark ? 'text-stone-300' : 'text-muted-foreground'
+                            )}
+                          >
+                            {style.description}
+                          </p>
                         </div>
-                        <p className="text-[11px] font-medium text-[#8c6239] mt-3">Tied with {style.ribbonName}</p>
+                        <p
+                          className={cn(
+                            'text-[11px] font-medium mt-3',
+                            isDark ? 'text-amber-300' : 'text-[#8c6239]'
+                          )}
+                        >
+                          Tied with {style.ribbonName}
+                        </p>
                       </button>
                     );
                   })}
@@ -580,20 +607,70 @@ export default function GiftBoxCustomizer() {
             ======================================================= */}
         <div className="lg:col-span-5 sticky top-24 space-y-6">
           {/* Visual Box Container */}
-          <div className="rounded-3xl border border-[#eadfd1] bg-[#fdfaf5] p-6 shadow-[0_8px_30px_rgba(44,34,30,0.06)] space-y-5">
-            <div className="flex items-center justify-between border-b border-[#eadfd1] pb-3">
+          <div
+            className={cn(
+              'rounded-3xl border p-6 transition-all duration-300 space-y-5 shadow-[0_8px_30px_rgba(44,34,30,0.06)]',
+              selectedBoxStyle.id === 'midnight-obsidian'
+                ? 'bg-[#1e2022] border-stone-700 text-white shadow-stone-950/40'
+                : selectedBoxStyle.id === 'cashmere-sand'
+                  ? 'bg-[#f6efe5] border-[#dfd0be] text-foreground'
+                  : 'bg-[#fdfaf5] border-[#eadfd1] text-foreground'
+            )}
+          >
+            <div
+              className={cn(
+                'flex items-center justify-between border-b pb-3',
+                selectedBoxStyle.id === 'midnight-obsidian' ? 'border-stone-800' : 'border-[#eadfd1]'
+              )}
+            >
               <div>
-                <p className="font-serif text-lg font-semibold text-foreground">{selectedTier.title}</p>
-                <p className="text-xs text-[#8c6239]">{selectedBoxStyle.name}</p>
+                <p
+                  className={cn(
+                    'font-serif text-lg font-semibold',
+                    selectedBoxStyle.id === 'midnight-obsidian' ? 'text-white' : 'text-foreground'
+                  )}
+                >
+                  {selectedTier.title}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span
+                    className={cn(
+                      'text-xs font-medium',
+                      selectedBoxStyle.id === 'midnight-obsidian' ? 'text-amber-300' : 'text-[#8c6239]'
+                    )}
+                  >
+                    {selectedBoxStyle.name}
+                  </span>
+                  <span
+                    className={cn(
+                      'text-[10px] px-2 py-0.5 rounded-full border',
+                      selectedBoxStyle.id === 'midnight-obsidian'
+                        ? 'bg-stone-800 border-stone-700 text-stone-300'
+                        : 'bg-white border-[#eadfd1] text-muted-foreground'
+                    )}
+                  >
+                    {selectedBoxStyle.ribbonName}
+                  </span>
+                </div>
               </div>
-              <span className="font-serif text-2xl font-bold text-foreground">
+              <span
+                className={cn(
+                  'font-serif text-2xl font-bold',
+                  selectedBoxStyle.id === 'midnight-obsidian' ? 'text-amber-300' : 'text-foreground'
+                )}
+              >
                 ₹{totalPrice.toLocaleString('en-IN')}
               </span>
             </div>
 
             {/* Candle Slots Tray */}
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <p
+                className={cn(
+                  'text-xs font-semibold uppercase tracking-wider',
+                  selectedBoxStyle.id === 'midnight-obsidian' ? 'text-stone-400' : 'text-muted-foreground'
+                )}
+              >
                 Candle Tray ({selectedCandles.length}/{selectedTier.capacity})
               </p>
               <div className="grid grid-cols-2 gap-2.5">
@@ -605,8 +682,10 @@ export default function GiftBoxCustomizer() {
                       className={cn(
                         'aspect-[4/3] rounded-2xl border p-2 flex flex-col justify-between relative transition-all duration-200',
                         candle
-                          ? 'border-[#8c6239]/60 bg-white shadow-sm'
-                          : 'border-dashed border-[#eadfd1] bg-[#fbf9f6] items-center justify-center'
+                          ? 'border-[#8c6239]/60 bg-white shadow-sm text-foreground'
+                          : selectedBoxStyle.id === 'midnight-obsidian'
+                            ? 'border-dashed border-stone-700 bg-stone-900/60 items-center justify-center text-stone-300'
+                            : 'border-dashed border-[#eadfd1] bg-[#fbf9f6] items-center justify-center'
                       )}
                     >
                       {candle ? (
@@ -635,9 +714,14 @@ export default function GiftBoxCustomizer() {
                         <button
                           type="button"
                           onClick={() => setActiveStep(2)}
-                          className="text-center p-2 text-muted-foreground hover:text-foreground cursor-pointer"
+                          className={cn(
+                            'text-center p-2 cursor-pointer transition-colors',
+                            selectedBoxStyle.id === 'midnight-obsidian'
+                              ? 'text-stone-400 hover:text-amber-300'
+                              : 'text-muted-foreground hover:text-foreground'
+                          )}
                         >
-                          <Plus className="h-4 w-4 mx-auto mb-1 opacity-40" />
+                          <Plus className="h-4 w-4 mx-auto mb-1 opacity-60" />
                           <span className="text-[11px] font-medium block">Slot {index + 1} Empty</span>
                         </button>
                       )}
@@ -649,15 +733,30 @@ export default function GiftBoxCustomizer() {
 
             {/* Selected Accessories summary */}
             {selectedAccessories.length > 0 && (
-              <div className="space-y-1.5 pt-2 border-t border-[#eadfd1]/70">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <div
+                className={cn(
+                  'space-y-1.5 pt-2 border-t',
+                  selectedBoxStyle.id === 'midnight-obsidian' ? 'border-stone-800' : 'border-[#eadfd1]/70'
+                )}
+              >
+                <p
+                  className={cn(
+                    'text-xs font-semibold uppercase tracking-wider',
+                    selectedBoxStyle.id === 'midnight-obsidian' ? 'text-stone-400' : 'text-muted-foreground'
+                  )}
+                >
                   Care Instruments
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {selectedAccessories.map(acc => (
                     <span
                       key={acc.id}
-                      className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-white border border-[#eadfd1] text-foreground"
+                      className={cn(
+                        'inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full border',
+                        selectedBoxStyle.id === 'midnight-obsidian'
+                          ? 'bg-stone-900 border-stone-700 text-stone-200'
+                          : 'bg-white border-[#eadfd1] text-foreground'
+                      )}
                     >
                       <span>{acc.name}</span>
                       <button type="button" onClick={() => toggleAccessory(acc)} className="hover:text-destructive">
@@ -670,21 +769,53 @@ export default function GiftBoxCustomizer() {
             )}
 
             {/* Calligraphy Card Live Preview */}
-            <div className="pt-2 border-t border-[#eadfd1]/70 space-y-1.5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <div
+              className={cn(
+                'pt-2 border-t space-y-1.5',
+                selectedBoxStyle.id === 'midnight-obsidian' ? 'border-stone-800' : 'border-[#eadfd1]/70'
+              )}
+            >
+              <p
+                className={cn(
+                  'text-xs font-semibold uppercase tracking-wider',
+                  selectedBoxStyle.id === 'midnight-obsidian' ? 'text-stone-400' : 'text-muted-foreground'
+                )}
+              >
                 Artisanal Gift Card
               </p>
-              <div className="p-4 rounded-2xl bg-[#fffdfa] border border-[#e8ded1] shadow-inner text-center font-serif space-y-2">
+              <div
+                className={cn(
+                  'p-4 rounded-2xl border shadow-inner text-center font-serif space-y-2',
+                  selectedBoxStyle.id === 'midnight-obsidian'
+                    ? 'bg-stone-900/90 border-stone-800 text-stone-200'
+                    : 'bg-[#fffdfa] border-[#e8ded1] text-foreground'
+                )}
+              >
                 <p className="text-[10px] uppercase tracking-[0.2em] text-[#8c6239] font-sans font-semibold">
                   A Gift For You
                 </p>
-                <p className="text-sm font-medium italic text-foreground">
+                <p
+                  className={cn(
+                    'text-sm font-medium italic',
+                    selectedBoxStyle.id === 'midnight-obsidian' ? 'text-amber-200' : 'text-foreground'
+                  )}
+                >
                   {cardMessage.to ? `Dearest ${cardMessage.to},` : 'To Recipient,'}
                 </p>
-                <p className="text-xs text-muted-foreground italic leading-relaxed px-2 line-clamp-3">
+                <p
+                  className={cn(
+                    'text-xs italic leading-relaxed px-2 line-clamp-3',
+                    selectedBoxStyle.id === 'midnight-obsidian' ? 'text-stone-300' : 'text-muted-foreground'
+                  )}
+                >
                   "{cardMessage.note || 'May these handcrafted scents fill your home with light and peace.'}"
                 </p>
-                <p className="text-xs font-medium italic text-foreground pt-1">
+                <p
+                  className={cn(
+                    'text-xs font-medium italic pt-1',
+                    selectedBoxStyle.id === 'midnight-obsidian' ? 'text-amber-200' : 'text-foreground'
+                  )}
+                >
                   {cardMessage.from ? cardMessage.from : 'With Love & Warmth'}
                 </p>
               </div>
