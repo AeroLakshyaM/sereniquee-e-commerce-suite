@@ -1,40 +1,66 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchPublicCatalog } from '@/lib/publicCatalog';
 import { Category } from '@/types';
 import { useToast } from './use-toast';
 
-export function useCategories() {
+interface UseCategoriesOptions {
+  activeOnly?: boolean;
+}
+
+export function useCategories(options: UseCategoriesOptions = {}) {
+  const activeOnly = options.activeOnly === true;
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Fetch all categories
-  const { data: categories, isLoading } = useQuery({
+  // Fetch all categories (admin only)
+  const { data: allCategories, isLoading: isLoadingAll } = useQuery({
     queryKey: ['categories'],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const { data, error } = await supabase
         .from('categories' as any)
         .select('*')
-        .order('display_order', { ascending: true });
+        .order('display_order', { ascending: true })
+        .abortSignal(signal);
 
       if (error) throw error;
       return data as unknown as Category[];
     },
+    enabled: !activeOnly,
+    staleTime: 5 * 60_000,
   });
 
-  // Fetch active categories only
-  const { data: activeCategories } = useQuery({
+  // Fetch active categories only (storefront)
+  const { data: activeCategories, isLoading: isLoadingActive } = useQuery({
     queryKey: ['categories', 'active'],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
+      const cached = await fetchPublicCatalog<{ categories: Category[] }>(
+        { resource: 'categories' },
+        signal,
+      );
+      if (cached && Array.isArray(cached.categories)) {
+        return cached.categories;
+      }
+
       const { data, error } = await supabase
         .from('categories' as any)
         .select('*')
         .eq('is_active', true)
-        .order('display_order', { ascending: true });
+        .order('display_order', { ascending: true })
+        .abortSignal(signal);
 
       if (error) throw error;
       return data as unknown as Category[];
     },
+    enabled: activeOnly,
+    staleTime: 5 * 60_000,
   });
+
+  const resolvedActiveCategories = activeOnly
+    ? activeCategories
+    : allCategories?.filter((category) => category.is_active);
+  const categories = activeOnly ? activeCategories : allCategories;
+  const isLoading = activeOnly ? isLoadingActive : isLoadingAll;
 
   // Create category
   const createCategory = useMutation({
@@ -155,7 +181,7 @@ export function useCategories() {
 
   return {
     categories,
-    activeCategories,
+    activeCategories: resolvedActiveCategories,
     isLoading,
     createCategory: createCategory.mutate,
     updateCategory: updateCategory.mutate,

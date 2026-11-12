@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useStorefrontPath } from '@/contexts/StorefrontContext';
 import { getProductRouteKey } from '@/lib/utils';
+import { StorageImage } from '@/components/ui/storage-image';
 
 interface ProductQuickViewProps {
   product: Product | null;
@@ -67,8 +68,11 @@ export function ProductQuickView({ product, isOpen, onClose }: ProductQuickViewP
             <div className="relative aspect-square overflow-hidden rounded-lg bg-secondary">
               {images.length > 0 ? (
                 <>
-                  <img
+                  <StorageImage
                     src={images[currentImageIndex]}
+                    widths={[320, 480, 720, 960]}
+                    defaultWidth={720}
+                    sizes="(max-width: 767px) 95vw, 450px"
                     alt={`${product.name} - Image ${currentImageIndex + 1}`}
                     loading="lazy"
                     decoding="async"

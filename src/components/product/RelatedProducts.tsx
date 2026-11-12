@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useStorefrontBasePath } from '@/contexts/StorefrontContext';
 import { Plus } from 'lucide-react';
 import { getProductRouteKey } from '@/lib/utils';
+import { StorageImage } from '@/components/ui/storage-image';
 
 interface RelatedProductsProps {
   currentProduct: Product;
@@ -14,7 +15,7 @@ interface RelatedProductsProps {
 
 export function RelatedProducts({ currentProduct, limit = 4 }: RelatedProductsProps) {
   const basePath = useStorefrontBasePath();
-  const { data: productsData, isLoading } = useProducts();
+  const { data: productsData, isLoading } = useProducts(undefined, undefined, { listing: true });
   const { addItem } = useCart();
   const allProducts = productsData?.pages.flatMap((page) => page.products) ?? [];
 
@@ -79,8 +80,11 @@ export function RelatedProducts({ currentProduct, limit = 4 }: RelatedProductsPr
             >
               <div className="relative overflow-hidden bg-secondary aspect-[3/4] mb-4">
                 {primaryImage ? (
-                  <img
+                  <StorageImage
                     src={primaryImage}
+                    widths={[320, 480, 720]}
+                    defaultWidth={480}
+                    sizes="(max-width: 767px) 50vw, 25vw"
                     alt={product.name}
                     width={400}
                     height={533}

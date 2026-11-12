@@ -8,6 +8,7 @@ import { useStorefrontBasePath, useStorefrontPath } from '@/contexts/StorefrontC
 import { ScentPassportButton } from './ScentPassportButton';
 import { useOptionalMobileFavorites } from '@/contexts/MobileFavoritesContext';
 import { getProductRouteKey } from '@/lib/utils';
+import { StorageImage } from '@/components/ui/storage-image';
 
 interface ProductCardProps {
   product: Product;
@@ -16,44 +17,18 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
-const STORAGE_IMAGE_PATH = '/storage/v1/object/public/';
-
-function getOptimizedStorageImageUrl(source: string, width: number): string | null {
-  try {
-    const url = new URL(source);
-    if (!url.pathname.includes(STORAGE_IMAGE_PATH)) return null;
-    url.pathname = url.pathname.replace(STORAGE_IMAGE_PATH, '/storage/v1/render/image/public/');
-    url.searchParams.set('width', String(width));
-    url.searchParams.set('quality', '76');
-    url.searchParams.set('format', 'webp');
-    return url.toString();
-  } catch {
-    return null;
-  }
-}
-
-function getStorageImageSrcSet(source: string): string | undefined {
-  if (!getOptimizedStorageImageUrl(source, 320)) return undefined;
-  return [320, 480, 720, 960]
-    .map((width) => `${getOptimizedStorageImageUrl(source, width)} ${width}w`)
-    .join(', ');
-}
-
 export function ProductCard({ product, featured, onQuickView, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
   const productPath = useStorefrontPath(`/product/${getProductRouteKey(product)}`);
   const basePath = useStorefrontBasePath();
   const favorites = useOptionalMobileFavorites();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [failedTransformedSource, setFailedTransformedSource] = useState<string | null>(null);
   const images = product.image_urls?.length
     ? product.image_urls
     : product.image_url
       ? [product.image_url]
       : [];
   const imageSource = images[currentImageIndex];
-  const optimizedImageSource = imageSource ? getOptimizedStorageImageUrl(imageSource, 640) : null;
-  const useOriginalImage = imageSource === failedTransformedSource;
 
   const showPreviousImage = () => {
     setCurrentImageIndex((index) => (index === 0 ? images.length - 1 : index - 1));
@@ -71,10 +46,9 @@ export function ProductCard({ product, featured, onQuickView, priority = false }
           className="absolute inset-0 block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           aria-label={`View ${product.name}`}
         >
-          {images.length > 0 ? (
-            <img
-              src={useOriginalImage ? imageSource : optimizedImageSource || imageSource}
-              srcSet={useOriginalImage || !imageSource ? undefined : getStorageImageSrcSet(imageSource)}
+          {imageSource ? (
+            <StorageImage
+              src={imageSource}
               sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 25vw"
               alt={product.name}
               width={400}
@@ -82,11 +56,6 @@ export function ProductCard({ product, featured, onQuickView, priority = false }
               loading={priority ? 'eager' : 'lazy'}
               fetchPriority={priority ? 'high' : 'auto'}
               decoding="async"
-              onError={() => {
-                if (optimizedImageSource && optimizedImageSource !== imageSource && !useOriginalImage) {
-                  setFailedTransformedSource(imageSource);
-                }
-              }}
               className="h-full w-full object-cover product-image-zoom"
             />
           ) : (

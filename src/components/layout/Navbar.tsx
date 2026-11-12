@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useProducts } from '@/hooks/useProducts';
 import { getProductRouteKey } from '@/lib/utils';
+import { StorageImage } from '@/components/ui/storage-image';
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -225,10 +226,14 @@ export function Navbar() {
                       >
                         <div className="flex-shrink-0 w-16 h-16 bg-muted rounded-md overflow-hidden">
                           {product.image_url ? (
-                            <img
+                            <StorageImage
                               src={product.image_url}
+                              widths={[128, 256]}
+                              defaultWidth={160}
+                              sizes="64px"
                               alt={product.name}
                               loading="lazy"
+                              decoding="async"
                               className="w-full h-full object-cover"
                             />
                           ) : (

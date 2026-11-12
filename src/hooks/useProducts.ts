@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchPublicCatalog } from '@/lib/publicCatalog';
 import { Product } from '@/types';
 
 const PRODUCTS_PAGE_SIZE = 12;
@@ -58,6 +59,22 @@ export function useProducts(category?: string, searchQuery?: string, options: Pr
     queryKey: ['products', category, searchQuery, listingOnly ? 'listing' : 'full', options.scentMetadata ? 'scent-metadata' : 'standard'],
     initialPageParam: 0,
     queryFn: async ({ pageParam, signal }): Promise<ProductsPage> => {
+      if (listingOnly) {
+        const cached = await fetchPublicCatalog<ProductsPage>(
+          {
+            resource: 'products',
+            page: pageParam,
+            category: category && category !== 'all' ? category : undefined,
+            search: searchQuery?.trim() || undefined,
+            scentMetadata: options.scentMetadata ? '1' : undefined,
+          },
+          signal,
+        );
+        if (cached && Array.isArray(cached.products)) {
+          return cached;
+        }
+      }
+
       let query = supabase
         .from('products')
         .select(listingOnly ? `${PRODUCT_LISTING_FIELDS}${options.scentMetadata ? ',metadata' : ''}` : '*')
@@ -91,6 +108,7 @@ export function useProducts(category?: string, searchQuery?: string, options: Pr
     },
     getNextPageParam: (lastPage, allPages) =>
       lastPage.products.length === PRODUCTS_PAGE_SIZE ? allPages.length : undefined,
+    staleTime: listingOnly ? 2 * 60_000 : 60_000,
     enabled: options.enabled ?? true,
   });
 }
@@ -98,17 +116,27 @@ export function useProducts(category?: string, searchQuery?: string, options: Pr
 export function useFeaturedProducts() {
   return useQuery({
     queryKey: ['products', 'featured'],
-    queryFn: async (): Promise<Product[]> => {
+    queryFn: async ({ signal }): Promise<Product[]> => {
+      const cached = await fetchPublicCatalog<{ products: Product[] }>(
+        { resource: 'featured-products' },
+        signal,
+      );
+      if (cached && Array.isArray(cached.products)) {
+        return cached.products;
+      }
+
       const { data, error } = await supabase
         .from('products')
-        .select('*')
+        .select(PRODUCT_LISTING_FIELDS)
         .eq('featured', true)
         .order('created_at', { ascending: false })
-        .limit(6);
-      
+        .limit(6)
+        .abortSignal(signal);
+
       if (error) throw error;
-      return data as Product[];
+      return (data || []) as Product[];
     },
+    staleTime: 5 * 60_000,
   });
 }
 
@@ -121,7 +149,7 @@ export function useProduct(id: string) {
         .select('*')
         .eq('id', id)
         .maybeSingle();
-      
+
       if (error) throw error;
       return data as Product | null;
     },
@@ -138,7 +166,7 @@ export function useProductBySlug(slug: string) {
         .select('*')
         .eq('slug', slug)
         .maybeSingle();
-      
+
       if (error) throw error;
       if (data) return data as Product;
 
@@ -157,17 +185,36 @@ export function useProductBySlug(slug: string) {
 
 export function useCategories() {
   return useQuery({
-    queryKey: ['categories'],
-    queryFn: async (): Promise<string[]> => {
+    queryKey: ['categories', 'names'],
+    queryFn: async ({ signal }): Promise<string[]> => {
+      const cached = await fetchPublicCatalog<{ categories: Array<{ name: string }> }>(
+        { resource: 'categories' },
+        signal,
+      );
+      if (cached && Array.isArray(cached.categories)) {
+        return cached.categories.map((category) => category.name).filter(Boolean);
+      }
+
       const { data, error } = await supabase
+        .from('categories' as any)
+        .select('name')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true })
+        .abortSignal(signal);
+
+      if (!error && data) {
+        return (data as unknown as Array<{ name: string }>).map((category) => category.name).filter(Boolean);
+      }
+
+      const { data: fallback, error: fallbackError } = await supabase
         .from('products')
         .select('category')
-        .not('category', 'is', null);
-      
-      if (error) throw error;
-      
-      const categories = [...new Set(data.map(p => p.category).filter(Boolean))] as string[];
-      return categories;
+        .not('category', 'is', null)
+        .abortSignal(signal);
+
+      if (fallbackError) throw fallbackError;
+      return [...new Set((fallback || []).map((p) => p.category).filter(Boolean))] as string[];
     },
+    staleTime: 5 * 60_000,
   });
 }

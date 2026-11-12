@@ -11,6 +11,7 @@ import { useStorefrontPath } from '@/contexts/StorefrontContext';
 import { useToast } from '@/hooks/use-toast';
 import { StoreContactSection } from '@/components/mobile-store/StoreContactSection';
 import { Product } from '@/types';
+import { StorageImage } from '@/components/ui/storage-image';
 
 const MOOD_FILTERS = [
   { label: 'Fresh', terms: ['fresh', 'citrus', 'lemon', 'bergamot', 'ocean', 'mint', 'eucalyptus', 'clean'] },
@@ -37,7 +38,7 @@ function QuickOrderPick({ product }: { product: Product }) {
   return (
     <article className="w-[72vw] max-w-[250px] shrink-0 snap-start overflow-hidden rounded-2xl border border-[#173b38]/10 bg-white shadow-sm sm:w-56">
       <div className="relative aspect-[4/3] bg-[#f3eee5]">
-        {image ? <img src={image} alt={product.name} loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-sm text-muted-foreground">SERENIQUEE candle</div>}
+        {image ? <StorageImage src={image} widths={[320, 480, 720]} defaultWidth={480} sizes="(max-width: 639px) 72vw, 224px" alt={product.name} loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-sm text-muted-foreground">SERENIQUEE candle</div>}
         {!inStock && <span className="absolute left-3 top-3 rounded-full bg-[#173b38] px-3 py-1 text-xs font-semibold text-white">Sold out</span>}
       </div>
       <div className="p-3.5">

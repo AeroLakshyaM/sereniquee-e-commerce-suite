@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { Blog } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { StorageImage } from '@/components/ui/storage-image';
 
 interface BlogCardProps {
   blog: Blog;
@@ -33,8 +34,11 @@ export function BlogCard({ blog, variant = 'default' }: BlogCardProps) {
           aria-hidden="true"
         />
         {blog.cover_image_url ? (
-          <img
+          <StorageImage
             src={blog.cover_image_url}
+            widths={[320, 480, 720, 960]}
+            defaultWidth={720}
+            sizes={variant === 'featured' ? '(max-width: 767px) 100vw, 66vw' : '(max-width: 767px) 100vw, 33vw'}
             alt={blog.title}
             loading="lazy"
             decoding="async"
@@ -73,7 +77,7 @@ export function BlogCard({ blog, variant = 'default' }: BlogCardProps) {
             {blog.title}
           </h3>
           <p className="text-muted-foreground line-clamp-3 text-sm sm:text-base">
-            {blog.excerpt || blog.content.slice(0, 120)}
+            {blog.excerpt || (blog.content ?? '').slice(0, 120)}
           </p>
         </div>
         <div className="flex items-center gap-2 text-sm font-semibold text-foreground">

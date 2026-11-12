@@ -13,6 +13,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { ProductReviews } from '@/components/product/ProductReviews';
 import { useStorefrontBasePath, useStorefrontPath } from '@/contexts/StorefrontContext';
 import { ScentPassportButton } from '@/components/product/ScentPassportButton';
+import { StorageImage } from '@/components/ui/storage-image';
 
 export default function ProductDetail() {
   const storePath = useStorefrontPath;
@@ -135,8 +136,11 @@ export default function ProductDetail() {
           <div className="relative aspect-square bg-secondary overflow-hidden group">
             {images.length > 0 ? (
               <>
-                <img
+                <StorageImage
                   src={images[selectedImageIndex]}
+                  widths={[480, 720, 960, 1200]}
+                  defaultWidth={960}
+                  sizes="(max-width: 767px) 100vw, 50vw"
                   alt={`${product.name} - Image ${selectedImageIndex + 1}`}
                   width={800}
                   height={800}
@@ -191,8 +195,11 @@ export default function ProductDetail() {
                       : 'border-border hover:border-primary/50'
                   }`}
                 >
-                  <img
+                  <StorageImage
                     src={image}
+                    widths={[160, 320]}
+                    defaultWidth={200}
+                    sizes="120px"
                     alt={`Thumbnail ${index + 1}`}
                     width={200}
                     height={200}

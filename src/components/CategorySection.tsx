@@ -2,9 +2,10 @@ import { Link } from 'react-router-dom';
 import { useCategories } from '@/hooks/useCategories';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { StorageImage } from '@/components/ui/storage-image';
 
 export function CategorySection() {
-  const { activeCategories, isLoading } = useCategories();
+  const { activeCategories, isLoading } = useCategories({ activeOnly: true });
 
   if (isLoading) {
     return (
@@ -47,8 +48,11 @@ export function CategorySection() {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 ) : category.image_url ? (
-                  <img
+                  <StorageImage
                     src={category.image_url}
+                    widths={[320, 480, 720]}
+                    defaultWidth={480}
+                    sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw"
                     alt={category.name}
                     loading="lazy"
                     decoding="async"

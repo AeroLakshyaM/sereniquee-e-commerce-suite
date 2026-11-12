@@ -30,7 +30,7 @@ export default function Shop() {
     isFetchingNextPage,
     fetchNextPage,
   } = useProducts(selectedCategory, searchQuery, { listing: true });
-  const { activeCategories } = useCategories();
+  const { activeCategories } = useCategories({ activeOnly: true });
   const allProducts = useMemo(
     () => data?.pages.flatMap((page) => page.products) || [],
     [data],

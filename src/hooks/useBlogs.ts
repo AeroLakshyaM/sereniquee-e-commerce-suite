@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchPublicCatalog } from '@/lib/publicCatalog';
 import { Blog } from '@/types';
+
+const BLOG_LISTING_FIELDS = 'id,title,slug,excerpt,content,cover_image_url,author_name,is_published,tags,reading_time,published_at,created_at,updated_at';
 
 interface UseBlogsOptions {
   includeDrafts?: boolean;
@@ -17,10 +20,20 @@ export function useBlogs(options: UseBlogsOptions = {}) {
 
   return useQuery({
     queryKey: ['blogs', includeDrafts ? 'all' : 'published', limit, tag],
-    queryFn: async (): Promise<Blog[]> => {
+    queryFn: async ({ signal }): Promise<Blog[]> => {
+      if (!includeDrafts) {
+        const cached = await fetchPublicCatalog<{ blogs: Blog[] }>(
+          { resource: 'blogs', limit, tag },
+          signal,
+        );
+        if (cached && Array.isArray(cached.blogs)) {
+          return cached.blogs;
+        }
+      }
+
       let query = supabase
         .from('blogs')
-        .select('*')
+        .select(includeDrafts ? '*' : BLOG_LISTING_FIELDS)
         .order('created_at', { ascending: false });
 
       if (!includeDrafts) {
@@ -35,10 +48,11 @@ export function useBlogs(options: UseBlogsOptions = {}) {
         query = query.limit(limit);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query.abortSignal(signal);
       if (error) throw error;
-      return (data ?? []) as Blog[];
+      return (data ?? []) as unknown as Blog[];
     },
+    staleTime: includeDrafts ? 60_000 : 5 * 60_000,
   });
 }
 
